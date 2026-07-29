@@ -14,13 +14,16 @@ void SensorManager::begin() {
     gasManager.begin();
     emergencyDetector.begin();
     uartManager.begin();
+    webServerManager.begin();
 
     #if SPU_DEBUG_ENABLE
-    Serial.println(F("[SPU] All Subsystems Initialized Successfully."));
+    Serial.println(F("[SPU] All Subsystems and Local Web Server Initialized."));
     #endif
 }
 
 void SensorManager::loop() {
+    webServerManager.update();
+
     unsigned long now = millis();
 
     // 1. High frequency sensor sampling

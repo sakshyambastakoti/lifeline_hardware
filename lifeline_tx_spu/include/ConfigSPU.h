@@ -11,6 +11,12 @@
 #define SPU_FIRMWARE_VERSION    "v1.0-SPU"       // Firmware version
 #define SPU_DEBUG_ENABLE        true             // Enable Serial Debug output
 
+// Wi-Fi SoftAP & Local Web Server Configuration
+#define ENABLE_WEB_SERVER       true             // Host local web dashboard on ESP32
+#define WIFI_AP_SSID            "LifeLine-Sensor-Node" // Access Point SSID
+#define WIFI_AP_PASS            "lifeline123"    // Access Point Password
+#define WEB_SERVER_PORT         80               // HTTP Port 80
+
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              PIN DEFINITIONS (ESP32 #1 SPU)
 // ═══════════════════════════════════════════════════════════════════════════════════
