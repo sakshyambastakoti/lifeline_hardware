@@ -5,6 +5,7 @@
 #include "SharedProtocol.h"
 
 void initSPUReceiver();
+bool isESPNowInitialized();
 bool updateSPUReceiver();
 bool hasSPUTelemetry();
 TelemetryPacket getLatestSPUTelemetry();

@@ -41,6 +41,11 @@ void setup() {
     initDisplay();
     initLoRa();
     initSPUReceiver();
+    if (isESPNowInitialized()) {
+        Serial.println(F("[INIT] ESP-NOW Receiver status: OK (Listening on 2.4GHz broadcast)"));
+    } else {
+        Serial.println(F("[INIT] WARNING: ESP-NOW Receiver status: FAILED at boot"));
+    }
     
     // Boot Screen
     currentScreen = SCREEN_BOOT;
@@ -57,6 +62,7 @@ void setup() {
 
 static bool bootupTelemetrySent = false;
 static unsigned long lastPeriodicLoraTx = 0;
+static unsigned long lastSensorLogRefresh = 0;
 #define LORA_PERIODIC_INTERVAL 3600000UL // 1 Hour (3,600,000 ms)
 
 void loop() {
@@ -70,6 +76,7 @@ void loop() {
         // If user is currently looking at the SPU Sensor Log screen, refresh TFT immediately!
         if (currentScreen == SCREEN_SENSOR_LOG) {
             drawSensorLogScreen();
+            lastSensorLogRefresh = now;
         }
         
         // 1. Initial Power-up Boot Log (SPU -> TX -> RX -> Cloud)
@@ -100,6 +107,12 @@ void loop() {
             Serial.println(F("[1-HR LORA] Transmitting 1-hour routine telemetry log over LoRa -> RX -> Cloud..."));
             transmitSPUTelemetry(spuPkt);
         }
+    }
+    
+    // Periodic refresh of SPU Sensor Log screen every 1 second when active
+    if (currentScreen == SCREEN_SENSOR_LOG && millis() - lastSensorLogRefresh >= 1000) {
+        lastSensorLogRefresh = millis();
+        drawSensorLogScreen();
     }
     
     switch (currentScreen) {

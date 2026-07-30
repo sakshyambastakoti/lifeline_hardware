@@ -8,6 +8,7 @@ static TelemetryPacket currentTelemetry;
 static bool receivedValidData = false;
 static unsigned long lastReceiveTime = 0;
 static volatile bool newEspNowPacketReceived = false;
+static bool espNowInitialized = false;
 
 // ESP-NOW Receive Callback
 #if defined(ESP_IDF_VERSION_MAJOR) && ESP_IDF_VERSION_MAJOR >= 5
@@ -57,11 +58,17 @@ void initSPUReceiver() {
 
     if (esp_now_init() != ESP_OK) {
         Serial.println(F("[SPU RX] Error initializing ESP-NOW Receiver on TX unit!"));
+        espNowInitialized = false;
         return;
     }
 
     esp_now_register_recv_cb(onESPNowDataRecv);
+    espNowInitialized = true;
     Serial.println(F("[SPU RX] Initialized ESP-NOW Wireless Telemetry Receiver on TX unit."));
+}
+
+bool isESPNowInitialized() {
+    return espNowInitialized;
 }
 
 bool updateSPUReceiver() {
