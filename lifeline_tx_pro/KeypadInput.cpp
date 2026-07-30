@@ -20,10 +20,17 @@ byte colPins[KEYPAD_COLS] = {14, 12, 13, 15};  // Connect to keypad columns
 Keypad keypad = Keypad(makeKeymap(keypadLayout), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 void keypadEventListener(KeypadEvent key) {
-    if (key == '0' && keypad.getState() == HOLD) {
-        Serial.println(F("\n[KEYPAD] Key '0' held for 3 seconds -> Triggering OTA Portal Mode!"));
-        playClickTone();
-        startOTAMode();
+    if (keypad.getState() == HOLD) {
+        if (key == '0') {
+            Serial.println(F("\n[KEYPAD] Key '0' held for 3 seconds -> Triggering OTA Portal Mode!"));
+            playConfirmTone();
+            startOTAMode();
+        } else if (key == 'A') {
+            Serial.println(F("\n[KEYPAD] Key 'A' held for 3 seconds -> Displaying SPU Sensor Log Dashboard!"));
+            playConfirmTone();
+            currentScreen = SCREEN_SENSOR_LOG;
+            drawSensorLogScreen();
+        }
     }
 }
 
@@ -83,6 +90,13 @@ void handleKeyPress(char key) {
         case SCREEN_OTA:
             if (key == '#') {
                 stopOTAMode();
+                currentScreen = SCREEN_MENU;
+                drawMenuScreen();
+            }
+            break;
+        case SCREEN_SENSOR_LOG:
+            if (key == '#' || key == '*') {
+                playClickTone();
                 currentScreen = SCREEN_MENU;
                 drawMenuScreen();
             }

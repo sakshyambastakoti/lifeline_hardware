@@ -1249,3 +1249,96 @@ void drawOTAScreen() {
     Serial.println(F("[SCREEN] OTA Screen Displayed"));
 }
 
+void drawSensorLogScreen() {
+    tft.fillScreen(COLOR_BG_PRIMARY);
+    drawHeader("SPU SENSOR TELEMETRY LOG");
+    
+    int cardY = CONTENT_START_Y + 2;
+    int cardW = SCREEN_WIDTH - MARGIN * 2;
+    int cardH = 175;
+    
+    drawPremiumCard(MARGIN, cardY, cardW, cardH, COLOR_BG_CARD, COLOR_CYAN, true);
+    
+    tft.setTextSize(TEXT_SMALL);
+    
+    if (hasSPUTelemetry()) {
+        TelemetryPacket pkt = getLatestSPUTelemetry();
+        
+        // Status header
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(MARGIN + 12, cardY + 10);
+        tft.print(F("● LIVE SPU TELEMETRY LINK OK"));
+        
+        tft.drawFastHLine(MARGIN + 10, cardY + 24, cardW - 20, COLOR_ACCENT_LINE);
+        
+        // 1. Environment Row
+        tft.setTextColor(COLOR_CYAN);
+        tft.setCursor(MARGIN + 12, cardY + 34);
+        tft.print(F("TEMP / HUM: "));
+        tft.setTextColor(COLOR_TEXT_PRIMARY);
+        tft.printf("%.1f C  |  %u%%", pkt.temp_c_x10 / 10.0, pkt.humidity_x10 / 10);
+        
+        // 2. Air Quality / Gas Row
+        tft.setTextColor(COLOR_CYAN);
+        tft.setCursor(MARGIN + 12, cardY + 52);
+        tft.print(F("AIR / GAS : "));
+        tft.setTextColor(pkt.gas_ppm > 400 ? COLOR_RED_BRIGHT : COLOR_GREEN_BRIGHT);
+        tft.printf("%u PPM  (%s)", pkt.gas_ppm, pkt.gas_ppm > 400 ? "WARNING" : "NORMAL");
+        
+        // 3. GPS Row
+        tft.setTextColor(COLOR_CYAN);
+        tft.setCursor(MARGIN + 12, cardY + 70);
+        tft.print(F("GPS COORD : "));
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.printf("%.5f, %.5f", pkt.lat_deg_e7 / 10000000.0, pkt.lon_deg_e7 / 10000000.0);
+        
+        tft.setCursor(MARGIN + 12, cardY + 86);
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.printf("ALT: %dm  | FIX: %s  | SAT: %u", pkt.alt_meters, pkt.gps_fix ? "VALID" : "NO FIX", pkt.sat_count);
+        
+        // 4. Motion / MPU6050 Row
+        tft.setTextColor(COLOR_CYAN);
+        tft.setCursor(MARGIN + 12, cardY + 104);
+        tft.print(F("MOTION/IMU: "));
+        tft.setTextColor(COLOR_TEXT_SECONDARY);
+        tft.printf("Accel: %d, %d, %d mG", pkt.accel_x_mg, pkt.accel_y_mg, pkt.accel_z_mg);
+        
+        // 5. Vitals / Health & Risk Row
+        tft.setTextColor(COLOR_CYAN);
+        tft.setCursor(MARGIN + 12, cardY + 122);
+        tft.print(F("VITALS    : "));
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.printf("Health %u%%", pkt.health_score);
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.print(F(" | "));
+        tft.setTextColor(pkt.risk_score > 50 ? COLOR_RED_BRIGHT : COLOR_TEXT_SECONDARY);
+        tft.printf("Risk %u%%", pkt.risk_score);
+        
+        // 6. Packet Code & Age
+        unsigned long ageSec = (millis() - getSPULastReceiveTime()) / 1000;
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(MARGIN + 12, cardY + 146);
+        tft.printf("Code: '%c' | Received %lus ago", pkt.emergency_code, ageSec);
+    } else {
+        tft.setTextColor(COLOR_AMBER);
+        tft.setCursor(MARGIN + 12, cardY + 12);
+        tft.print(F("SEARCHING SPU LINK..."));
+        
+        tft.setTextColor(COLOR_TEXT_SECONDARY);
+        tft.setCursor(MARGIN + 12, cardY + 40);
+        tft.print(F("Connect SPU UART output (Serial2)"));
+        tft.setCursor(MARGIN + 12, cardY + 58);
+        tft.print(F("to ESP32 GPIO 34 (RX pin)."));
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(MARGIN + 12, cardY + 90);
+        tft.print(F("Baud Rate: 115200 8N1"));
+        tft.setCursor(MARGIN + 12, cardY + 108);
+        tft.print(F("Waiting for live telemetry packet..."));
+    }
+    
+    drawFooter("# Exit Sensor Log");
+    Serial.println(F("[SCREEN] SPU Sensor Log Dashboard displayed"));
+}
+
+

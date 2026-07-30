@@ -36,5 +36,6 @@ void drawResultScreen();
 void drawSystemInfoScreen();
 void drawUserManualScreen();
 void drawOTAScreen();
+void drawSensorLogScreen();
 
 #endif // DISPLAY_UI_H
