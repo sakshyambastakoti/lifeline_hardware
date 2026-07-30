@@ -1,4 +1,5 @@
 #include "KeypadInput.h"
+#include "OTAManager.h"
 
 const byte KEYPAD_ROWS = 4;
 const byte KEYPAD_COLS = 4;
@@ -18,8 +19,17 @@ byte colPins[KEYPAD_COLS] = {14, 12, 13, 15};  // Connect to keypad columns
 // Keypad instance definition
 Keypad keypad = Keypad(makeKeymap(keypadLayout), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
+void keypadEventListener(KeypadEvent key) {
+    if (key == '0' && keypad.getState() == HOLD) {
+        Serial.println(F("\n[KEYPAD] Key '0' held for 3 seconds -> Triggering OTA Portal Mode!"));
+        playClickTone();
+        startOTAMode();
+    }
+}
+
 void initKeypad() {
-    // Keypad constructor automatically handles pin setup
+    keypad.setHoldTime(3000);  // 3000 ms = 3 seconds hold time
+    keypad.addEventListener(keypadEventListener);
 }
 
 char readSerialKey() {
@@ -69,6 +79,13 @@ void handleKeyPress(char key) {
             break;
         case SCREEN_USER_MANUAL:
             handleUserManualInput(key);
+            break;
+        case SCREEN_OTA:
+            if (key == '#') {
+                stopOTAMode();
+                currentScreen = SCREEN_MENU;
+                drawMenuScreen();
+            }
             break;
         default:
             break;

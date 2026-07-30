@@ -1,4 +1,5 @@
 #include "DisplayUI.h"
+#include "OTAManager.h"
 
 // TFT Display instance (Hardware SPI)
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
@@ -1129,3 +1130,68 @@ void drawUserManualScreen() {
     
     Serial.printf("[SCREEN] Premium Manual page %d displayed\n", manualPage + 1);
 }
+
+void drawOTAScreen() {
+    tft.fillScreen(COLOR_BG_PRIMARY);
+    drawHeader("WIRELESS OTA UPDATE");
+    
+    int contentY = CONTENT_START_Y + 5;
+    
+    // OTA Card
+    drawPremiumCard(MARGIN, contentY, SCREEN_WIDTH - MARGIN * 2, 170, COLOR_BG_CARD, COLOR_CYAN, true);
+    
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(MARGIN + 12, contentY + 12);
+    tft.print(F("SSID (AP): "));
+    tft.setTextColor(COLOR_TEXT_PRIMARY);
+    tft.print(F("LifeLine-TX-OTA"));
+    
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(MARGIN + 12, contentY + 28);
+    tft.print(F("PASSWORD : "));
+    tft.setTextColor(COLOR_TEXT_PRIMARY);
+    tft.print(F("12345678"));
+    
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(MARGIN + 12, contentY + 44);
+    tft.print(F("WEB URL  : "));
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.print(F("http://"));
+    tft.print(getOTAIPAddress());
+    
+    tft.drawFastHLine(MARGIN + 10, contentY + 62, SCREEN_WIDTH - MARGIN * 2 - 20, COLOR_ACCENT_LINE);
+    
+    // Status text
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(MARGIN + 12, contentY + 74);
+    tft.print(F("STATUS: "));
+    tft.setTextColor(COLOR_AMBER);
+    tft.print(getOTAStatusText());
+    
+    // Progress Bar Container
+    int progressY = contentY + 95;
+    int progressW = SCREEN_WIDTH - MARGIN * 2 - 30;
+    int progressH = 18;
+    tft.drawRoundRect(MARGIN + 15, progressY, progressW, progressH, 4, COLOR_BORDER);
+    
+    int progress = getOTAProgress();
+    if (progress > 0) {
+        int fillW = (progressW - 4) * progress / 100;
+        tft.fillRoundRect(MARGIN + 17, progressY + 2, fillW, progressH - 4, 3, COLOR_GREEN);
+    }
+    
+    tft.setCursor(MARGIN + 15 + progressW / 2 - 12, progressY + 4);
+    tft.setTextColor(progress > 50 ? COLOR_TEXT_DARK : COLOR_TEXT_PRIMARY);
+    tft.printf("%d%%", progress);
+
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(MARGIN + 12, contentY + 125);
+    tft.print(F("PIO OTA: pio run -t upload --upload-port 192.168.4.1"));
+    tft.setCursor(MARGIN + 12, contentY + 140);
+    tft.print(F("Web OTA: Open browser and upload firmware.bin"));
+
+    drawFooter("# Exit OTA Mode");
+    Serial.println(F("[SCREEN] OTA Screen Displayed"));
+}
+

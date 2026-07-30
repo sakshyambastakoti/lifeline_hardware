@@ -12,6 +12,7 @@
 #include "DisplayUI.h"
 #include "LoRaComm.h"
 #include "KeypadInput.h"
+#include "OTAManager.h"
 
 void setup() {
     Serial.begin(SERIAL_BAUD_RATE);
@@ -43,6 +44,8 @@ void setup() {
 }
 
 void loop() {
+    handleOTA();
+    
     switch (currentScreen) {
         case SCREEN_BOOT:
             if (millis() - bootStartTime >= BOOT_DISPLAY_TIME) {
@@ -56,6 +59,7 @@ void loop() {
         case SCREEN_CONFIRM:
         case SCREEN_SYSTEM_INFO:
         case SCREEN_USER_MANUAL:
+        case SCREEN_OTA:
             {
                 char key = keypad.getKey();
                 #if SERIAL_DEBUG_ENABLED

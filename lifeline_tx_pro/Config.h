@@ -206,7 +206,8 @@ enum ScreenState {
     SCREEN_SENDING,         // 3 - Transmission in progress
     SCREEN_RESULT,          // 4 - Transmission result (success/failure)
     SCREEN_SYSTEM_INFO,     // 5 - System information display
-    SCREEN_USER_MANUAL      // 6 - User manual / help screen
+    SCREEN_USER_MANUAL,     // 6 - User manual / help screen
+    SCREEN_OTA              // 7 - Wireless OTA Firmware Portal
 };
 
 extern ScreenState currentScreen;
