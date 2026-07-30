@@ -14,7 +14,6 @@
 #include "LoRaComm.h"
 #include "KeypadInput.h"
 #include "OTAManager.h"
-#include "SPUReceiver.h"
 
 void setup() {
     Serial.begin(SERIAL_BAUD_RATE);
@@ -24,7 +23,7 @@ void setup() {
     printDebugHeader();
     #endif
     
-    Serial.println(F("[INIT] Starting LifeLine TX..."));
+    Serial.println(F("[INIT] Starting LifeLine TX (Manual SOS Unit)..."));
     
     // 1. Immediately deselect SPI Chip Selects to prevent bus contention
     pinMode(LORA_CS, OUTPUT);
@@ -35,12 +34,11 @@ void setup() {
     // 2. Initialize shared SPI bus with custom pins (SCK: 5, MISO: 17, MOSI: 27)
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     
-    // 3. Initialize Subsystems & SPU Receiver (UART RX: GPIO 34)
+    // 3. Initialize Subsystems (Buzzer/LED, Keypad, TFT Display, LoRa)
     initBuzzerLED();
     initKeypad();
     initDisplay();
     initLoRa();
-    initSPUReceiver();
     
     // Boot Screen
     currentScreen = SCREEN_BOOT;
@@ -52,63 +50,11 @@ void setup() {
     clearAllLEDs();
     
     Serial.println(F("[INIT] Ready"));
-    Serial.printf("[INIT] Device: TX #%03d\n", DEVICE_ID);
+    Serial.printf("[INIT] Device: TX #%03d (Manual SOS Mode)\n", DEVICE_ID);
 }
-
-static bool bootupTelemetrySent = false;
-static unsigned long lastPeriodicLoraTx = 0;
-static unsigned long lastSensorLogRefresh = 0;
-#define LORA_PERIODIC_INTERVAL 3600000UL // 1 Hour (3,600,000 ms)
 
 void loop() {
     handleOTA();
-    
-    // Process incoming SPU telemetry & automatic emergencies
-    if (updateSPUReceiver()) {
-        TelemetryPacket spuPkt = getLatestSPUTelemetry();
-        unsigned long now = millis();
-        
-        // If user is currently looking at the SPU Sensor Log screen, refresh TFT immediately!
-        if (currentScreen == SCREEN_SENSOR_LOG) {
-            drawSensorLogScreen();
-            lastSensorLogRefresh = now;
-        }
-        
-        // 1. Initial Power-up Boot Log (SPU -> TX -> RX -> Cloud)
-        if (!bootupTelemetrySent) {
-            bootupTelemetrySent = true;
-            lastPeriodicLoraTx = now;
-            Serial.println(F("[BOOT LORA] Power-up telemetry log transmitted over LoRa -> RX -> Cloud!"));
-            transmitSPUTelemetry(spuPkt);
-        }
-        // 2. Automatic Emergency Triggered by SPU
-        else if (spuPkt.emergency_code != EMERGENCY_NONE && spuPkt.emergency_code != 0) {
-            Serial.printf("[AUTO ALERT] Automatic emergency received from SPU: '%c'\n", spuPkt.emergency_code);
-            lastPeriodicLoraTx = now;
-            
-            selectedAlertIndex = mapSPUEmergencyToAlertIndex(spuPkt.emergency_code);
-            currentScreen = SCREEN_SENDING;
-            drawSendingScreen();
-            
-            playErrorTone();
-            lastTransmitSuccess = transmitSPUTelemetry(spuPkt);
-            
-            currentScreen = SCREEN_RESULT;
-            drawResultScreen();
-        }
-        // 3. Periodic 1-Hour Routine LoRa Telemetry Heartbeat
-        else if (now - lastPeriodicLoraTx >= LORA_PERIODIC_INTERVAL) {
-            lastPeriodicLoraTx = now;
-            Serial.println(F("[1-HR LORA] Transmitting 1-hour routine telemetry log over LoRa -> RX -> Cloud..."));
-            transmitSPUTelemetry(spuPkt);
-        }
-    }
-    
-    // Periodic refresh of SPU Sensor Log screen every 1 second when active
-    if (currentScreen == SCREEN_SENSOR_LOG && millis() - lastSensorLogRefresh >= 1000) {
-        lastSensorLogRefresh = millis();
-        drawSensorLogScreen();
-    }
     
     switch (currentScreen) {
         case SCREEN_BOOT:

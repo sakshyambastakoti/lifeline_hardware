@@ -13,11 +13,10 @@ void SensorManager::begin() {
     mpuManager.begin();
     gasManager.begin();
     emergencyDetector.begin();
-    uartManager.begin();
     webServerManager.begin();
 
     #if SPU_DEBUG_ENABLE
-    Serial.println(F("[SPU] All Subsystems, Hardware UART & Wi-Fi Portal Initialized."));
+    Serial.println(F("[SPU] All Subsystems & Direct Cloud Server Telemetry Portal Initialized."));
     #endif
 }
 
@@ -88,10 +87,7 @@ void SensorManager::loop() {
         printLiveSensorDiagnostics(env, motion, gas, gps, emergency, health);
         #endif
 
-        // Transmit packet to TX unit via Hardware UART Serial 2
-        uartManager.sendTelemetry(pkt);
-
-        // Upload rich telemetry JSON to Cloud API Endpoint if Wi-Fi connected
+        // Upload rich telemetry JSON directly to Cloud Web Server Endpoint (Server handles push notifications)
         webServerManager.uploadTelemetry();
     }
 }

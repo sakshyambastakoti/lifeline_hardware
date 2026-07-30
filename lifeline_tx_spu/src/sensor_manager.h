@@ -10,7 +10,6 @@
 #include "gas_manager.h"
 #include "emergency_detector.h"
 #include "health_calculator.h"
-#include "uart_manager.h"
 #include "web_server_manager.h"
 
 class SensorManager {

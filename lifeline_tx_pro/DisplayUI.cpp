@@ -1294,7 +1294,7 @@ void drawOTAScreen() {
 
 void drawSensorLogScreen() {
     tft.fillScreen(COLOR_BG_PRIMARY);
-    drawHeader("SPU SENSOR TELEMETRY LOG");
+    drawHeader("STANDALONE MANUAL SOS UNIT");
     
     int cardY = CONTENT_START_Y + 2;
     int cardW = SCREEN_WIDTH - MARGIN * 2;
@@ -1304,91 +1304,34 @@ void drawSensorLogScreen() {
     
     tft.setTextSize(TEXT_SMALL);
     
-    if (hasReceivedSPUTelemetry()) {
-        TelemetryPacket pkt = getLatestSPUTelemetry();
-        bool linkActive = hasSPUTelemetry(); // active within last 10 seconds
-        
-        // Status header
-        if (linkActive) {
-            tft.setTextColor(COLOR_GREEN_BRIGHT);
-            tft.setCursor(MARGIN + 12, cardY + 10);
-            tft.print(F("● SPU TELEMETRY LINK OK (UART)"));
-        } else {
-            tft.setTextColor(COLOR_AMBER);
-            tft.setCursor(MARGIN + 12, cardY + 10);
-            tft.print(F("● SPU LINK PAUSED (LAST KNOWN)"));
-        }
-        
-        tft.drawFastHLine(MARGIN + 10, cardY + 24, cardW - 20, COLOR_ACCENT_LINE);
-        
-        // 1. Environment Row
-        tft.setTextColor(COLOR_CYAN);
-        tft.setCursor(MARGIN + 12, cardY + 34);
-        tft.print(F("TEMP / HUM: "));
-        tft.setTextColor(COLOR_TEXT_PRIMARY);
-        tft.printf("%.1f C  |  %u%%", pkt.temp_c_x10 / 10.0, pkt.humidity_x10 / 10);
-        
-        // 2. Air Quality / Gas Row
-        tft.setTextColor(COLOR_CYAN);
-        tft.setCursor(MARGIN + 12, cardY + 52);
-        tft.print(F("AIR / GAS : "));
-        tft.setTextColor(pkt.gas_ppm > 400 ? COLOR_RED_BRIGHT : COLOR_GREEN_BRIGHT);
-        tft.printf("%u PPM  (%s)", pkt.gas_ppm, pkt.gas_ppm > 400 ? "WARNING" : "NORMAL");
-        
-        // 3. GPS Row
-        tft.setTextColor(COLOR_CYAN);
-        tft.setCursor(MARGIN + 12, cardY + 70);
-        tft.print(F("GPS COORD : "));
-        tft.setTextColor(COLOR_AMBER_BRIGHT);
-        tft.printf("%.5f, %.5f", pkt.lat_deg_e7 / 10000000.0, pkt.lon_deg_e7 / 10000000.0);
-        
-        tft.setCursor(MARGIN + 12, cardY + 86);
-        tft.setTextColor(COLOR_TEXT_MUTED);
-        tft.printf("ALT: %dm  | FIX: %s  | SAT: %u", pkt.alt_meters, pkt.gps_fix ? "VALID" : "NO FIX", pkt.sat_count);
-        
-        // 4. Motion / MPU6050 Row
-        tft.setTextColor(COLOR_CYAN);
-        tft.setCursor(MARGIN + 12, cardY + 104);
-        tft.print(F("MOTION/IMU: "));
-        tft.setTextColor(COLOR_TEXT_SECONDARY);
-        tft.printf("Accel: %d, %d, %d mG", pkt.accel_x_mg, pkt.accel_y_mg, pkt.accel_z_mg);
-        
-        // 5. Vitals / Health & Risk Row
-        tft.setTextColor(COLOR_CYAN);
-        tft.setCursor(MARGIN + 12, cardY + 122);
-        tft.print(F("VITALS    : "));
-        tft.setTextColor(COLOR_GREEN_BRIGHT);
-        tft.printf("Health %u%%", pkt.health_score);
-        tft.setTextColor(COLOR_TEXT_MUTED);
-        tft.print(F(" | "));
-        tft.setTextColor(pkt.risk_score > 50 ? COLOR_RED_BRIGHT : COLOR_TEXT_SECONDARY);
-        tft.printf("Risk %u%%", pkt.risk_score);
-        
-        // 6. Packet Code & Age
-        unsigned long ageSec = (millis() - getSPULastReceiveTime()) / 1000;
-        tft.setTextColor(COLOR_TEXT_MUTED);
-        tft.setCursor(MARGIN + 12, cardY + 146);
-        tft.printf("Code: '%c' | UART Rx %lus ago", pkt.emergency_code, ageSec);
-    } else {
-        tft.setTextColor(COLOR_AMBER);
-        tft.setCursor(MARGIN + 12, cardY + 12);
-        tft.print(F("SEARCHING SPU LINK..."));
-        
-        tft.setTextColor(COLOR_TEXT_SECONDARY);
-        tft.setCursor(MARGIN + 12, cardY + 40);
-        tft.print(F("Connect SPU UART TX output"));
-        tft.setCursor(MARGIN + 12, cardY + 58);
-        tft.print(F("to ESP32 GPIO 34 (RX pin)."));
-        
-        tft.setTextColor(COLOR_TEXT_MUTED);
-        tft.setCursor(MARGIN + 12, cardY + 90);
-        tft.print(F("Baud Rate: 115200 8N1"));
-        tft.setCursor(MARGIN + 12, cardY + 108);
-        tft.print(F("Waiting for live telemetry packet..."));
-    }
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(MARGIN + 12, cardY + 12);
+    tft.print(F("● MANUAL SOS MODE ACTIVE"));
     
-    drawFooter("# Exit Sensor Log");
-    Serial.println(F("[SCREEN] SPU Sensor Log Dashboard displayed"));
+    tft.drawFastHLine(MARGIN + 10, cardY + 26, cardW - 20, COLOR_ACCENT_LINE);
+    
+    tft.setTextColor(COLOR_TEXT_PRIMARY);
+    tft.setCursor(MARGIN + 12, cardY + 38);
+    tft.print(F("TX Module: Manual Emergency Alert Unit"));
+    
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(MARGIN + 12, cardY + 58);
+    tft.print(F("SPU Node Mode: Direct Cloud Upload"));
+    
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(MARGIN + 12, cardY + 78);
+    tft.print(F("• SPU sends live telemetry directly to Cloud."));
+    tft.setCursor(MARGIN + 12, cardY + 94);
+    tft.print(F("• Cloud Server detects risk/landslide & triggers"));
+    tft.setCursor(MARGIN + 12, cardY + 108);
+    tft.print(F("  push notifications automatically."));
+    
+    tft.setTextColor(COLOR_AMBER_BRIGHT);
+    tft.setCursor(MARGIN + 12, cardY + 130);
+    tft.print(F("• Keypad: Select alert 1-9 to transmit LoRa SOS."));
+    
+    drawFooter("# Exit Screen");
+    Serial.println(F("[SCREEN] Standalone Manual SOS Info displayed"));
 }
 
 
