@@ -35,7 +35,7 @@ typedef struct {
     uint8_t  magic1;             // 'L'
     uint8_t  magic2;             // 'F'
     uint8_t  version;            // 0x01
-    uint16_t node_id;            // Transmitter Node ID
+    uint8_t  node_id;            // Transmitter Node ID
     uint8_t  emergency_code;     // Emergency ASCII character code
     uint8_t  priority;           // 1 to 5 priority level
     uint8_t  health_score;       // 0 to 100%

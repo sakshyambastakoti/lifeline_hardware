@@ -67,6 +67,11 @@ void loop() {
         TelemetryPacket spuPkt = getLatestSPUTelemetry();
         unsigned long now = millis();
         
+        // If user is currently looking at the SPU Sensor Log screen, refresh TFT immediately!
+        if (currentScreen == SCREEN_SENSOR_LOG) {
+            drawSensorLogScreen();
+        }
+        
         // 1. Initial Power-up Boot Log (SPU -> TX -> RX -> Cloud)
         if (!bootupTelemetrySent) {
             bootupTelemetrySent = true;
@@ -111,8 +116,26 @@ void loop() {
         case SCREEN_SYSTEM_INFO:
         case SCREEN_USER_MANUAL:
         case SCREEN_OTA:
+            {
+                char key = keypad.getKey();
+                #if SERIAL_DEBUG_ENABLED
+                if (!key) {
+                    key = readSerialKey();
+                    if (key) Serial.printf("[SERIAL] Key: %c\n", key);
+                }
+                #endif
+                if (key) handleKeyPress(key);
+            }
+            break;
+
         case SCREEN_SENSOR_LOG:
             {
+                static unsigned long lastLogRefresh = 0;
+                if (millis() - lastLogRefresh >= 1000) {
+                    lastLogRefresh = millis();
+                    drawSensorLogScreen();
+                }
+
                 char key = keypad.getKey();
                 #if SERIAL_DEBUG_ENABLED
                 if (!key) {
