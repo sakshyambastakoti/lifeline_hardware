@@ -16,14 +16,14 @@
 //                              WIFI & CLOUD API CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-#define API_ENDPOINT            "https://zenithkandel.com.np/lifeline/API/Create/message.php"
+#define API_ENDPOINT            "https://zenithkandel.com.np/lifeline/api/recieve.php"
 #define WIFI_AP_SSID            "LifeLine-SPU-Setup" // Captive Access Point SSID
 #define WIFI_PORTAL_TIMEOUT     180000           // Portal timeout: 3 minutes (180s in ms)
 #define WIFI_CONNECT_TIMEOUT    8000             // Connection timeout per network: 8 seconds (ms)
 #define MAX_WIFI_NETWORKS       3                // Up to 3 stored Wi-Fi networks in NVS
 
 #define ENABLE_SERVER_UPLOAD    true             // Transmit telemetry to remote server
-#define SERVER_UPLOAD_INTERVAL  2000             // ms - Upload interval to server
+#define SERVER_UPLOAD_INTERVAL  3000             // ms - Upload interval to server (Every 3 seconds)
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              PIN DEFINITIONS (ESP32 #1 SPU)
@@ -82,7 +82,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 #define SENSOR_SAMPLE_INTERVAL  200              // ms - High frequency sensor loop (5 Hz)
-#define TELEMETRY_SEND_INTERVAL 2000             // ms - Periodic sensor telemetry broadcast (Every 2 seconds)
+#define TELEMETRY_SEND_INTERVAL 3000             // ms - Periodic sensor telemetry broadcast (Every 3 seconds)
 #define EMERGENCY_SEND_INTERVAL 500              // ms - Rapid emergency dispatch interval (0.5s)
 
 #endif // CONFIG_SPU_H
