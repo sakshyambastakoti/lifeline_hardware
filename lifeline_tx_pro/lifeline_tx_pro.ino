@@ -55,26 +55,45 @@ void setup() {
     Serial.printf("[INIT] Device: TX #%03d\n", DEVICE_ID);
 }
 
+static bool bootupTelemetrySent = false;
+static unsigned long lastPeriodicLoraTx = 0;
+#define LORA_PERIODIC_INTERVAL 3600000UL // 1 Hour (3,600,000 ms)
+
 void loop() {
     handleOTA();
     
     // Process incoming SPU telemetry & automatic emergencies
     if (updateSPUReceiver()) {
         TelemetryPacket spuPkt = getLatestSPUTelemetry();
+        unsigned long now = millis();
         
-        // Auto trigger emergency if SPU detects an automatic alert
-        if (spuPkt.emergency_code != EMERGENCY_NONE && spuPkt.emergency_code != 0) {
+        // 1. Initial Power-up Boot Log (SPU -> TX -> RX -> Cloud)
+        if (!bootupTelemetrySent) {
+            bootupTelemetrySent = true;
+            lastPeriodicLoraTx = now;
+            Serial.println(F("[BOOT LORA] Power-up telemetry log transmitted over LoRa -> RX -> Cloud!"));
+            transmitSPUTelemetry(spuPkt);
+        }
+        // 2. Automatic Emergency Triggered by SPU
+        else if (spuPkt.emergency_code != EMERGENCY_NONE && spuPkt.emergency_code != 0) {
             Serial.printf("[AUTO ALERT] Automatic emergency received from SPU: '%c'\n", spuPkt.emergency_code);
+            lastPeriodicLoraTx = now;
             
             selectedAlertIndex = mapSPUEmergencyToAlertIndex(spuPkt.emergency_code);
             currentScreen = SCREEN_SENDING;
             drawSendingScreen();
             
             playErrorTone();
-            lastTransmitSuccess = transmitAlert();
+            lastTransmitSuccess = transmitSPUTelemetry(spuPkt);
             
             currentScreen = SCREEN_RESULT;
             drawResultScreen();
+        }
+        // 3. Periodic 1-Hour Routine LoRa Telemetry Heartbeat
+        else if (now - lastPeriodicLoraTx >= LORA_PERIODIC_INTERVAL) {
+            lastPeriodicLoraTx = now;
+            Serial.println(F("[1-HR LORA] Transmitting 1-hour routine telemetry log over LoRa -> RX -> Cloud..."));
+            transmitSPUTelemetry(spuPkt);
         }
     }
     

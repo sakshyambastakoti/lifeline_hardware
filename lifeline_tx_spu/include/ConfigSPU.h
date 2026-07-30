@@ -73,7 +73,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 #define SENSOR_SAMPLE_INTERVAL  200              // ms - High frequency sensor loop (5 Hz)
-#define TELEMETRY_SEND_INTERVAL 3600000          // ms - Periodic full sensor telemetry log (1 Hour)
+#define TELEMETRY_SEND_INTERVAL 2000             // ms - Periodic sensor telemetry broadcast (Every 2 seconds)
 #define EMERGENCY_SEND_INTERVAL 500              // ms - Rapid emergency dispatch interval (0.5s)
 
 #endif // CONFIG_SPU_H

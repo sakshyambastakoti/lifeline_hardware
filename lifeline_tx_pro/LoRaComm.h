@@ -2,10 +2,12 @@
 #define LORA_COMM_H
 
 #include "Config.h"
+#include "SharedProtocol.h"
 #include <SPI.h>
 #include <LoRa.h>
 
 void initLoRa();
 bool transmitAlert();
+bool transmitSPUTelemetry(const TelemetryPacket& pkt);
 
 #endif // LORA_COMM_H

@@ -1187,66 +1187,109 @@ void drawUserManualScreen() {
 
 void drawOTAScreen() {
     tft.fillScreen(COLOR_BG_PRIMARY);
-    drawHeader("WIRELESS OTA UPDATE");
+    drawHeader("WIRELESS OTA FIRMWARE PORTAL");
     
-    int contentY = CONTENT_START_Y + 5;
+    int cardY = CONTENT_START_Y + 2;
+    int cardW = SCREEN_WIDTH - MARGIN * 2;
+    int cardH = 175;
     
-    // OTA Card
-    drawPremiumCard(MARGIN, contentY, SCREEN_WIDTH - MARGIN * 2, 170, COLOR_BG_CARD, COLOR_CYAN, true);
+    // Main Glassmorphic OTA Card
+    drawPremiumCard(MARGIN, cardY, cardW, cardH, COLOR_BG_CARD, COLOR_CYAN, true);
     
+    // Glowing Access Point Info Box
+    tft.fillRoundRect(MARGIN + 6, cardY + 6, cardW - 12, 54, 4, COLOR_BG_HEADER_ALT);
+    tft.drawRoundRect(MARGIN + 6, cardY + 6, cardW - 12, 54, 4, COLOR_ACCENT_BRIGHT);
+    
+    // Row 1 Left: AP SSID
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(MARGIN + 12, contentY + 12);
-    tft.print(F("SSID (AP): "));
-    tft.setTextColor(COLOR_TEXT_PRIMARY);
+    tft.setCursor(MARGIN + 12, cardY + 14);
+    tft.print(F("WI-FI AP : "));
+    tft.fillRoundRect(MARGIN + 80, cardY + 11, 125, 16, 3, RGB565(15, 45, 65));
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
+    tft.setCursor(MARGIN + 86, cardY + 15);
     tft.print(F("LifeLine-TX-OTA"));
     
-    tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(MARGIN + 12, contentY + 28);
-    tft.print(F("PASSWORD : "));
+    // Row 1 Right: Password
+    tft.setTextColor(COLOR_AMBER);
+    tft.setCursor(MARGIN + 215, cardY + 14);
+    tft.print(F("PASS: "));
     tft.setTextColor(COLOR_TEXT_PRIMARY);
     tft.print(F("12345678"));
     
-    tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(MARGIN + 12, contentY + 44);
-    tft.print(F("WEB URL  : "));
+    // Row 2: WEB PORTAL URL
     tft.setTextColor(COLOR_GREEN_BRIGHT);
-    tft.print(F("http://"));
-    tft.print(getOTAIPAddress());
+    tft.setCursor(MARGIN + 12, cardY + 36);
+    tft.print(F("WEB URL  : "));
+    tft.fillRoundRect(MARGIN + 80, cardY + 33, 200, 16, 3, RGB565(10, 50, 30));
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(MARGIN + 86, cardY + 37);
+    tft.print(F("http://192.168.4.1"));
     
-    tft.drawFastHLine(MARGIN + 10, contentY + 62, SCREEN_WIDTH - MARGIN * 2 - 20, COLOR_ACCENT_LINE);
+    // Separator line
+    tft.drawFastHLine(MARGIN + 10, cardY + 66, cardW - 20, COLOR_ACCENT_LINE);
     
-    // Status text
-    tft.setTextColor(COLOR_TEXT_SECONDARY);
-    tft.setCursor(MARGIN + 12, contentY + 74);
-    tft.print(F("STATUS: "));
-    tft.setTextColor(COLOR_AMBER);
-    tft.print(getOTAStatusText());
-    
-    // Progress Bar Container
-    int progressY = contentY + 95;
-    int progressW = SCREEN_WIDTH - MARGIN * 2 - 30;
-    int progressH = 18;
-    tft.drawRoundRect(MARGIN + 15, progressY, progressW, progressH, 4, COLOR_BORDER);
-    
+    // Status text label & live status string
     int progress = getOTAProgress();
+    String statusStr = getOTAStatusText();
+    
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(MARGIN + 12, cardY + 76);
+    tft.print(F("STATUS: "));
+    
+    if (progress > 0 && progress < 100) {
+        tft.setTextColor(COLOR_CYAN_BRIGHT);
+    } else if (progress >= 100) {
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+    } else {
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+    }
+    tft.print(statusStr);
+    
+    // Premium Glowing Progress Bar Container
+    int progressY = cardY + 96;
+    int progressW = cardW - 24;
+    int progressH = 22;
+    int progressX = MARGIN + 12;
+    
+    tft.fillRoundRect(progressX, progressY, progressW, progressH, 5, COLOR_BG_INPUT);
+    tft.drawRoundRect(progressX, progressY, progressW, progressH, 5, progress > 0 ? COLOR_CYAN : COLOR_BORDER);
+    
     if (progress > 0) {
         int fillW = (progressW - 4) * progress / 100;
-        tft.fillRoundRect(MARGIN + 17, progressY + 2, fillW, progressH - 4, 3, COLOR_GREEN);
+        if (fillW > 0) {
+            drawGradientH(progressX + 2, progressY + 2, fillW, progressH - 4, COLOR_CYAN_DARK, COLOR_GREEN_BRIGHT);
+        }
     }
     
-    tft.setCursor(MARGIN + 15 + progressW / 2 - 12, progressY + 4);
-    tft.setTextColor(progress > 50 ? COLOR_TEXT_DARK : COLOR_TEXT_PRIMARY);
-    tft.printf("%d%%", progress);
-
+    // Percentage text inside progress bar
+    char pctBuf[16];
+    snprintf(pctBuf, sizeof(pctBuf), "%d%%", progress);
+    tft.setTextSize(TEXT_SMALL);
+    int16_t x1, y1;
+    uint16_t tw, th;
+    tft.getTextBounds(pctBuf, 0, 0, &x1, &y1, &tw, &th);
+    
+    int pctX = progressX + (progressW - tw) / 2;
+    int pctY = progressY + (progressH - th) / 2;
+    
+    tft.setTextColor(COLOR_TEXT_DARK);
+    tft.setCursor(pctX + 1, pctY + 1); // Drop shadow
+    tft.print(pctBuf);
+    tft.setTextColor(progress > 45 ? COLOR_TEXT_DARK : COLOR_TEXT_PRIMARY);
+    tft.setCursor(pctX, pctY);
+    tft.print(pctBuf);
+    
+    // Bottom command hints card
+    tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(MARGIN + 12, contentY + 125);
-    tft.print(F("PIO OTA: pio run -t upload --upload-port 192.168.4.1"));
-    tft.setCursor(MARGIN + 12, contentY + 140);
-    tft.print(F("Web OTA: Open browser and upload firmware.bin"));
-
+    tft.setCursor(MARGIN + 12, cardY + 126);
+    tft.print(F("PIO CLI: pio run -e esp32dev_ota -t upload"));
+    tft.setCursor(MARGIN + 12, cardY + 142);
+    tft.print(F("WEB OTA: Open 192.168.4.1 to upload .bin file"));
+    
     drawFooter("# Exit OTA Mode");
-    Serial.println(F("[SCREEN] OTA Screen Displayed"));
+    Serial.println(F("[SCREEN] Enhanced OTA Screen Displayed"));
 }
 
 void drawSensorLogScreen() {

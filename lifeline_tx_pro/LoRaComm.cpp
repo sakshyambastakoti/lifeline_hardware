@@ -59,3 +59,45 @@ bool transmitAlert() {
     Serial.printf("[LORA] Result: %s\n", success ? "OK" : "FAILED");
     return success;
 }
+
+bool transmitSPUTelemetry(const TelemetryPacket& pkt) {
+    if (!loraInitialized) {
+        Serial.println(F("[LORA] ERROR: Not initialized"));
+        return false;
+    }
+    
+    char payloadStr[96];
+    snprintf(payloadStr, sizeof(payloadStr),
+             "TX%03d,%c,%d,%u,%u,%ld,%ld,%d,%u,%u",
+             pkt.node_id,
+             pkt.emergency_code,
+             pkt.temp_c_x10,
+             pkt.humidity_x10,
+             pkt.gas_ppm,
+             (long)pkt.lat_deg_e7,
+             (long)pkt.lon_deg_e7,
+             pkt.alt_meters,
+             pkt.health_score,
+             pkt.risk_score);
+
+    Serial.printf("[LORA SPU TX] Packet: '%s'\n", payloadStr);
+
+    LoRa.idle();
+    delay(10);
+    
+    LoRa.beginPacket();
+    LoRa.print(payloadStr);
+    bool success = LoRa.endPacket();
+    
+    delay(50);
+    
+    totalTransmissions++;
+    if (success) {
+        successfulTransmissions++;
+        lastTransmitTime = millis();
+    }
+    
+    Serial.printf("[LORA SPU TX] Result: %s\n", success ? "OK" : "FAILED");
+    return success;
+}
+
