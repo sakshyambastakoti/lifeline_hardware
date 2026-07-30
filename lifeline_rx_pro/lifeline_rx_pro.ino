@@ -23,6 +23,45 @@ static String serialInputBuffer = "";
 void printSerialDebugMenu();
 bool checkSerialSimulatedPacket(int& deviceId, int& alertIndex, int& rssi);
 
+bool handleIncomingLoRaTelemetry() {
+    FullTelemetryData telemetry;
+    bool packetReceived = parseLoRaPacketExtended(telemetry);
+
+    #if SERIAL_DEBUG_ENABLED
+    if (!packetReceived) {
+        int devId, alertIdx, rssi;
+        if (checkSerialSimulatedPacket(devId, alertIdx, rssi)) {
+            telemetry.deviceId = devId;
+            telemetry.alertIndex = alertIdx;
+            telemetry.rssi = rssi;
+            telemetry.emergencyCode = (alertIdx == 4) ? 'N' : 'E';
+            telemetry.isFullTelemetry = false;
+            packetReceived = true;
+        }
+    }
+    #endif
+
+    if (!packetReceived) return false;
+
+    triggerRxBlink();
+
+    if (telemetry.emergencyCode == 'N') {
+        // Normal 1-Hour Periodic Telemetry Heartbeat Log (Silent, NO Siren)
+        Serial.printf("[RX NORMAL LOG] Device=%d, Temp=%.1f, Lat=%.6f, Lon=%.6f\n",
+                      telemetry.deviceId, telemetry.temperature, telemetry.latitude, telemetry.longitude);
+        pushFullTelemetryToAPI(telemetry);
+    } else {
+        // Active Emergency Alert (Fire, Landslide, Earthquake, Manual SOS, etc.)
+        Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%d\n",
+                      telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
+        currentScreen = SCREEN_ALERT;
+        drawAlertScreen(telemetry.deviceId, telemetry.alertIndex, telemetry.rssi); // LCD update & loud siren
+        pushFullTelemetryToAPI(telemetry);
+    }
+
+    return true;
+}
+
 void setup() {
     Serial.begin(SERIAL_BAUD_RATE);
     delay(100);
@@ -114,28 +153,8 @@ void loop() {
                 Serial.println(F("[STATE] No WiFi screen timeout (60s) -> Switched to IDLE"));
             }
             
-            // Check for incoming emergency alerts even when on No WiFi screen
-            {
-                int deviceId, alertIndex, rssi;
-                bool packetReceived = parseLoRaPacket(deviceId, alertIndex, rssi);
-                
-                #if SERIAL_DEBUG_ENABLED
-                if (!packetReceived) {
-                    packetReceived = checkSerialSimulatedPacket(deviceId, alertIndex, rssi);
-                }
-                #endif
-                
-                if (packetReceived) {
-                    Serial.printf("[RX] Alert received: Device=%d, Alert=%d (%s), RSSI=%d\n",
-                                  deviceId, alertIndex, alertNames[alertIndex], rssi);
-                    
-                    triggerRxBlink();
-                    currentScreen = SCREEN_ALERT;
-                    drawAlertScreen(deviceId, alertIndex, rssi); // Instant LCD update & loud buzzer
-                    pushAlertToAPI(deviceId, alertIndex, rssi);  // Send API payload
-                    Serial.println(F("[STATE] Switched to ALERT from NO_WIFI screen"));
-                }
-            }
+            // Check for incoming telemetry / alerts
+            handleIncomingLoRaTelemetry();
             break;
             
         case SCREEN_COUNTDOWN:
@@ -151,52 +170,13 @@ void loop() {
             checkWiFiPortalButton();
             updateIdleAnimation();
             
-            {
-                int deviceId, alertIndex, rssi;
-                bool packetReceived = parseLoRaPacket(deviceId, alertIndex, rssi);
-                
-                #if SERIAL_DEBUG_ENABLED
-                if (!packetReceived) {
-                    packetReceived = checkSerialSimulatedPacket(deviceId, alertIndex, rssi);
-                }
-                #endif
-                
-                if (packetReceived) {
-                    Serial.printf("[RX] Alert received: Device=%d, Alert=%d (%s), RSSI=%d\n",
-                                  deviceId, alertIndex, alertNames[alertIndex], rssi);
-                    
-                    triggerRxBlink();
-                    currentScreen = SCREEN_ALERT;
-                    drawAlertScreen(deviceId, alertIndex, rssi); // Instant LCD update & loud buzzer
-                    pushAlertToAPI(deviceId, alertIndex, rssi);  // Send API payload
-                    
-                    Serial.println(F("[STATE] Switched to ALERT"));
-                }
-            }
+            handleIncomingLoRaTelemetry();
             break;
             
         case SCREEN_ALERT:
             checkWiFiPortalButton();
             
-            {
-                int deviceId, alertIndex, rssi;
-                bool packetReceived = parseLoRaPacket(deviceId, alertIndex, rssi);
-                
-                #if SERIAL_DEBUG_ENABLED
-                if (!packetReceived) {
-                    packetReceived = checkSerialSimulatedPacket(deviceId, alertIndex, rssi);
-                }
-                #endif
-                
-                if (packetReceived) {
-                    Serial.printf("[RX] New alert received while displaying: Device=%d, Alert=%d\n", 
-                                  deviceId, alertIndex);
-                    
-                    triggerRxBlink();
-                    drawAlertScreen(deviceId, alertIndex, rssi); // Instantly interrupt & overwrite LCD display
-                    pushAlertToAPI(deviceId, alertIndex, rssi);  // Send API payload
-                }
-            }
+            handleIncomingLoRaTelemetry();
             
             if (shouldReturnToIdle()) {
                 playReturnIdleTone();

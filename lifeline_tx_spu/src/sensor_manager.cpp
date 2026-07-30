@@ -44,6 +44,14 @@ void SensorManager::loop() {
 
     // 2. Check if urgent emergency trigger occurred
     const EmergencyState& emergency = emergencyDetector.getState();
+
+    // Instant override: If an emergency just became active, force immediate dispatch!
+    static bool previous_emergency_active = false;
+    if (emergency.is_active && !previous_emergency_active) {
+        _last_send_time = 0;
+    }
+    previous_emergency_active = emergency.is_active;
+
     unsigned long dispatch_interval = emergency.is_active ? EMERGENCY_SEND_INTERVAL : TELEMETRY_SEND_INTERVAL;
 
     if (now - _last_send_time >= dispatch_interval) {

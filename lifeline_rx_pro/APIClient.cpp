@@ -32,3 +32,43 @@ void pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
     
     http.end();
 }
+
+void pushFullTelemetryToAPI(const FullTelemetryData& data) {
+    if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
+        Serial.println(F("[API] WiFi not connected, skipping full telemetry push"));
+        return;
+    }
+
+    HTTPClient http;
+    http.setTimeout(3000); // 3 second network timeout
+    http.begin(API_ENDPOINT);
+    http.addHeader("Content-Type", "application/json");
+
+    String jsonPayload = "{";
+    jsonPayload += "\"DID\":" + String(data.deviceId) + ",";
+    jsonPayload += "\"message_code\":" + String(data.alertIndex) + ",";
+    jsonPayload += "\"code\":\"" + String(data.emergencyCode) + "\",";
+    jsonPayload += "\"temp\":" + String(data.temperature, 1) + ",";
+    jsonPayload += "\"humidity\":" + String(data.humidity, 1) + ",";
+    jsonPayload += "\"gas_ppm\":" + String(data.gasPpm) + ",";
+    jsonPayload += "\"lat\":" + String(data.latitude, 6) + ",";
+    jsonPayload += "\"lon\":" + String(data.longitude, 6) + ",";
+    jsonPayload += "\"alt\":" + String(data.altitude) + ",";
+    jsonPayload += "\"health\":" + String(data.healthScore) + ",";
+    jsonPayload += "\"risk\":" + String(data.riskScore) + ",";
+    jsonPayload += "\"RSSI\":" + String(data.rssi);
+    jsonPayload += "}";
+
+    Serial.printf("[API EX] Sending rich telemetry JSON: %s\n", jsonPayload.c_str());
+
+    int httpResponseCode = http.POST(jsonPayload);
+
+    if (httpResponseCode > 0) {
+        String response = http.getString();
+        Serial.printf("[API EX] Response (%d): %s\n", httpResponseCode, response.c_str());
+    } else {
+        Serial.printf("[API EX] Error: %s\n", http.errorToString(httpResponseCode).c_str());
+    }
+
+    http.end();
+}

@@ -31,9 +31,21 @@ bool LoRaManager::begin() {
 }
 
 String LoRaManager::buildBaseStationPayload(const TelemetryPacket& packet) {
-    // Standard Base Station Compatible Format: TX[ID],[ALERT_CODE] (e.g. TX003,F)
-    char payloadStr[32];
-    snprintf(payloadStr, sizeof(payloadStr), "TX%03d,%c", packet.node_id, packet.emergency_code);
+    // Extended Base Station Format: TX[ID],[CODE],[TEMP_X10],[HUM_X10],[GAS],[LAT_E7],[LON_E7],[ALT],[HEALTH],[RISK]
+    // Example: TX003,F,285,650,350,27717245,85323960,1350,98,80
+    char payloadStr[96];
+    snprintf(payloadStr, sizeof(payloadStr),
+             "TX%03d,%c,%d,%u,%u,%ld,%ld,%d,%u,%u",
+             packet.node_id,
+             packet.emergency_code,
+             packet.temp_c_x10,
+             packet.humidity_x10,
+             packet.gas_ppm,
+             (long)packet.lat_deg_e7,
+             (long)packet.lon_deg_e7,
+             packet.alt_meters,
+             packet.health_score,
+             packet.risk_score);
     return String(payloadStr);
 }
 
