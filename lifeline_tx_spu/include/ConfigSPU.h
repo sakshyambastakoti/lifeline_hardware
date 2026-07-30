@@ -17,6 +17,15 @@
 #define WIFI_AP_PASS            "lifeline123"    // Access Point Password
 #define WEB_SERVER_PORT         80               // HTTP Port 80
 
+// Wi-Fi Station & Remote Server Telemetry Configuration
+#define ENABLE_WIFI_STA         true             // Enable Wi-Fi Station mode to connect to router/hotspot
+#define WIFI_STA_SSID           "LifeLine-Network" // Target Wi-Fi SSID
+#define WIFI_STA_PASS           "lifeline2026"   // Target Wi-Fi Password
+
+#define ENABLE_SERVER_UPLOAD    true             // Transmit telemetry to remote server
+#define SERVER_TELEMETRY_URL    "http://192.168.1.100:5000/api/telemetry" // Server HTTP POST endpoint
+#define SERVER_UPLOAD_INTERVAL  2000             // ms - Upload interval to server
+
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              PIN DEFINITIONS (ESP32 #1 SPU)
 // ═══════════════════════════════════════════════════════════════════════════════════

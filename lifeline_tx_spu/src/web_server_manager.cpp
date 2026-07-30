@@ -8,313 +8,429 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LifeLine Sensor Node — Local Dashboard</title>
+    <title>SPU Serial Monitor Diagnostic Report</title>
     <style>
         :root {
-            --bg-primary: #0a0b10;
-            --bg-card: rgba(20, 24, 38, 0.75);
-            --border-card: rgba(0, 240, 255, 0.15);
-            --accent-cyan: #00f0ff;
-            --accent-green: #00ff87;
-            --accent-amber: #ffb800;
-            --accent-red: #ff3b3b;
-            --text-primary: #ffffff;
-            --text-secondary: #94a3b8;
+            --bg-color: #06090e;
+            --term-green: #00ff66;
+            --term-cyan: #00e5ff;
+            --term-amber: #ffb700;
+            --term-red: #ff3333;
+            --term-dim: #7a8b9e;
+            --term-text: #e1f0ff;
+            --term-border: #1a293d;
+            --card-bg: #090e17;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', 'Fira Code', 'Courier New', monospace; }
 
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
+            background-color: var(--bg-color);
+            color: var(--term-text);
             padding: 1.5rem;
             min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(0, 255, 135, 0.05) 0%, transparent 40%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.45;
         }
 
-        .header {
+        /* CRT Scanline Overlay */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 99;
+            opacity: 0.6;
+        }
+
+        .terminal-container {
+            width: 100%;
+            max-width: 820px;
+            background: var(--card-bg);
+            border: 1px solid #1e3048;
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.08), inset 0 0 15px rgba(0,0,0,0.8);
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        /* Retro Title Box */
+        .title-box {
+            border: 1px solid var(--term-cyan);
+            padding: 0.6rem 1rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            color: var(--term-cyan);
+            margin-bottom: 1.5rem;
+            background: rgba(0, 229, 255, 0.04);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
+        }
+
+        .status-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--term-dim);
+            border-bottom: 1px dashed var(--term-border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
-        .header-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
-        .header-title span { color: var(--accent-cyan); }
-        .status-badge {
-            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.8rem;
-            border-radius: 9999px; font-size: 0.85rem; font-weight: 600;
-            background: rgba(0, 255, 135, 0.1); border: 1px solid var(--accent-green); color: var(--accent-green);
+        .status-item { display: flex; align-items: center; gap: 0.4rem; }
+        .dot-green { width: 8px; height: 8px; border-radius: 50%; background: var(--term-green); box-shadow: 0 0 8px var(--term-green); }
+        .dot-amber { width: 8px; height: 8px; border-radius: 50%; background: var(--term-amber); box-shadow: 0 0 8px var(--term-amber); }
+        .dot-red { width: 8px; height: 8px; border-radius: 50%; background: var(--term-red); box-shadow: 0 0 8px var(--term-red); }
+
+        /* Step Section Styling */
+        .step-block { margin-bottom: 1.5rem; }
+        .step-header {
+            font-weight: bold;
+            color: var(--term-cyan);
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
         }
-        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } }
-
-        .banner {
-            padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;
-            background: rgba(0, 255, 135, 0.08); border: 1px solid var(--accent-green);
-            display: flex; justify-content: space-between; align-items: center;
-            transition: all 0.3s ease;
+        .step-divider {
+            color: var(--term-dim);
+            margin: 0.2rem 0 0.5rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+            opacity: 0.6;
         }
-        .banner.emergency {
-            background: rgba(255, 59, 59, 0.15); border-color: var(--accent-red); animation: blinkBanner 1s infinite alternate;
+        .data-row {
+            display: flex;
+            font-size: 0.92rem;
+            padding: 0.15rem 0;
         }
-        @keyframes blinkBanner { from { box-shadow: 0 0 10px rgba(255,59,59,0.2); } to { box-shadow: 0 0 25px rgba(255,59,59,0.6); } }
-
-        .banner-text { font-size: 1.1rem; font-weight: 700; }
-        .banner-sub { font-size: 0.85rem; color: var(--text-secondary); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 16px;
-            padding: 1.25rem;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, border-color 0.2s ease;
+        .data-label {
+            color: var(--term-text);
+            white-space: pre;
+            opacity: 0.9;
         }
-        .card:hover { transform: translateY(-3px); border-color: var(--accent-cyan); }
-
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .card-title { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); font-weight: 600; }
-        .card-icon { font-size: 1.3rem; }
-
-        .value-large { font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem; }
-        .unit { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
-
-        .stat-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
-        .stat-row:last-child { border-bottom: none; }
-        .stat-label { color: var(--text-secondary); }
-        .stat-val { font-weight: 600; color: var(--text-primary); }
-
-        .progress-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green)); transition: width 0.5s ease; }
-
-        .btn-map {
-            display: inline-block; width: 100%; text-align: center; padding: 0.6rem; margin-top: 1rem;
-            border-radius: 8px; background: rgba(0, 240, 255, 0.1); border: 1px solid var(--accent-cyan);
-            color: var(--accent-cyan); font-weight: 600; text-decoration: none; transition: all 0.2s;
+        .data-value {
+            font-weight: 600;
         }
-        .btn-map:hover { background: var(--accent-cyan); color: #000; }
 
-        footer { text-align: center; margin-top: 2rem; color: var(--text-secondary); font-size: 0.85rem; }
+        /* State colors */
+        .val-ok { color: var(--term-green); }
+        .val-warn { color: var(--term-amber); font-weight: bold; }
+        .val-alert { color: var(--term-red); font-weight: bold; animation: blink 1.2s infinite; }
+        .val-cyan { color: var(--term-cyan); }
+        .val-dim { color: var(--term-dim); }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .cursor {
+            display: inline-block;
+            width: 9px;
+            height: 1.1em;
+            background: var(--term-cyan);
+            vertical-align: text-bottom;
+            animation: cursorBlink 0.8s infinite;
+        }
+        @keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Controls */
+        .controls-bar {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .btn-term {
+            background: #0d1624;
+            border: 1px solid var(--term-cyan);
+            color: var(--term-cyan);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .btn-term:hover {
+            background: var(--term-cyan);
+            color: #000;
+            box-shadow: 0 0 10px rgba(0,229,255,0.4);
+        }
+
+        footer {
+            margin-top: 1.5rem;
+            font-size: 0.78rem;
+            color: var(--term-dim);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="header-title">⚡ LifeLine <span>Sensor Node</span></div>
-        <div class="status-badge">
-            <div class="pulse-dot"></div>
-            <span id="node-id">Node TX #3</span>
+    <div class="scanlines" id="crt-overlay"></div>
+
+    <div class="terminal-container">
+        
+        <div class="title-box">
+            ┌─────────────────────────────────────────────────────────────┐<br>
+            │       SPU STEP-BY-STEP SENSOR DIAGNOSTIC REPORT             │<br>
+            └─────────────────────────────────────────────────────────────┘
         </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="dot-green" id="status-dot"></span>
+                <span>NODE ID: <strong id="node-id" class="val-cyan">SPU-#3</strong></span>
+            </div>
+            <div class="status-item">
+                <span>UPTIME: <span id="uptime-val">0s</span></span>
+            </div>
+            <div class="status-item">
+                <span>WIFI STA: <span id="wifi-sta-status" class="val-warn">DISCONNECTED</span></span>
+            </div>
+            <div class="status-item">
+                <span>SERVER: <span id="server-status-val" class="val-dim">IDLE</span></span>
+            </div>
+        </div>
+
+        <!-- [STEP 1/5] ENVIRONMENTAL SENSOR -->
+        <div class="step-block">
+            <div class="step-header">[STEP 1/5] ENVIRONMENTAL SENSOR (DHT11 / DHT22)</div>
+            <div class="step-divider">-------------------------------------------------------------</div>
+            <div class="data-row"><span class="data-label">  • Temperature       : </span><span class="data-value" id="dht-temp">-- °C</span></div>
+            <div class="data-row"><span class="data-label">  • Humidity          : </span><span class="data-value" id="dht-hum">-- %</span></div>
+            <div class="data-row"><span class="data-label">  • Sensor Status     : </span><span class="data-value" id="dht-status">--</span></div>
+        </div>
+
+        <!-- [STEP 2/5] AIR QUALITY & GAS SENSOR -->
+        <div class="step-block">
+            <div class="step-header">[STEP 2/5] AIR QUALITY & GAS SENSOR (MQ135)</div>
+            <div class="step-divider">-------------------------------------------------------------</div>
+            <div class="data-row"><span class="data-label">  • Gas Concentration : </span><span class="data-value" id="gas-ppm">-- PPM</span></div>
+            <div class="data-row"><span class="data-label">  • Pollution Warning : </span><span class="data-value" id="gas-warn">--</span></div>
+            <div class="data-row"><span class="data-label">  • Fire / Smoke Risk : </span><span class="data-value" id="gas-danger">--</span></div>
+        </div>
+
+        <!-- [STEP 3/5] MOTION & SEISMIC SENSOR -->
+        <div class="step-block">
+            <div class="step-header">[STEP 3/5] MOTION & SEISMIC SENSOR (MPU6050 6-DOF IMU)</div>
+            <div class="step-divider">-------------------------------------------------------------</div>
+            <div class="data-row"><span class="data-label">  • Raw Accel (X,Y,Z) : </span><span class="data-value" id="mpu-xyz">X=0.00G, Y=0.00G, Z=0.00G</span></div>
+            <div class="data-row"><span class="data-label">  • Gyro Rate (X,Y,Z) : </span><span class="data-value" id="mpu-gyro">X=0.0°/s, Y=0.0°/s, Z=0.0°/s</span></div>
+            <div class="data-row"><span class="data-label">  • Vector Magnitude  : </span><span class="data-value" id="mpu-mag">0.00 G</span></div>
+            <div class="data-row"><span class="data-label">  • Dynamic Tilt Angle: </span><span class="data-value" id="mpu-tilt">0.0°</span></div>
+            <div class="data-row"><span class="data-label">  • Motion Detected   : </span><span class="data-value" id="mpu-motion">NO (Still)</span></div>
+            <div class="data-row"><span class="data-label">  • Sudden Impact     : </span><span class="data-value" id="mpu-impact">NO</span></div>
+            <div class="data-row"><span class="data-label">  • Free Fall         : </span><span class="data-value" id="mpu-fall">NO</span></div>
+            <div class="data-row"><span class="data-label">  • Seismic Anomaly   : </span><span class="data-value" id="mpu-quake">NO</span></div>
+        </div>
+
+        <!-- [STEP 4/5] GPS NAVIGATION MODULE -->
+        <div class="step-block">
+            <div class="step-header">[STEP 4/5] GPS NAVIGATION MODULE (NEO-6M)</div>
+            <div class="step-divider">-------------------------------------------------------------</div>
+            <div class="data-row"><span class="data-label">  • GPS Fix Status    : </span><span class="data-value" id="gps-status">SEARCHING...</span></div>
+            <div class="data-row"><span class="data-label">  • Satellites & Loc  : </span><span class="data-value" id="gps-loc">0 Satellites</span></div>
+            <div class="data-row"><span class="data-label">  • Tip               : </span><span class="data-value val-dim" id="gps-tip">Move antenna outdoors for satellite lock</span></div>
+        </div>
+
+        <!-- [STEP 5/5] EMERGENCY FUSION ENGINE & SYSTEM HEALTH -->
+        <div class="step-block">
+            <div class="step-header">[STEP 5/5] EMERGENCY FUSION ENGINE & SYSTEM HEALTH</div>
+            <div class="step-divider">-------------------------------------------------------------</div>
+            <div class="data-row"><span class="data-label">  • Active Emergency  : </span><span class="data-value" id="sys-emergency">'N' (NOMINAL / NORMAL OPERATION)</span></div>
+            <div class="data-row"><span class="data-label">  • Priority Level    : </span><span class="data-value" id="sys-prio">1 (1=Normal, 5=Critical)</span></div>
+            <div class="data-row"><span class="data-label">  • Node Health Score : </span><span class="data-value" id="sys-health">100 %</span></div>
+            <div class="data-row"><span class="data-label">  • Env Risk Score    : </span><span class="data-value" id="sys-risk">0 %</span></div>
+        </div>
+
+        <!-- [STEP 6/6] WI-FI & REMOTE SERVER TRANSMISSION MONITOR -->
+        <div class="step-block">
+            <div class="step-header">[STEP 6/6] WI-FI & REMOTE SERVER TRANSMISSION MONITOR</div>
+            <div class="step-divider">-------------------------------------------------------------</div>
+            <div class="data-row"><span class="data-label">  • Wi-Fi AP Address  : </span><span class="data-value val-cyan" id="net-ap-ip">192.168.4.1 (LifeLine-Sensor-Node)</span></div>
+            <div class="data-row"><span class="data-label">  • Wi-Fi STA Address : </span><span class="data-value" id="net-sta-ip">Disconnected</span></div>
+            <div class="data-row"><span class="data-label">  • Server Endpoint   : </span><span class="data-value val-dim" id="net-server-url">http://...</span></div>
+            <div class="data-row"><span class="data-label">  • Telemetry Sent    : </span><span class="data-value" id="net-sent-count">0 Packets</span></div>
+            <div class="data-row"><span class="data-label">  • Last HTTP Status  : </span><span class="data-value" id="net-http-code">--</span> <span class="cursor"></span></div>
+        </div>
+
+        <div class="controls-bar">
+            <button class="btn-term" id="btn-pause" onclick="togglePause()">[ ⏸ PAUSE STREAM ]</button>
+            <button class="btn-term" onclick="fetchData()">[ ⚡ REFRESH NOW ]</button>
+            <button class="btn-term" onclick="toggleCRT()">[ 📺 CRT SCANLINES ]</button>
+        </div>
+
     </div>
 
-    <!-- Active Emergency Banner -->
-    <div class="banner" id="emergency-banner">
-        <div>
-            <div class="banner-text" id="emergency-title">NORMAL TELEMETRY</div>
-            <div class="banner-sub" id="emergency-sub">All sensors operating within nominal safe parameters</div>
-        </div>
-        <div class="banner-text" id="emergency-priority">PRIORITY 1</div>
-    </div>
-
-    <div class="grid">
-        <!-- 1. Environment Card -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Environment</div>
-                <div class="card-icon">🌡️</div>
-            </div>
-            <div class="value-large"><span id="temp-val">--</span> <span class="unit">°C</span></div>
-            <div class="progress-bg"><div class="progress-bar" id="temp-bar" style="width: 50%"></div></div>
-            <div style="margin-top: 1rem;">
-                <div class="stat-row">
-                    <span class="stat-label">Humidity</span>
-                    <span class="stat-val" id="humidity-val">-- %</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Pressure</span>
-                    <span class="stat-val" id="pressure-val">-- hPa</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. Air Quality Card -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Air Quality (MQ135)</div>
-                <div class="card-icon">💨</div>
-            </div>
-            <div class="value-large"><span id="gas-val">--</span> <span class="unit">PPM</span></div>
-            <div class="progress-bg"><div class="progress-bar" id="gas-bar" style="width: 20%; background: var(--accent-green);"></div></div>
-            <div style="margin-top: 1rem;">
-                <div class="stat-row">
-                    <span class="stat-label">Pollution Level</span>
-                    <span class="stat-val" id="gas-status">Normal</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Smoke Risk</span>
-                    <span class="stat-val" id="smoke-status">Clear</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. Motion & Seismic Card -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Motion & IMU (MPU6050)</div>
-                <div class="card-icon">📐</div>
-            </div>
-            <div class="value-large"><span id="accel-val">--</span> <span class="unit">G</span></div>
-            <div style="margin-top: 0.5rem;">
-                <div class="stat-row">
-                    <span class="stat-label">Tilt Angle</span>
-                    <span class="stat-val" id="tilt-val">-- °</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Raw Accel (X,Y,Z)</span>
-                    <span class="stat-val" id="xyz-val">--</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Motion Flag</span>
-                    <span class="stat-val" id="motion-flag">Still</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Earthquake Anomaly</span>
-                    <span class="stat-val" id="earthquake-flag">None</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. GPS Navigation Card -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">GPS Location (NEO-6M)</div>
-                <div class="card-icon">🛰️</div>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Fix Status</span>
-                <span class="stat-val" id="gps-fix">Searching...</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Satellites</span>
-                <span class="stat-val" id="sat-count">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Latitude / Longitude</span>
-                <span class="stat-val" id="latlon-val">--</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Altitude</span>
-                <span class="stat-val" id="alt-val">-- m</span>
-            </div>
-            <a href="#" target="_blank" class="btn-map" id="map-link">View on Google Maps</a>
-        </div>
-
-        <!-- 5. System Health Card -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">System Health & Risk</div>
-                <div class="card-icon">🛡️</div>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Node Health Score</span>
-                <span class="stat-val" id="health-val">100%</span>
-            </div>
-            <div class="progress-bg"><div class="progress-bar" id="health-bar" style="width: 100%"></div></div>
-            
-            <div class="stat-row" style="margin-top: 1rem;">
-                <span class="stat-label">Environmental Risk</span>
-                <span class="stat-val" id="risk-val">0%</span>
-            </div>
-            <div class="progress-bg"><div class="progress-bar" id="risk-bar" style="width: 0%; background: var(--accent-amber);"></div></div>
-        </div>
-    </div>
-
-    <footer>LifeLine Emergency Hardware Platform — ESP32 SPU Local Web Dashboard</footer>
+    <footer>LifeLine Emergency Hardware Platform — ESP32 SPU Serial Monitor Dashboard</footer>
 
     <script>
-        async function fetchSensorData() {
+        let isPaused = false;
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('btn-pause');
+            btn.innerText = isPaused ? '[ ▶ RESUME STREAM ]' : '[ ⏸ PAUSE STREAM ]';
+            btn.style.borderColor = isPaused ? 'var(--term-amber)' : 'var(--term-cyan)';
+            btn.style.color = isPaused ? 'var(--term-amber)' : 'var(--term-cyan)';
+        }
+
+        function toggleCRT() {
+            const crt = document.getElementById('crt-overlay');
+            crt.style.display = crt.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function fetchData() {
+            if (isPaused) return;
             try {
                 const res = await fetch('/api/data');
-                const data = await res.json();
+                const d = await res.json();
 
-                // Environment
-                document.getElementById('temp-val').innerText = data.temp_c.toFixed(1);
-                document.getElementById('humidity-val').innerText = data.humidity_pct.toFixed(1) + ' %';
-                document.getElementById('pressure-val').innerText = data.pressure_hpa + ' hPa';
-                document.getElementById('temp-bar').style.width = Math.min(100, Math.max(0, (data.temp_c / 50) * 100)) + '%';
-
-                // Air Quality
-                document.getElementById('gas-val').innerText = data.gas_ppm;
-                document.getElementById('gas-status').innerText = data.gas_ppm > 300 ? 'High Warning' : 'Normal';
-                document.getElementById('smoke-status').innerText = data.gas_ppm > 600 ? 'DANGER SMOKE' : 'Clear';
-                document.getElementById('gas-bar').style.width = Math.min(100, (data.gas_ppm / 1000) * 100) + '%';
-                document.getElementById('gas-bar').style.background = data.gas_ppm > 300 ? 'var(--accent-red)' : 'var(--accent-green)';
-
-                // Motion
-                document.getElementById('accel-val').innerText = data.total_g.toFixed(2);
-                document.getElementById('tilt-val').innerText = data.tilt_deg.toFixed(1) + ' °';
-                document.getElementById('xyz-val').innerText = `${data.accel_x.toFixed(2)}, ${data.accel_y.toFixed(2)}, ${data.accel_z.toFixed(2)}`;
-                document.getElementById('motion-flag').innerText = Math.abs(data.total_g - 1.0) > 0.15 ? 'MOVING' : 'Still';
-                document.getElementById('earthquake-flag').innerText = data.emergency_code === 'Q' ? 'SEISMIC VIBRATION' : 'None';
-
-                // GPS
-                document.getElementById('gps-fix').innerText = data.gps_fix ? 'VALID FIX' : 'Searching...';
-                document.getElementById('sat-count').innerText = data.satellites;
-                document.getElementById('latlon-val').innerText = data.gps_fix ? `${data.latitude.toFixed(5)}, ${data.longitude.toFixed(5)}` : 'No Lock';
-                document.getElementById('alt-val').innerText = data.altitude_m.toFixed(1) + ' m';
-                if (data.gps_fix) {
-                    document.getElementById('map-link').href = `https://maps.google.com/?q=${data.latitude},${data.longitude}`;
-                }
-
-                // Health & Risk
-                document.getElementById('health-val').innerText = data.health_score + '%';
-                document.getElementById('health-bar').style.width = data.health_score + '%';
-                document.getElementById('risk-val').innerText = data.risk_score + '%';
-                document.getElementById('risk-bar').style.width = data.risk_score + '%';
-
-                // Emergency Banner
-                const banner = document.getElementById('emergency-banner');
-                const title = document.getElementById('emergency-title');
-                const sub = document.getElementById('emergency-sub');
-                const prio = document.getElementById('emergency-priority');
-
-                title.innerText = data.emergency_desc;
-                prio.innerText = 'PRIORITY ' + data.priority;
-
-                if (data.emergency_code !== 'N') {
-                    banner.classList.add('emergency');
-                    sub.innerText = 'ATTENTION: Emergency condition detected by Sensor Fusion engine';
+                // Status Bar & Uptime
+                document.getElementById('node-id').innerText = `SPU-#${d.device_id}`;
+                document.getElementById('uptime-val').innerText = `${d.uptime_sec}s`;
+                
+                const wifiStaEl = document.getElementById('wifi-sta-status');
+                if (d.wifi_sta_connected) {
+                    wifiStaEl.innerText = `CONNECTED (${d.wifi_sta_ip})`;
+                    wifiStaEl.className = 'val-ok';
                 } else {
-                    banner.classList.remove('emergency');
-                    sub.innerText = 'All sensors operating within nominal safe parameters';
+                    wifiStaEl.innerText = 'DISCONNECTED / SEARCHING';
+                    wifiStaEl.className = 'val-warn';
                 }
 
-            } catch (err) {
-                console.error('Failed to fetch sensor data:', err);
+                const srvStatusEl = document.getElementById('server-status-val');
+                srvStatusEl.innerText = d.server_status || 'IDLE';
+                srvStatusEl.className = d.server_last_code === 200 ? 'val-ok' : (d.server_last_code > 0 ? 'val-warn' : 'val-dim');
+
+                // Step 1: Environment
+                document.getElementById('dht-temp').innerText = `${d.temp_c.toFixed(1)} °C`;
+                document.getElementById('dht-hum').innerText = `${d.humidity_pct.toFixed(1)} %`;
+                const dhtStat = document.getElementById('dht-status');
+                if (d.temp_c > -50 && d.temp_c < 100) {
+                    dhtStat.innerText = 'OK (Connected & Reading)';
+                    dhtStat.className = 'val-ok';
+                } else {
+                    dhtStat.innerText = 'FAILED / NOT CONNECTED';
+                    dhtStat.className = 'val-alert';
+                }
+
+                // Step 2: Gas
+                document.getElementById('gas-ppm').innerText = `${d.gas_ppm} PPM`;
+                const gasWarn = document.getElementById('gas-warn');
+                if (d.gas_ppm > 300) {
+                    gasWarn.innerText = 'ALERT! HIGH POLLUTION';
+                    gasWarn.className = 'val-alert';
+                } else {
+                    gasWarn.innerText = 'NO (Normal)';
+                    gasWarn.className = 'val-ok';
+                }
+
+                const gasDanger = document.getElementById('gas-danger');
+                if (d.gas_ppm > 600) {
+                    gasDanger.innerText = 'CRITICAL! DANGER LEVEL';
+                    gasDanger.className = 'val-alert';
+                } else {
+                    gasDanger.innerText = 'NO (Normal)';
+                    gasDanger.className = 'val-ok';
+                }
+
+                // Step 3: Motion
+                document.getElementById('mpu-xyz').innerText = `X=${d.accel_x.toFixed(2)}G, Y=${d.accel_y.toFixed(2)}G, Z=${d.accel_z.toFixed(2)}G`;
+                document.getElementById('mpu-gyro').innerText = `X=${d.gyro_x.toFixed(1)}°/s, Y=${d.gyro_y.toFixed(1)}°/s, Z=${d.gyro_z.toFixed(1)}°/s`;
+                document.getElementById('mpu-mag').innerText = `${d.total_g.toFixed(2)} G`;
+                document.getElementById('mpu-tilt').innerText = `${d.tilt_deg.toFixed(1)}°`;
+
+                const isMoving = Math.abs(d.total_g - 1.0) > 0.15;
+                document.getElementById('mpu-motion').innerText = isMoving ? 'YES (Moving)' : 'NO (Still)';
+                document.getElementById('mpu-motion').className = isMoving ? 'val-cyan' : 'val-dim';
+
+                const isImpact = d.emergency_code === 'I' || d.emergency_code === 'F';
+                document.getElementById('mpu-impact').innerText = isImpact ? 'YES (Spike Detected!)' : 'NO';
+                document.getElementById('mpu-impact').className = isImpact ? 'val-alert' : 'val-dim';
+
+                const isFall = d.emergency_code === 'F';
+                document.getElementById('mpu-fall').innerText = isFall ? 'YES (Free Fall Detected!)' : 'NO';
+                document.getElementById('mpu-fall').className = isFall ? 'val-alert' : 'val-dim';
+
+                const isQuake = d.emergency_code === 'Q';
+                document.getElementById('mpu-quake').innerText = isQuake ? 'ALERT! SEISMIC VIBRATION' : 'NO';
+                document.getElementById('mpu-quake').className = isQuake ? 'val-alert' : 'val-dim';
+
+                // Step 4: GPS
+                const gpsStat = document.getElementById('gps-status');
+                const gpsLoc = document.getElementById('gps-loc');
+                const gpsTip = document.getElementById('gps-tip');
+                if (d.gps_fix) {
+                    gpsStat.innerText = 'VALID FIX (Lock Acquired)';
+                    gpsStat.className = 'val-ok';
+                    gpsLoc.innerText = `${d.satellites} Satellites | Lat: ${d.latitude.toFixed(5)}°, Lon: ${d.longitude.toFixed(5)}°, Alt: ${d.altitude_m.toFixed(1)}m`;
+                    gpsTip.innerText = 'Satellite lock healthy';
+                } else {
+                    gpsStat.innerText = `SEARCHING FOR SATELLITES... (${d.satellites} Seen)`;
+                    gpsStat.className = 'val-warn';
+                    gpsLoc.innerText = `${d.satellites} Satellites in view`;
+                    gpsTip.innerText = 'Move antenna outdoors for satellite lock';
+                }
+
+                // Step 5: System & Emergency
+                const sysEmerg = document.getElementById('sys-emergency');
+                sysEmerg.innerText = `'${d.emergency_code}' (${d.emergency_desc.toUpperCase()})`;
+                sysEmerg.className = d.emergency_code !== 'N' ? 'val-alert' : 'val-ok';
+
+                document.getElementById('sys-prio').innerText = `${d.priority} (${d.priority === 1 ? '1=Normal' : d.priority === 5 ? '5=Critical' : 'Priority ' + d.priority})`;
+                document.getElementById('sys-health').innerText = `${d.health_score} %`;
+                document.getElementById('sys-risk').innerText = `${d.risk_score} %`;
+
+                // Step 6: Network & Server Upload
+                document.getElementById('net-sta-ip').innerText = d.wifi_sta_connected ? `${d.wifi_sta_ip}` : 'Disconnected';
+                document.getElementById('net-sta-ip').className = d.wifi_sta_connected ? 'val-ok' : 'val-warn';
+                document.getElementById('net-server-url').innerText = d.server_url || 'http://...';
+                document.getElementById('net-sent-count').innerText = `${d.server_upload_count || 0} Packets Sent (${d.server_upload_fails || 0} Failed)`;
+                
+                const httpCodeEl = document.getElementById('net-http-code');
+                httpCodeEl.innerText = d.server_status || '--';
+                httpCodeEl.className = d.server_last_code === 200 ? 'val-ok' : (d.server_last_code > 0 ? 'val-warn' : 'val-dim');
+
+                document.getElementById('status-dot').className = d.emergency_code !== 'N' ? 'dot-red' : 'dot-green';
+
+            } catch (e) {
+                console.error('Terminal polling error:', e);
+                document.getElementById('status-dot').className = 'dot-amber';
             }
         }
 
-        setInterval(fetchSensorData, 1500);
-        fetchSensorData();
+        setInterval(fetchData, 1000);
+        fetchData();
     </script>
 </body>
 </html>
 )rawliteral";
 
-WebServerManager::WebServerManager() : _server(WEB_SERVER_PORT) {}
+WebServerManager::WebServerManager() 
+    : _server(WEB_SERVER_PORT),
+      _wifi_sta_connected(false),
+      _wifi_sta_ip("0.0.0.0"),
+      _last_server_upload_time(0),
+      _server_upload_count(0),
+      _server_upload_fail_count(0),
+      _last_http_code(0),
+      _last_server_status("IDLE / READY") {}
 
 void WebServerManager::begin() {
     #if ENABLE_WEB_SERVER
-    // Configure ESP32 Wi-Fi SoftAP Access Point
+    // Configure ESP32 Wi-Fi Mode (AP + STA if STA enabled, or AP only)
+    #if ENABLE_WIFI_STA
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.begin(WIFI_STA_SSID, WIFI_STA_PASS);
+    #else
     WiFi.mode(WIFI_AP);
+    #endif
+
     WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASS);
 
     IPAddress apIP = WiFi.softAPIP();
@@ -322,9 +438,13 @@ void WebServerManager::begin() {
     #if SPU_DEBUG_ENABLE
     Serial.println(F("\n=================================================="));
     Serial.println(F("     LIFELINE LOCAL WEB SERVER INITIALIZED        "));
-    Serial.printf( "     Wi-Fi AP SSID : %s                           \n", WIFI_AP_SSID);
-    Serial.printf( "     Wi-Fi AP Pass : %s                           \n", WIFI_AP_PASS);
-    Serial.printf( "     Local Dashboard: http://%s                   \n", apIP.toString().c_str());
+    Serial.printf( "     Wi-Fi AP SSID   : %s                         \n", WIFI_AP_SSID);
+    Serial.printf( "     Wi-Fi AP Pass   : %s                         \n", WIFI_AP_PASS);
+    Serial.printf( "     Local Dashboard : http://%s                 \n", apIP.toString().c_str());
+    #if ENABLE_WIFI_STA
+    Serial.printf( "     Target Router   : %s                         \n", WIFI_STA_SSID);
+    Serial.printf( "     Remote Server   : %s                         \n", SERVER_TELEMETRY_URL);
+    #endif
     Serial.println(F("==================================================\n"));
     #endif
 
@@ -339,7 +459,106 @@ void WebServerManager::begin() {
 void WebServerManager::update() {
     #if ENABLE_WEB_SERVER
     _server.handleClient();
+
+    #if ENABLE_WIFI_STA
+    checkWiFiSTAConnection();
+
+    #if ENABLE_SERVER_UPLOAD
+    unsigned long now = millis();
+    if (now - _last_server_upload_time >= SERVER_UPLOAD_INTERVAL) {
+        _last_server_upload_time = now;
+        uploadTelemetryToServer();
+    }
     #endif
+    #endif
+    #endif
+}
+
+void WebServerManager::checkWiFiSTAConnection() {
+    if (WiFi.status() == WL_CONNECTED) {
+        if (!_wifi_sta_connected) {
+            _wifi_sta_connected = true;
+            _wifi_sta_ip = WiFi.localIP().toString();
+            #if SPU_DEBUG_ENABLE
+            Serial.printf("[WIFI STA] Connected to '%s'! Assigned IP: %s\n", WIFI_STA_SSID, _wifi_sta_ip.c_str());
+            #endif
+        }
+    } else {
+        if (_wifi_sta_connected) {
+            _wifi_sta_connected = false;
+            _wifi_sta_ip = "0.0.0.0";
+            #if SPU_DEBUG_ENABLE
+            Serial.println(F("[WIFI STA] Disconnected from Wi-Fi router. Background reconnect active..."));
+            #endif
+        }
+    }
+}
+
+void WebServerManager::uploadTelemetryToServer() {
+    if (!_wifi_sta_connected) {
+        _last_server_status = "Wi-Fi Disconnected";
+        return;
+    }
+
+    const EnvironmentData& env = envManager.getData();
+    const MotionData& motion = mpuManager.getData();
+    const GasData& gas = gasManager.getData();
+    const GPSData& gps = gpsManager.getData();
+    const EmergencyState& emergency = emergencyDetector.getState();
+    SystemHealthMetrics health = HealthCalculator::calculate(env, motion, gas, gps);
+
+    char jsonBuffer[600];
+    snprintf(jsonBuffer, sizeof(jsonBuffer),
+        "{"
+        "\"device_id\":%d,"
+        "\"firmware\":\"%s\","
+        "\"uptime_sec\":%lu,"
+        "\"temp_c\":%.2f,"
+        "\"humidity_pct\":%.2f,"
+        "\"pressure_hpa\":%.2f,"
+        "\"gas_ppm\":%u,"
+        "\"accel_x\":%.3f,\"accel_y\":%.3f,\"accel_z\":%.3f,"
+        "\"gyro_x\":%.2f,\"gyro_y\":%.2f,\"gyro_z\":%.2f,"
+        "\"total_g\":%.3f,\"tilt_deg\":%.2f,"
+        "\"gps_fix\":%s,\"satellites\":%u,"
+        "\"latitude\":%.6f,\"longitude\":%.6f,\"altitude_m\":%.2f,"
+        "\"emergency_code\":\"%c\",\"emergency_desc\":\"%s\",\"priority\":%u,"
+        "\"health_score\":%u,\"risk_score\":%u"
+        "}",
+        SPU_DEVICE_ID, SPU_FIRMWARE_VERSION, millis() / 1000,
+        env.temperature_c, env.humidity_pct, env.pressure_hpa, gas.ppm_estimate,
+        motion.accel_x, motion.accel_y, motion.accel_z,
+        motion.gyro_x, motion.gyro_y, motion.gyro_z,
+        motion.total_accel_g, motion.tilt_deg,
+        gps.fix_valid ? "true" : "false", gps.satellites,
+        gps.latitude, gps.longitude, gps.altitude_m,
+        emergency.code, emergency.description, emergency.priority,
+        health.node_health_score, health.environmental_risk_score
+    );
+
+    HTTPClient http;
+    http.begin(SERVER_TELEMETRY_URL);
+    http.addHeader("Content-Type", "application/json");
+    http.setTimeout(1500); // 1.5 sec max timeout
+
+    int httpResponseCode = http.POST(jsonBuffer);
+    _last_http_code = httpResponseCode;
+
+    if (httpResponseCode > 0) {
+        _server_upload_count++;
+        _last_server_status = "OK (" + String(httpResponseCode) + ")";
+        #if SPU_DEBUG_ENABLE
+        Serial.printf("[SERVER UPLOAD] Telemetry posted! HTTP %d | Count: %u\n", httpResponseCode, _server_upload_count);
+        #endif
+    } else {
+        _server_upload_fail_count++;
+        _last_server_status = "Error: " + http.errorToString(httpResponseCode);
+        #if SPU_DEBUG_ENABLE
+        Serial.printf("[SERVER UPLOAD FAILED] Error: %s | Fail Count: %u\n", _last_server_status.c_str(), _server_upload_fail_count);
+        #endif
+    }
+
+    http.end();
 }
 
 void WebServerManager::handleRoot() {
@@ -354,7 +573,7 @@ void WebServerManager::handleApiData() {
     const EmergencyState& emergency = emergencyDetector.getState();
     SystemHealthMetrics health = HealthCalculator::calculate(env, motion, gas, gps);
 
-    char jsonBuffer[512];
+    char jsonBuffer[800];
     snprintf(jsonBuffer, sizeof(jsonBuffer),
         "{"
         "\"device_id\":%d,"
@@ -364,24 +583,20 @@ void WebServerManager::handleApiData() {
         "\"humidity_pct\":%.2f,"
         "\"pressure_hpa\":%.2f,"
         "\"gas_ppm\":%u,"
-        "\"accel_x\":%.3f,"
-        "\"accel_y\":%.3f,"
-        "\"accel_z\":%.3f,"
-        "\"gyro_x\":%.2f,"
-        "\"gyro_y\":%.2f,"
-        "\"gyro_z\":%.2f,"
-        "\"total_g\":%.3f,"
-        "\"tilt_deg\":%.2f,"
-        "\"gps_fix\":%s,"
-        "\"satellites\":%u,"
-        "\"latitude\":%.6f,"
-        "\"longitude\":%.6f,"
-        "\"altitude_m\":%.2f,"
-        "\"emergency_code\":\"%c\","
-        "\"emergency_desc\":\"%s\","
-        "\"priority\":%u,"
-        "\"health_score\":%u,"
-        "\"risk_score\":%u"
+        "\"accel_x\":%.3f,\"accel_y\":%.3f,\"accel_z\":%.3f,"
+        "\"gyro_x\":%.2f,\"gyro_y\":%.2f,\"gyro_z\":%.2f,"
+        "\"total_g\":%.3f,\"tilt_deg\":%.2f,"
+        "\"gps_fix\":%s,\"satellites\":%u,"
+        "\"latitude\":%.6f,\"longitude\":%.6f,\"altitude_m\":%.2f,"
+        "\"emergency_code\":\"%c\",\"emergency_desc\":\"%s\",\"priority\":%u,"
+        "\"health_score\":%u,\"risk_score\":%u,"
+        "\"wifi_sta_connected\":%s,"
+        "\"wifi_sta_ip\":\"%s\","
+        "\"server_url\":\"%s\","
+        "\"server_upload_count\":%u,"
+        "\"server_upload_fails\":%u,"
+        "\"server_last_code\":%d,"
+        "\"server_status\":\"%s\""
         "}",
         SPU_DEVICE_ID,
         SPU_FIRMWARE_VERSION,
@@ -407,7 +622,14 @@ void WebServerManager::handleApiData() {
         emergency.description,
         emergency.priority,
         health.node_health_score,
-        health.environmental_risk_score
+        health.environmental_risk_score,
+        _wifi_sta_connected ? "true" : "false",
+        _wifi_sta_ip.c_str(),
+        SERVER_TELEMETRY_URL,
+        _server_upload_count,
+        _server_upload_fail_count,
+        _last_http_code,
+        _last_server_status.c_str()
     );
 
     _server.send(200, "application/json", jsonBuffer);
