@@ -13,20 +13,38 @@ void SensorManager::begin() {
     mpuManager.begin();
     gasManager.begin();
     emergencyDetector.begin();
-    uartManager.begin();
+    espNowManager.begin();
     webServerManager.begin();
 
     #if SPU_DEBUG_ENABLE
-    Serial.println(F("[SPU] All Subsystems and Local Web Server Initialized."));
+    Serial.println(F("[SPU] All Subsystems, ESP-NOW Protocol & Wi-Fi Portal Initialized."));
     #endif
+}
+
+static void updateWiFiStatusLED() {
+    bool connected = wifiPortalSPU.isWiFiConnected();
+    if (connected) {
+        digitalWrite(STATUS_LED_PIN, HIGH); // Solid ON when Wi-Fi is connected
+    } else {
+        // Rapid 100ms toggle blink when Wi-Fi is NOT connected
+        static unsigned long lastBlinkTime = 0;
+        static bool ledState = false;
+        unsigned long now = millis();
+        if (now - lastBlinkTime >= 100) {
+            lastBlinkTime = now;
+            ledState = !ledState;
+            digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
+        }
+    }
 }
 
 void SensorManager::loop() {
     webServerManager.update();
+    updateWiFiStatusLED();
 
     unsigned long now = millis();
 
-    // 1. High frequency sensor sampling
+    // 1. High frequency sensor sampling (5 Hz)
     if (now - _last_sample_time >= SENSOR_SAMPLE_INTERVAL) {
         _last_sample_time = now;
 
@@ -70,10 +88,11 @@ void SensorManager::loop() {
         printLiveSensorDiagnostics(env, motion, gas, gps, emergency, health);
         #endif
 
-        // Blink LED on transmit
-        digitalWrite(STATUS_LED_PIN, HIGH);
-        uartManager.sendTelemetry(pkt);
-        digitalWrite(STATUS_LED_PIN, LOW);
+        // Broadcast packet to TX unit wirelessly via ESP-NOW
+        espNowManager.sendTelemetry(pkt);
+
+        // Upload rich telemetry JSON to Cloud API Endpoint if Wi-Fi connected
+        webServerManager.uploadTelemetry();
     }
 }
 
@@ -95,7 +114,7 @@ TelemetryPacket SensorManager::buildTelemetryPacket(const EnvironmentData& env,
     pkt.priority = emergency.priority;
     pkt.health_score = health.node_health_score;
     pkt.risk_score = health.environmental_risk_score;
-    pkt.battery_percent = 100; // Default nominal 100% (Battery ADC disabled)
+    pkt.battery_percent = 100; // Nominal 100%
 
     // GPS conversion
     pkt.lat_deg_e7 = (int32_t)(gps.latitude * 1e7);
@@ -131,7 +150,7 @@ void SensorManager::printLiveSensorDiagnostics(const EnvironmentData& env,
                                                 const EmergencyState& emergency,
                                                 const SystemHealthMetrics& health) {
     Serial.println(F("\n┌─────────────────────────────────────────────────────────────┐"));
-    Serial.println(F("│       SPU STEP-BY-STEP SENSOR DIAGNOSTIC REPORT             │"));
+    Serial.println(F("│       SPU SENSOR TELEMETRY & ESP-NOW DISPATCH REPORT        │"));
     Serial.println(F("└─────────────────────────────────────────────────────────────┘"));
 
     // STEP 1: Environmental Sensor

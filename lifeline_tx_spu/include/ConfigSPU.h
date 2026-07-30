@@ -8,32 +8,33 @@
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 #define SPU_DEVICE_ID           3                // Unique sensor node ID
-#define SPU_FIRMWARE_VERSION    "v1.0-SPU"       // Firmware version
+#define SPU_DEVICE_NAME         "LifeLine SPU"   // SPU Device display name
+#define SPU_FIRMWARE_VERSION    "v3.1.0 SPU"     // Firmware version
 #define SPU_DEBUG_ENABLE        true             // Enable Serial Debug output
 
-// Wi-Fi SoftAP & Local Web Server Configuration
-#define ENABLE_WEB_SERVER       true             // Host local web dashboard on ESP32
-#define WIFI_AP_SSID            "LifeLine-Sensor-Node" // Access Point SSID
-#define WIFI_AP_PASS            "lifeline123"    // Access Point Password
-#define WEB_SERVER_PORT         80               // HTTP Port 80
+// ═══════════════════════════════════════════════════════════════════════════════════
+//                              WIFI & CLOUD API CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════════════
 
-// Wi-Fi Station & Remote Server Telemetry Configuration
-#define ENABLE_WIFI_STA         true             // Enable Wi-Fi Station mode to connect to router/hotspot
-#define WIFI_STA_SSID           "LifeLine-Network" // Target Wi-Fi SSID
-#define WIFI_STA_PASS           "lifeline2026"   // Target Wi-Fi Password
+#define API_ENDPOINT            "https://zenithkandel.com.np/lifeline/API/Create/message.php"
+#define WIFI_AP_SSID            "LifeLine-SPU-Setup" // Captive Access Point SSID
+#define WIFI_PORTAL_TIMEOUT     180000           // Portal timeout: 3 minutes (180s in ms)
+#define WIFI_CONNECT_TIMEOUT    8000             // Connection timeout per network: 8 seconds (ms)
+#define MAX_WIFI_NETWORKS       3                // Up to 3 stored Wi-Fi networks in NVS
 
 #define ENABLE_SERVER_UPLOAD    true             // Transmit telemetry to remote server
-#define SERVER_TELEMETRY_URL    "http://192.168.1.100:5000/api/telemetry" // Server HTTP POST endpoint
 #define SERVER_UPLOAD_INTERVAL  2000             // ms - Upload interval to server
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+//                              ESP-NOW PROTOCOL CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+#define ESPNOW_CHANNEL          1                // ESP-NOW Wi-Fi Channel
+#define ESPNOW_WIFI_MODE        WIFI_AP_STA      // Coexistence mode for ESP-NOW & STA
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              PIN DEFINITIONS (ESP32 #1 SPU)
 // ═══════════════════════════════════════════════════════════════════════════════════
-
-// Hardware UART2 for SPU -> CCU Communication
-#define UART_CCU_TX_PIN         17               // SPU TX2 -> CCU RX2 (GPIO 16)
-#define UART_CCU_RX_PIN         16               // SPU RX2 -> CCU TX2 (GPIO 17)
-#define UART_CCU_BAUD           115200           // High-speed UART link
 
 // Hardware UART1 for GPS (NEO-6M)
 #define GPS_TX_PIN              15               // ESP32 RX1 connected to GPS TX
@@ -53,6 +54,7 @@
 
 // Digital Inputs & Controls
 #define STATUS_LED_PIN          2                // Built-in status LED indicator
+#define WIFI_PORTAL_PIN         14               // Push button for Wi-Fi captive portal (Active LOW)
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              THRESHOLD CONFIGURATION
@@ -86,3 +88,4 @@
 #define EMERGENCY_SEND_INTERVAL 500              // ms - Rapid emergency dispatch interval (0.5s)
 
 #endif // CONFIG_SPU_H
+
