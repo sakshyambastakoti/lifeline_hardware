@@ -153,7 +153,7 @@ void WiFiPortalSPU::stopWiFiPortal() {
 void WiFiPortalSPU::checkWiFiPortalButton() {
     bool currentButtonState = digitalRead(WIFI_PORTAL_PIN);
 
-    if (currentButtonState == LOW) { // Button on GPIO 14 active LOW
+    if (currentButtonState == LOW) { // Onboard BOOT button on GPIO 0 (Active LOW)
         if (!_buttonPressed) {
             _buttonPressed = true;
             _buttonPressStartTime = millis();

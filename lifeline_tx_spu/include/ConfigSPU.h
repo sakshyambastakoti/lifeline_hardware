@@ -36,6 +36,11 @@
 //                              PIN DEFINITIONS (ESP32 #1 SPU)
 // ═══════════════════════════════════════════════════════════════════════════════════
 
+// Hardware UART2 (Legacy UART link)
+#define UART_CCU_TX_PIN         17               // SPU TX2 -> CCU RX2 (GPIO 16)
+#define UART_CCU_RX_PIN         16               // SPU RX2 -> CCU TX2 (GPIO 17)
+#define UART_CCU_BAUD           115200           // High-speed UART link
+
 // Hardware UART1 for GPS (NEO-6M)
 #define GPS_TX_PIN              15               // ESP32 RX1 connected to GPS TX
 #define GPS_RX_PIN              4                // ESP32 TX1 connected to GPS RX
@@ -54,7 +59,7 @@
 
 // Digital Inputs & Controls
 #define STATUS_LED_PIN          2                // Built-in status LED indicator
-#define WIFI_PORTAL_PIN         14               // Push button for Wi-Fi captive portal (Active LOW)
+#define WIFI_PORTAL_PIN         0                // Onboard ESP32 BOOT push button (GPIO 0, Active LOW)
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              THRESHOLD CONFIGURATION
