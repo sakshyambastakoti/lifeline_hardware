@@ -212,6 +212,22 @@ static unsigned long firstPressTime = 0;
 void checkWiFiPortalButton() {
     bool currentButtonState = digitalRead(WIFI_PORTAL_PIN);
     
+    // If unit is currently in Local OTA mode, a single press exits OTA mode
+    if (isLocalOTAModeActive()) {
+        if (currentButtonState == LOW && !buttonPressed) {
+            buttonPressed = true;
+            buttonPressStartTime = millis();
+        } else if (currentButtonState == HIGH && buttonPressed) {
+            buttonPressed = false;
+            Serial.println(F("[BUTTON] Single Wi-Fi button press -> Exiting Local OTA Mode!"));
+            stopLocalOTAMode();
+            playSkipConfirmTone();
+            currentScreen = SCREEN_IDLE;
+            drawIdleScreen();
+        }
+        return;
+    }
+    
     if (currentButtonState == LOW) { // Button on GPIO 14 active LOW
         if (!buttonPressed) {
             buttonPressed = true;
