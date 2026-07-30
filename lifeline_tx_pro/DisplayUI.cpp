@@ -1,14 +1,28 @@
 #include "DisplayUI.h"
 #include "OTAManager.h"
+#include "SPUReceiver.h"
 
-// TFT Display instance (Hardware SPI)
-Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+// TFT Display instance (Hardware SPI using shared SPI bus)
+Adafruit_ST7789 tft = Adafruit_ST7789(&SPI, TFT_CS, TFT_DC, TFT_RST);
 
 void initDisplay() {
+    pinMode(TFT_CS, OUTPUT);
+    digitalWrite(TFT_CS, HIGH);
+    
+    if (TFT_RST >= 0) {
+        pinMode(TFT_RST, OUTPUT);
+        digitalWrite(TFT_RST, HIGH);
+        delay(10);
+        digitalWrite(TFT_RST, LOW);
+        delay(10);
+        digitalWrite(TFT_RST, HIGH);
+        delay(50);
+    }
+    
     tft.init(NATIVE_WIDTH, NATIVE_HEIGHT);
     tft.setRotation(SCREEN_ROTATION);
     tft.fillScreen(COLOR_BG_PRIMARY);
-    Serial.printf("[INIT] TFT: %dx%d\n", SCREEN_WIDTH, SCREEN_HEIGHT);
+    Serial.printf("[INIT] TFT: %dx%d OK\n", SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 uint16_t getPriorityColor(uint8_t priority) {
@@ -916,6 +930,46 @@ void drawSystemInfoScreen() {
     tft.setTextColor(COLOR_AMBER);
     tft.setCursor(statsX + 38, dataRow1Y);
     tft.print(statsStr);
+    
+    // SPU Sensor Node Telemetry Card
+    y += sysCardH + cardSpacing;
+    int spuCardH = 65;
+    drawPremiumCard(cardX, y, cardW, spuCardH, COLOR_BG_CARD, COLOR_CYAN_DARK);
+    
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(cardX + 12, y + 6);
+    tft.print(F("SPU SENSOR NODE"));
+    
+    if (hasSPUTelemetry()) {
+        TelemetryPacket pkt = getLatestSPUTelemetry();
+        
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(cardX + cardW - 65, y + 6);
+        tft.print(F("CONNECTED"));
+        
+        tft.setTextColor(COLOR_TEXT_SECONDARY);
+        tft.setCursor(cardX + 12, y + 22);
+        tft.printf("Temp: %.1fC  Hum: %u%%  Gas: %uPPM",
+                   pkt.temp_c_x10 / 10.0, pkt.humidity_x10 / 10, pkt.gas_ppm);
+        
+        tft.setCursor(cardX + 12, y + 36);
+        tft.printf("GPS: %.4f, %.4f (Fix: %s)",
+                   pkt.lat_deg_e7 / 10000000.0, pkt.lon_deg_e7 / 10000000.0,
+                   pkt.gps_fix ? "OK" : "NO");
+        
+        tft.setCursor(cardX + 12, y + 50);
+        tft.printf("Health: %u%%  Risk: %u%%  Batt: %u%%",
+                   pkt.health_score, pkt.risk_score, pkt.battery_percent);
+    } else {
+        tft.setTextColor(COLOR_AMBER);
+        tft.setCursor(cardX + cardW - 75, y + 6);
+        tft.print(F("LISTENING"));
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(cardX + 12, y + 30);
+        tft.print(F("Waiting for SPU telemetry (GPIO 34)..."));
+    }
     
     drawFooter("Press any key to return");
     

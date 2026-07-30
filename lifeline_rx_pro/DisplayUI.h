@@ -58,6 +58,7 @@ void drawOTAFoundScreen(const String& newVer);
 void drawOTAProgressScreen(int percent);
 void drawOTAFailedScreen(const String& reason);
 void drawOTASuccessScreen();
+void drawLocalOTAScreen();
 
 // History
 void addToHistory(int deviceId, int alertIndex, int rssi);

@@ -312,3 +312,9 @@ void drawOTASuccessScreen() {
     printLCDLine(0, "OTA Complete!   ");
     printLCDLine(1, "Rebooting...    ");
 }
+
+void drawLocalOTAScreen() {
+    printLCDLine(0, "OTA LOCAL PORTAL");
+    printLCDLine(1, "192.168.4.1     ");
+}
+

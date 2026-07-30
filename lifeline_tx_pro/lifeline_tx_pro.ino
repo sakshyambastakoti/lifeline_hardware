@@ -7,12 +7,14 @@
  * ═══════════════════════════════════════════════════════════════════════════════════
  */
 
+#include <SPI.h>
 #include "Config.h"
 #include "BuzzerLED.h"
 #include "DisplayUI.h"
 #include "LoRaComm.h"
 #include "KeypadInput.h"
 #include "OTAManager.h"
+#include "SPUReceiver.h"
 
 void setup() {
     Serial.begin(SERIAL_BAUD_RATE);
@@ -24,11 +26,21 @@ void setup() {
     
     Serial.println(F("[INIT] Starting LifeLine TX..."));
     
-    // Initialize Hardware Subsystems
+    // 1. Immediately deselect SPI Chip Selects to prevent bus contention
+    pinMode(LORA_CS, OUTPUT);
+    digitalWrite(LORA_CS, HIGH);
+    pinMode(TFT_CS, OUTPUT);
+    digitalWrite(TFT_CS, HIGH);
+    
+    // 2. Initialize shared SPI bus with custom pins (SCK: 5, MISO: 17, MOSI: 27)
+    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    
+    // 3. Initialize Subsystems & SPU Receiver (UART RX: GPIO 34)
     initBuzzerLED();
     initKeypad();
-    initLoRa();
     initDisplay();
+    initLoRa();
+    initSPUReceiver();
     
     // Boot Screen
     currentScreen = SCREEN_BOOT;
@@ -45,6 +57,26 @@ void setup() {
 
 void loop() {
     handleOTA();
+    
+    // Process incoming SPU telemetry & automatic emergencies
+    if (updateSPUReceiver()) {
+        TelemetryPacket spuPkt = getLatestSPUTelemetry();
+        
+        // Auto trigger emergency if SPU detects an automatic alert
+        if (spuPkt.emergency_code != EMERGENCY_NONE && spuPkt.emergency_code != 0) {
+            Serial.printf("[AUTO ALERT] Automatic emergency received from SPU: '%c'\n", spuPkt.emergency_code);
+            
+            selectedAlertIndex = mapSPUEmergencyToAlertIndex(spuPkt.emergency_code);
+            currentScreen = SCREEN_SENDING;
+            drawSendingScreen();
+            
+            playErrorTone();
+            lastTransmitSuccess = transmitAlert();
+            
+            currentScreen = SCREEN_RESULT;
+            drawResultScreen();
+        }
+    }
     
     switch (currentScreen) {
         case SCREEN_BOOT:

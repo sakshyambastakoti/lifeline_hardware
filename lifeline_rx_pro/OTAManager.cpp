@@ -7,6 +7,9 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <HTTPUpdate.h>
+#include <WebServer.h>
+#include <Update.h>
+#include <ArduinoOTA.h>
 
 // Static Helper: Compare semantic versions (e.g. "3.1.0 PRO" vs "3.2.0")
 static bool isVersionNewer(String currentVer, String newVer) {
@@ -178,3 +181,136 @@ bool checkAndPerformOTA() {
 
     return false;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+//                 LOCAL WIRELESS OTA (3 Wi-Fi Button Presses)
+// ═══════════════════════════════════════════════════════════════════════════════════
+static WebServer otaServer(80);
+static bool localOtaActive = false;
+static int localOtaProgress = 0;
+
+const char* rx_ota_ap_ssid = "LifeLine-RX-OTA";
+const char* rx_ota_ap_pass = "12345678";
+
+const char rxServerIndex[] PROGMEM = 
+R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LifeLine RX Base Station OTA Firmware Update</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #08080c; color: #fff; text-align: center; padding: 30px; margin: 0; }
+    .card { background: #121218; border: 2px solid #ff1e42; padding: 25px; max-width: 440px; margin: 0 auto; box-shadow: 0 0 25px rgba(255, 30, 66, 0.2); }
+    h1 { color: #ff1e42; margin-bottom: 5px; font-size: 22px; }
+    h3 { color: #a3b1c6; font-weight: 300; margin-top: 0; font-size: 14px; }
+    input[type=file] { margin: 20px 0; padding: 10px; background: #1b1b24; color: #fff; border: 1px solid #405070; width: 90%; }
+    input[type=submit] { background: #ff1e42; color: #fff; font-weight: bold; border: none; padding: 12px 28px; cursor: pointer; font-size: 15px; width: 90%; }
+    input[type=submit]:hover { background: #d01030; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>LIFELINE RX BASE STATION</h1>
+    <h3>Wireless OTA Firmware Portal</h3>
+    <p>Select firmware <b>.bin</b> file to update base station:</p>
+    <form method='POST' action='/update' enctype='multipart/form-data'>
+      <input type='file' name='update' accept='.bin' required><br>
+      <input type='submit' value='Flash Firmware'>
+    </form>
+  </div>
+</body>
+</html>
+)rawliteral";
+
+void startLocalOTAMode() {
+    if (localOtaActive) return;
+    localOtaActive = true;
+    localOtaProgress = 0;
+    
+    // Start Access Point
+    WiFi.softAP(rx_ota_ap_ssid, rx_ota_ap_pass);
+    IPAddress IP = WiFi.softAPIP();
+    Serial.print(F("[OTA LOCAL] AP Started. IP: "));
+    Serial.println(IP);
+    
+    // Setup WebServer
+    otaServer.on("/", HTTP_GET, []() {
+        otaServer.sendHeader("Connection", "close");
+        otaServer.send(200, "text/html", rxServerIndex);
+    });
+    
+    otaServer.on("/update", HTTP_POST, []() {
+        otaServer.sendHeader("Connection", "close");
+        otaServer.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "SUCCESS - Rebooting...");
+        delay(1000);
+        ESP.restart();
+    }, []() {
+        HTTPUpload& upload = otaServer.upload();
+        if (upload.status == UPLOAD_FILE_START) {
+            Serial.printf("[OTA LOCAL] Start: %s\n", upload.filename.c_str());
+            drawOTAProgressScreen(0);
+        } else if (upload.status == UPLOAD_FILE_WRITE) {
+            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+                Update.printError(Serial);
+            }
+            if (upload.totalSize > 0) {
+                localOtaProgress = (upload.currentSize * 100) / upload.totalSize;
+                drawOTAProgressScreen(localOtaProgress);
+            }
+        } else if (upload.status == UPLOAD_FILE_END) {
+            if (Update.end(true)) {
+                Serial.printf("[OTA LOCAL] Success: %u bytes\n", upload.totalSize);
+                drawOTASuccessScreen();
+            } else {
+                Update.printError(Serial);
+                drawOTAFailedScreen("Flash Fail");
+            }
+        }
+    });
+    
+    otaServer.begin();
+    
+    // ArduinoOTA setup for PlatformIO CLI / Terminal upload
+    ArduinoOTA.setHostname("lifeline-rx-pro");
+    ArduinoOTA.onStart([]() {
+        Serial.println(F("[ArduinoOTA RX] Start"));
+        drawOTAProgressScreen(0);
+    });
+    ArduinoOTA.onEnd([]() {
+        Serial.println(F("\n[ArduinoOTA RX] End"));
+        drawOTASuccessScreen();
+    });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+        int percent = (progress * 100) / total;
+        drawOTAProgressScreen(percent);
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+        Serial.printf("[ArduinoOTA RX] Error[%u]\n", error);
+        drawOTAFailedScreen("ArduinoOTA Err");
+    });
+    ArduinoOTA.begin();
+    
+    currentScreen = SCREEN_OTA;
+    drawLocalOTAScreen();
+}
+
+void stopLocalOTAMode() {
+    if (!localOtaActive) return;
+    otaServer.stop();
+    ArduinoOTA.end();
+    WiFi.softAPdisconnect(true);
+    localOtaActive = false;
+    Serial.println(F("[OTA LOCAL] Stopped"));
+}
+
+void handleLocalOTA() {
+    if (!localOtaActive) return;
+    otaServer.handleClient();
+    ArduinoOTA.handle();
+}
+
+bool isLocalOTAModeActive() {
+    return localOtaActive;
+}
+

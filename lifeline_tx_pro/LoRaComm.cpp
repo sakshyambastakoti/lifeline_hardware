@@ -2,16 +2,17 @@
 
 void initLoRa() {
     pinMode(LORA_CS, OUTPUT);
-    pinMode(LORA_RST, OUTPUT);
     digitalWrite(LORA_CS, HIGH);
     
-    // Manual LoRa reset for reliable initialization
-    digitalWrite(LORA_RST, LOW);
-    delay(10);
-    digitalWrite(LORA_RST, HIGH);
-    delay(10);
-    
-    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    if (LORA_RST >= 0) {
+        pinMode(LORA_RST, OUTPUT);
+        digitalWrite(LORA_RST, HIGH);
+        delay(10);
+        digitalWrite(LORA_RST, LOW);
+        delay(10);
+        digitalWrite(LORA_RST, HIGH);
+        delay(20);
+    }
     
     LoRa.setPins(LORA_CS, LORA_RST, LORA_DIO0);
     if (LoRa.begin(LORA_FREQUENCY)) {

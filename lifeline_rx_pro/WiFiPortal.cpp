@@ -1,6 +1,7 @@
 #include "WiFiPortal.h"
 #include "DisplayUI.h"
 #include "BuzzerLED.h"
+#include "OTAManager.h"
 #include <WiFi.h>
 #include <Preferences.h>
 
@@ -205,6 +206,9 @@ void stopWiFiPortal() {
     }
 }
 
+static int buttonPressCount = 0;
+static unsigned long firstPressTime = 0;
+
 void checkWiFiPortalButton() {
     bool currentButtonState = digitalRead(WIFI_PORTAL_PIN);
     
@@ -214,6 +218,23 @@ void checkWiFiPortalButton() {
             buttonPressStartTime = millis();
             lastBeepSecond = -1;
             previousScreenBeforePress = currentScreen;
+            
+            // Multi-click detection (3 presses within 1.5 seconds)
+            if (buttonPressCount == 0 || millis() - firstPressTime > 1500) {
+                buttonPressCount = 1;
+                firstPressTime = millis();
+            } else {
+                buttonPressCount++;
+            }
+            
+            if (buttonPressCount >= 3) {
+                buttonPressCount = 0;
+                buttonPressed = false;
+                Serial.println(F("[BUTTON] 3 Wi-Fi button presses detected -> Starting Local OTA Portal!"));
+                playPortalOpenTone();
+                startLocalOTAMode();
+                return;
+            }
         } else {
             unsigned long pressDuration = millis() - buttonPressStartTime;
             int secondsHeld = pressDuration / 1000;

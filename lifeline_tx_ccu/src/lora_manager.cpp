@@ -5,6 +5,19 @@ LoRaManager loraManager;
 LoRaManager::LoRaManager() : _initialized(false) {}
 
 bool LoRaManager::begin() {
+    pinMode(LORA_CS_PIN, OUTPUT);
+    digitalWrite(LORA_CS_PIN, HIGH);
+    
+    if (LORA_RST_PIN >= 0) {
+        pinMode(LORA_RST_PIN, OUTPUT);
+        digitalWrite(LORA_RST_PIN, HIGH);
+        delay(10);
+        digitalWrite(LORA_RST_PIN, LOW);
+        delay(10);
+        digitalWrite(LORA_RST_PIN, HIGH);
+        delay(20);
+    }
+
     SPI.begin(SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN, LORA_CS_PIN);
     LoRa.setPins(LORA_CS_PIN, LORA_RST_PIN, LORA_DIO0_PIN);
 

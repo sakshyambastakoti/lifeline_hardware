@@ -11,4 +11,12 @@
  */
 bool checkAndPerformOTA();
 
+/**
+ * @brief Local Wireless OTA Portal functions (Triggered by 3 Wi-Fi button presses)
+ */
+void startLocalOTAMode();
+void stopLocalOTAMode();
+void handleLocalOTA();
+bool isLocalOTAModeActive();
+
 #endif // OTA_MANAGER_H
