@@ -1,10 +1,29 @@
 #include "BuzzerLED.h"
 
+// Universal Beep Driver: Compatible with both Active and Passive Buzzers
+static void executeBeep(uint16_t freq, uint16_t durationMs) {
+    // 1. Frequency driver for Passive Buzzers
+    tone(BUZZER_PIN, freq, durationMs);
+    
+    // 2. High-level pulse driver for Active Buzzers
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(durationMs);
+    digitalWrite(BUZZER_PIN, LOW);
+    
+    noTone(BUZZER_PIN);
+}
+
 void initBuzzerLED() {
     pinMode(LED_GREEN, OUTPUT);
     pinMode(LED_RED, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
     clearAllLEDs();
+    
+    // Startup Power-on Beep Sequence (2 short beeps)
+    executeBeep(2000, 50);
+    delay(50);
+    executeBeep(2500, 50);
 }
 
 void setLED(uint8_t pin, bool state) {
@@ -17,21 +36,25 @@ void clearAllLEDs() {
 }
 
 void playSuccessTone() {
-    tone(BUZZER_PIN, 2200, 80);  // Short, non-blocking
+    executeBeep(2200, 80);
+    delay(40);
+    executeBeep(2700, 100);
 }
 
 void playErrorTone() {
-    tone(BUZZER_PIN, 800, 150);  // Single beep
+    executeBeep(1200, 100);
+    delay(40);
+    executeBeep(800, 150);
 }
 
 void playConfirmTone() {
-    tone(BUZZER_PIN, 2500, 30);  // Very short
+    executeBeep(2500, 80);
 }
 
 void playClickTone() {
-    tone(BUZZER_PIN, 1800, 15);  // Minimal click
+    executeBeep(2200, 40);
 }
 
 void playNavigateTone() {
-    tone(BUZZER_PIN, 1500, 10);  // Ultra-fast navigation beep
+    executeBeep(1800, 30);
 }

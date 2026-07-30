@@ -59,35 +59,24 @@ void SensorManager::loop() {
         emergencyDetector.update(env, motion, gas);
     }
 
-    // 2. Check if urgent emergency trigger occurred
-    const EmergencyState& emergency = emergencyDetector.getState();
-
-    // Instant override: If an emergency just became active, force immediate dispatch!
-    static bool previous_emergency_active = false;
-    if (emergency.is_active && !previous_emergency_active) {
-        _last_send_time = 0;
-    }
-    previous_emergency_active = emergency.is_active;
-
-    unsigned long dispatch_interval = emergency.is_active ? EMERGENCY_SEND_INTERVAL : TELEMETRY_SEND_INTERVAL;
-
-    if (now - _last_send_time >= dispatch_interval) {
+    // 2. Periodic Sensor Data Log Upload to Cloud Web Server
+    if (now - _last_send_time >= TELEMETRY_SEND_INTERVAL) {
         _last_send_time = now;
 
         const EnvironmentData& env = envManager.getData();
         const MotionData& motion = mpuManager.getData();
         const GasData& gas = gasManager.getData();
         const GPSData& gps = gpsManager.getData();
+        const EmergencyState& emergency = emergencyDetector.getState();
 
         SystemHealthMetrics health = HealthCalculator::calculate(env, motion, gas, gps);
 
-        TelemetryPacket pkt = buildTelemetryPacket(env, motion, gas, gps, emergency, health);
-        
         #if SPU_DEBUG_ENABLE
         printLiveSensorDiagnostics(env, motion, gas, gps, emergency, health);
         #endif
 
-        // Upload rich telemetry JSON directly to Cloud Web Server Endpoint (Server handles push notifications)
+        // Upload raw sensor data log directly to Cloud Web Server Endpoint
+        // (Server analyzes the telemetry log and triggers push notifications for landslide, free fall, or critical events)
         webServerManager.uploadTelemetry();
     }
 }
