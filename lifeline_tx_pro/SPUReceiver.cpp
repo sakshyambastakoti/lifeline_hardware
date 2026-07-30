@@ -1,87 +1,62 @@
 #include "SPUReceiver.h"
 #include "Config.h"
 #include "DisplayUI.h"
-#include <WiFi.h>
-#include <esp_now.h>
 
+static HardwareSerial spuSerial(2);
 static TelemetryPacket currentTelemetry;
 static bool receivedValidData = false;
 static unsigned long lastReceiveTime = 0;
-static volatile bool newEspNowPacketReceived = false;
-static bool espNowInitialized = false;
-
-// ESP-NOW Receive Callback
-#if defined(ESP_IDF_VERSION_MAJOR) && ESP_IDF_VERSION_MAJOR >= 5
-static void onESPNowDataRecv(const esp_now_recv_info_t * esp_now_info, const uint8_t *incomingData, int len)
-#else
-static void onESPNowDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len)
-#endif
-{
-    if (len != sizeof(TelemetryPacket)) {
-        return;
-    }
-
-    const TelemetryPacket* candidate = (const TelemetryPacket*)incomingData;
-
-    // Check magic bytes 'L' and 'F'
-    if (candidate->magic1 != PROTOCOL_MAGIC_BYTE1 || candidate->magic2 != PROTOCOL_MAGIC_BYTE2) {
-        return;
-    }
-
-    // Validate CRC16 checksum
-    uint16_t expected_crc = calculate_crc16((const uint8_t*)candidate, sizeof(TelemetryPacket) - sizeof(uint16_t));
-    if (candidate->crc16 == expected_crc) {
-        memcpy(&currentTelemetry, candidate, sizeof(TelemetryPacket));
-        receivedValidData = true;
-        lastReceiveTime = millis();
-        newEspNowPacketReceived = true;
-
-        #if SERIAL_DEBUG_ENABLED
-        Serial.printf("[ESP-NOW RX] SPU Telemetry Received! Code: '%c', Temp: %.1fC, Gas: %u PPM, Health: %u%%\n",
-                      currentTelemetry.emergency_code,
-                      currentTelemetry.temp_c_x10 / 10.0,
-                      currentTelemetry.gas_ppm,
-                      currentTelemetry.health_score);
-        #endif
-    } else {
-        #if SERIAL_DEBUG_ENABLED
-        Serial.printf("[ESP-NOW RX] CRC Error! Expected 0x%04X, Got 0x%04X\n", expected_crc, candidate->crc16);
-        #endif
-    }
-}
 
 void initSPUReceiver() {
-    // Set Wi-Fi STA mode for ESP-NOW listener
-    if (WiFi.getMode() == WIFI_OFF) {
-        WiFi.mode(WIFI_STA);
-    }
-
-    if (esp_now_init() != ESP_OK) {
-        Serial.println(F("[SPU RX] Error initializing ESP-NOW Receiver on TX unit!"));
-        espNowInitialized = false;
-        return;
-    }
-
-    esp_now_register_recv_cb(onESPNowDataRecv);
-    espNowInitialized = true;
-    Serial.println(F("[SPU RX] Initialized ESP-NOW Wireless Telemetry Receiver on TX unit."));
-}
-
-bool isESPNowInitialized() {
-    return espNowInitialized;
+    spuSerial.begin(115200, SERIAL_8N1, SPU_RX_PIN, -1);
+    Serial.printf("[SPU RX] Initialized Hardware Serial2 Telemetry Receiver (GPIO %d @ 115200 baud).\n", SPU_RX_PIN);
 }
 
 bool updateSPUReceiver() {
-    if (newEspNowPacketReceived) {
-        newEspNowPacketReceived = false;
-        return true;
+    bool newPacketFound = false;
+
+    while (spuSerial.available() >= sizeof(TelemetryPacket)) {
+        if (spuSerial.peek() != PROTOCOL_MAGIC_BYTE1) {
+            spuSerial.read(); // Align to magic byte
+            continue;
+        }
+
+        TelemetryPacket candidate;
+        spuSerial.readBytes((uint8_t*)&candidate, sizeof(TelemetryPacket));
+
+        if (candidate.magic1 == PROTOCOL_MAGIC_BYTE1 && candidate.magic2 == PROTOCOL_MAGIC_BYTE2) {
+            uint16_t expected_crc = calculate_crc16((const uint8_t*)&candidate, sizeof(TelemetryPacket) - sizeof(uint16_t));
+            if (candidate.crc16 == expected_crc) {
+                memcpy(&currentTelemetry, &candidate, sizeof(TelemetryPacket));
+                receivedValidData = true;
+                lastReceiveTime = millis();
+                newPacketFound = true;
+
+                #if SERIAL_DEBUG_ENABLED
+                Serial.printf("[UART RX] SPU Telemetry Received! Code: '%c', Temp: %.1fC, Gas: %u PPM, Health: %u%%\n",
+                              currentTelemetry.emergency_code,
+                              currentTelemetry.temp_c_x10 / 10.0,
+                              currentTelemetry.gas_ppm,
+                              currentTelemetry.health_score);
+                #endif
+            } else {
+                #if SERIAL_DEBUG_ENABLED
+                Serial.printf("[UART RX] CRC Error! Expected 0x%04X, Got 0x%04X\n", expected_crc, candidate.crc16);
+                #endif
+            }
+        }
     }
-    return false;
+
+    return newPacketFound;
 }
 
 bool hasSPUTelemetry() {
     // Valid if telemetry received within last 10 seconds
     return receivedValidData && (millis() - lastReceiveTime <= 10000);
+}
+
+bool hasReceivedSPUTelemetry() {
+    return receivedValidData;
 }
 
 TelemetryPacket getLatestSPUTelemetry() {

@@ -13,11 +13,11 @@ void SensorManager::begin() {
     mpuManager.begin();
     gasManager.begin();
     emergencyDetector.begin();
-    espNowManager.begin();
+    uartManager.begin();
     webServerManager.begin();
 
     #if SPU_DEBUG_ENABLE
-    Serial.println(F("[SPU] All Subsystems, ESP-NOW Protocol & Wi-Fi Portal Initialized."));
+    Serial.println(F("[SPU] All Subsystems, Hardware UART & Wi-Fi Portal Initialized."));
     #endif
 }
 
@@ -88,8 +88,8 @@ void SensorManager::loop() {
         printLiveSensorDiagnostics(env, motion, gas, gps, emergency, health);
         #endif
 
-        // Broadcast packet to TX unit wirelessly via ESP-NOW
-        espNowManager.sendTelemetry(pkt);
+        // Transmit packet to TX unit via Hardware UART Serial 2
+        uartManager.sendTelemetry(pkt);
 
         // Upload rich telemetry JSON to Cloud API Endpoint if Wi-Fi connected
         webServerManager.uploadTelemetry();
@@ -150,7 +150,7 @@ void SensorManager::printLiveSensorDiagnostics(const EnvironmentData& env,
                                                 const EmergencyState& emergency,
                                                 const SystemHealthMetrics& health) {
     Serial.println(F("\n┌─────────────────────────────────────────────────────────────┐"));
-    Serial.println(F("│       SPU SENSOR TELEMETRY & ESP-NOW DISPATCH REPORT        │"));
+    Serial.println(F("│        SPU SENSOR TELEMETRY & UART DISPATCH REPORT          │"));
     Serial.println(F("└─────────────────────────────────────────────────────────────┘"));
 
     // STEP 1: Environmental Sensor

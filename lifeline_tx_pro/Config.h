@@ -45,6 +45,9 @@
 // Audio Feedback
 #define BUZZER_PIN  12      // Buzzer
 
+// SPU Telemetry Receiver Pin (Hardware Serial2 RX)
+#define SPU_RX_PIN  34      // SPU UART Telemetry RX Pin
+
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                          DISPLAY AUTO-ADAPTIVE CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════════════

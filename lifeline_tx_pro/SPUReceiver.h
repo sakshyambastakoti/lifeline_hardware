@@ -5,9 +5,9 @@
 #include "SharedProtocol.h"
 
 void initSPUReceiver();
-bool isESPNowInitialized();
 bool updateSPUReceiver();
 bool hasSPUTelemetry();
+bool hasReceivedSPUTelemetry();
 TelemetryPacket getLatestSPUTelemetry();
 unsigned long getSPULastReceiveTime();
 int mapSPUEmergencyToAlertIndex(char spuCode);

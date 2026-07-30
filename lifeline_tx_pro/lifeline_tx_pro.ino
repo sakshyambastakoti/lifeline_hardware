@@ -41,11 +41,6 @@ void setup() {
     initDisplay();
     initLoRa();
     initSPUReceiver();
-    if (isESPNowInitialized()) {
-        Serial.println(F("[INIT] ESP-NOW Receiver status: OK (Listening on 2.4GHz broadcast)"));
-    } else {
-        Serial.println(F("[INIT] WARNING: ESP-NOW Receiver status: FAILED at boot"));
-    }
     
     // Boot Screen
     currentScreen = SCREEN_BOOT;

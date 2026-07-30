@@ -1304,13 +1304,20 @@ void drawSensorLogScreen() {
     
     tft.setTextSize(TEXT_SMALL);
     
-    if (hasSPUTelemetry()) {
+    if (hasReceivedSPUTelemetry()) {
         TelemetryPacket pkt = getLatestSPUTelemetry();
+        bool linkActive = hasSPUTelemetry(); // active within last 10 seconds
         
         // Status header
-        tft.setTextColor(COLOR_GREEN_BRIGHT);
-        tft.setCursor(MARGIN + 12, cardY + 10);
-        tft.print(F("● LIVE SPU TELEMETRY LINK OK"));
+        if (linkActive) {
+            tft.setTextColor(COLOR_GREEN_BRIGHT);
+            tft.setCursor(MARGIN + 12, cardY + 10);
+            tft.print(F("● SPU TELEMETRY LINK OK (UART)"));
+        } else {
+            tft.setTextColor(COLOR_AMBER);
+            tft.setCursor(MARGIN + 12, cardY + 10);
+            tft.print(F("● SPU LINK PAUSED (LAST KNOWN)"));
+        }
         
         tft.drawFastHLine(MARGIN + 10, cardY + 24, cardW - 20, COLOR_ACCENT_LINE);
         
@@ -1361,41 +1368,23 @@ void drawSensorLogScreen() {
         unsigned long ageSec = (millis() - getSPULastReceiveTime()) / 1000;
         tft.setTextColor(COLOR_TEXT_MUTED);
         tft.setCursor(MARGIN + 12, cardY + 146);
-        tft.printf("Code: '%c' | Received %lus ago", pkt.emergency_code, ageSec);
+        tft.printf("Code: '%c' | UART Rx %lus ago", pkt.emergency_code, ageSec);
     } else {
-        if (!isESPNowInitialized()) {
-            tft.setTextColor(COLOR_RED_BRIGHT);
-            tft.setCursor(MARGIN + 12, cardY + 12);
-            tft.print(F("● ESP-NOW INIT ERROR"));
-            
-            tft.setTextColor(COLOR_TEXT_PRIMARY);
-            tft.setCursor(MARGIN + 12, cardY + 40);
-            tft.print(F("ESP-NOW Protocol Failed at Boot!"));
-            
-            tft.setTextColor(COLOR_TEXT_MUTED);
-            tft.setCursor(MARGIN + 12, cardY + 68);
-            tft.print(F("Check ESP32 Wi-Fi hardware state."));
-            tft.setCursor(MARGIN + 12, cardY + 86);
-            tft.print(F("Reboot device to re-initialize."));
-        } else {
-            tft.setTextColor(COLOR_AMBER);
-            tft.setCursor(MARGIN + 12, cardY + 12);
-            tft.print(F("● ESP-NOW READY - SEARCHING SPU..."));
-            
-            tft.setTextColor(COLOR_TEXT_PRIMARY);
-            tft.setCursor(MARGIN + 12, cardY + 40);
-            tft.print(F("ESP-NOW Receiver Active (2.4GHz)"));
-            
-            tft.setTextColor(COLOR_CYAN);
-            tft.setCursor(MARGIN + 12, cardY + 58);
-            tft.print(F("Protocol: Broadcast (FF:FF:FF:FF:FF:FF)"));
-            
-            tft.setTextColor(COLOR_TEXT_MUTED);
-            tft.setCursor(MARGIN + 12, cardY + 90);
-            tft.print(F("Channel: 1 | Magic: 'L''F' | CRC16"));
-            tft.setCursor(MARGIN + 12, cardY + 108);
-            tft.print(F("Waiting for wireless telemetry..."));
-        }
+        tft.setTextColor(COLOR_AMBER);
+        tft.setCursor(MARGIN + 12, cardY + 12);
+        tft.print(F("SEARCHING SPU LINK..."));
+        
+        tft.setTextColor(COLOR_TEXT_SECONDARY);
+        tft.setCursor(MARGIN + 12, cardY + 40);
+        tft.print(F("Connect SPU UART TX output"));
+        tft.setCursor(MARGIN + 12, cardY + 58);
+        tft.print(F("to ESP32 GPIO 34 (RX pin)."));
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(MARGIN + 12, cardY + 90);
+        tft.print(F("Baud Rate: 115200 8N1"));
+        tft.setCursor(MARGIN + 12, cardY + 108);
+        tft.print(F("Waiting for live telemetry packet..."));
     }
     
     drawFooter("# Exit Sensor Log");

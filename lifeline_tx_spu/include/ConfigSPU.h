@@ -26,13 +26,6 @@
 #define SERVER_UPLOAD_INTERVAL  2000             // ms - Upload interval to server
 
 // ═══════════════════════════════════════════════════════════════════════════════════
-//                              ESP-NOW PROTOCOL CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════════════════════
-
-#define ESPNOW_CHANNEL          1                // ESP-NOW Wi-Fi Channel
-#define ESPNOW_WIFI_MODE        WIFI_AP_STA      // Coexistence mode for ESP-NOW & STA
-
-// ═══════════════════════════════════════════════════════════════════════════════════
 //                              PIN DEFINITIONS (ESP32 #1 SPU)
 // ═══════════════════════════════════════════════════════════════════════════════════
 
