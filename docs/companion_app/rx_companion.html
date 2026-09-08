@@ -3,30 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>LifeLine RX — Base Console</title>
-  <meta name="description" content="BitChat-inspired minimalist incident command console for LifeLine RX Pro disaster base station." />
+  <title>LifeLine RX Pro — Base Station Console (TUI)</title>
+  <meta name="description" content="Box-drawing ASCII / TUI incident command console for LifeLine RX Pro disaster base station." />
   <style>
     :root {
-      --bg: #0c0e12;
-      --bg-panel: #12161f;
-      --bg-active: #181f2c;
-      --border: #222a38;
-      --border-bright: #323e52;
+      --bg: #05080c;
+      --bg-box: #0b1017;
+      --bg-input: #040609;
+      --border-color: #2a3a50;
+      --text: #c8d6e5;
+      --text-dim: #576574;
+      --green: #00ff66;
+      --cyan: #00d4ff;
+      --red: #ff3838;
+      --amber: #ff9f1a;
+      --yellow: #feca57;
 
-      --text: #e6edf3;
-      --text-muted: #8090a2;
-      --text-dim: #4d5b6d;
-
-      --green: #00e676;
-      --green-bg: rgba(0, 230, 118, 0.12);
-      --cyan: #00b0ff;
-      --cyan-bg: rgba(0, 176, 255, 0.12);
-      --red: #ff3d00;
-      --red-bg: rgba(255, 61, 0, 0.14);
-      --amber: #ffab00;
-      --amber-bg: rgba(255, 171, 0, 0.12);
-
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      --font-tui: "Cascadia Code", "Courier New", Courier, "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
     }
 
     * {
@@ -37,424 +30,449 @@
     }
 
     body {
-      background: var(--bg);
+      background-color: var(--bg);
       color: var(--text);
-      font-family: var(--font-mono);
+      font-family: var(--font-tui);
       font-size: 13px;
-      line-height: 1.45;
-      height: 100vh;
+      line-height: 1.35;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      padding: 10px;
+      overflow-x: hidden;
     }
 
-    /* Top Status Bar */
-    header {
-      background: var(--bg-panel);
-      border-bottom: 1px solid var(--border);
-      padding: 8px 12px;
+    .tui-container {
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .status-left {
-      display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 10px;
-      overflow: hidden;
-      white-space: nowrap;
+      flex: 1;
     }
 
-    .app-title {
-      font-weight: 700;
+    /* Box Drawing Containers */
+    .tui-frame {
+      background: var(--bg-box);
+      border: 1px solid var(--border-color);
+      border-radius: 2px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .tui-header-bar {
       color: var(--green);
-      letter-spacing: 0.5px;
+      padding: 6px 10px;
+      background: #0e1520;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-weight: bold;
+    }
+
+    .tui-header-bar a {
+      color: var(--cyan);
       text-decoration: none;
     }
+    .tui-header-bar a:hover {
+      text-decoration: underline;
+    }
 
-    .status-pill {
+    .tui-content {
+      padding: 8px 10px;
+    }
+
+    /* ASCII Title Banner */
+    .ascii-banner {
+      color: var(--green);
+      font-weight: bold;
+      white-space: pre;
+      overflow-x: auto;
+      text-align: center;
+      padding: 4px 0;
+      line-height: 1.25;
+    }
+
+    /* Toolbar buttons */
+    .tui-toolbar {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
       gap: 6px;
-      color: var(--text-muted);
-      font-size: 11px;
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--text-dim);
-    }
-    .dot.on {
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-    }
-    .dot.sim {
-      background: var(--amber);
-    }
-
-    .status-right {
-      display: flex;
+      background: #090e15;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-color);
       align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
     }
 
-    .btn-sm {
-      background: var(--bg);
-      border: 1px solid var(--border);
+    .tui-btn {
+      background: #0f1722;
+      border: 1px solid var(--border-color);
       color: var(--text);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 11px;
+      font-family: var(--font-tui);
+      font-size: 12px;
+      padding: 3px 8px;
       cursor: pointer;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-    .btn-sm:hover {
-      border-color: var(--border-bright);
-      background: var(--bg-active);
+    .tui-btn:hover {
+      background: #192638;
+      border-color: var(--cyan);
+      color: #fff;
     }
-    .btn-sm.active {
+    .tui-btn.active {
       border-color: var(--green);
       color: var(--green);
-      background: var(--green-bg);
+      background: rgba(0, 255, 102, 0.1);
     }
-    .btn-sm.danger {
+    .tui-btn.danger {
       border-color: var(--red);
       color: var(--red);
     }
-
-    /* Peer / Unit Tabs Strip (BitChat Channels style) */
-    .channel-strip {
-      background: #0e1117;
-      border-bottom: 1px solid var(--border);
-      padding: 6px 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      overflow-x: auto;
-      flex-shrink: 0;
-      scrollbar-width: none;
+    .tui-btn.danger:hover {
+      background: var(--red);
+      color: #000;
     }
-    .channel-strip::-webkit-scrollbar { display: none; }
 
-    .channel-tab {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 3px 9px;
-      border-radius: 4px;
+    /* Channels / Peers strip */
+    .peer-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: #080c12;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-color);
+      align-items: center;
+    }
+
+    .peer-chip {
+      background: #111822;
+      border: 1px solid var(--border-color);
+      color: var(--text-dim);
+      padding: 2px 7px;
       font-size: 11px;
       cursor: pointer;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
-    .channel-tab:hover {
-      background: var(--bg-active);
+    .peer-chip:hover {
       color: var(--text);
+      border-color: var(--cyan);
     }
-    .channel-tab.active {
-      background: var(--bg-active);
-      border-color: var(--green);
-      color: var(--green);
-      font-weight: 700;
-    }
-    .channel-tab .badge {
-      font-size: 9px;
-      padding: 1px 4px;
-      border-radius: 3px;
-      background: var(--border);
-      color: var(--text-muted);
-    }
-    .channel-tab.active .badge {
-      background: var(--green-bg);
-      color: var(--green);
+    .peer-chip.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      font-weight: bold;
+      background: rgba(0, 212, 255, 0.1);
     }
 
-    /* Main Console Area (BitChat message stream) */
-    #chatLog {
-      flex: 1;
+    /* Chat Stream Terminal Window */
+    .chat-stream {
+      background: #040609;
+      padding: 10px;
+      height: 380px;
       overflow-y: auto;
-      padding: 10px 14px;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      background: var(--bg);
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-tui);
     }
 
-    .msg-line {
+    .log-row {
       display: flex;
       align-items: baseline;
       gap: 8px;
       word-break: break-word;
-      padding: 2px 0;
     }
 
-    .msg-time {
+    .log-ts {
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .log-node {
+      font-weight: bold;
+      flex-shrink: 0;
+      color: var(--cyan);
+    }
+    .log-node.base { color: var(--green); }
+    .log-node.sys { color: var(--yellow); }
+    .log-node.alert { color: var(--red); }
+
+    .log-msg {
+      flex: 1;
+      color: var(--text);
+    }
+    .log-msg.alert {
+      color: var(--red);
+      font-weight: bold;
+    }
+
+    .log-rssi {
       color: var(--text-dim);
       font-size: 11px;
       flex-shrink: 0;
     }
 
-    .msg-sender {
-      font-weight: 700;
-      color: var(--cyan);
-      flex-shrink: 0;
+    /* Preset Commands Grid */
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 4px;
+      padding: 6px 10px;
+      background: #090e15;
+      border-bottom: 1px solid var(--border-color);
     }
-    .msg-sender.sender-base {
+
+    .preset-btn {
+      background: #0f1622;
+      border: 1px solid #1e2c3d;
+      color: var(--text);
+      font-family: var(--font-tui);
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .preset-btn:hover {
+      background: #182435;
+      border-color: var(--green);
       color: var(--green);
     }
-    .msg-sender.sender-sys {
-      color: var(--amber);
-    }
-    .msg-sender.sender-alert {
+    .preset-btn.evac {
+      border-color: rgba(255, 56, 56, 0.4);
       color: var(--red);
     }
-
-    .msg-text {
-      color: var(--text);
-      flex: 1;
-    }
-    .msg-text.alert-text {
-      color: var(--red);
-      font-weight: 700;
+    .preset-btn.evac:hover {
+      background: var(--red);
+      color: #000;
     }
 
-    .msg-rssi {
-      color: var(--text-dim);
-      font-size: 10px;
-      margin-left: 6px;
-    }
-
-    .msg-sys {
-      color: var(--text-muted);
-      font-style: italic;
-      padding: 3px 0;
-      border-bottom: 1px dashed var(--border);
-      margin-bottom: 4px;
-    }
-
-    /* Quick Action Dispatch Chips (Above input) */
-    .quick-actions {
-      background: #0e1117;
-      border-top: 1px solid var(--border);
-      padding: 6px 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      overflow-x: auto;
-      flex-shrink: 0;
-      scrollbar-width: none;
-    }
-    .quick-actions::-webkit-scrollbar { display: none; }
-
-    .action-chip {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .action-chip:hover {
-      background: var(--bg-active);
-      color: var(--text);
-      border-color: var(--cyan);
-    }
-    .action-chip.evac {
-      border-color: var(--red);
-      color: var(--red);
-      background: var(--red-bg);
-      font-weight: 700;
-    }
-
-    /* Bottom Input Bar */
-    footer {
-      background: var(--bg-panel);
-      border-top: 1px solid var(--border);
-      padding: 8px 12px;
+    /* Bottom Command Line Input */
+    .tui-input-line {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-shrink: 0;
+      padding: 8px 10px;
+      background: #0b1118;
     }
 
-    .target-select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--green);
-      font-family: var(--font-mono);
+    .target-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--cyan);
+      font-family: var(--font-tui);
       font-size: 12px;
-      padding: 6px 8px;
-      border-radius: 4px;
+      font-weight: bold;
+      padding: 5px 8px;
       outline: none;
-      font-weight: 700;
+    }
+
+    .prompt-symbol {
+      color: var(--green);
+      font-weight: bold;
     }
 
     .input-cmd {
       flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-mono);
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-family: var(--font-tui);
       font-size: 13px;
-      padding: 6px 10px;
-      border-radius: 4px;
+      padding: 5px 8px;
       outline: none;
     }
     .input-cmd:focus {
       border-color: var(--green);
+      box-shadow: 0 0 5px rgba(0, 255, 102, 0.3);
     }
 
     .btn-send {
-      background: var(--green);
-      border: none;
-      color: #000;
-      font-family: var(--font-mono);
+      background: #008833;
+      border: 1px solid var(--green);
+      color: #fff;
+      font-family: var(--font-tui);
       font-size: 12px;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 4px;
+      font-weight: bold;
+      padding: 5px 14px;
       cursor: pointer;
     }
     .btn-send:hover {
-      background: #00c853;
+      background: var(--green);
+      color: #000;
     }
 
-    /* Modal dialog */
-    .modal-overlay {
+    /* ASCII Modal */
+    .tui-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0, 0, 0, 0.85);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
       padding: 16px;
     }
-    .modal-overlay.open { display: flex; }
+    .tui-modal.open { display: flex; }
 
     .modal-box {
-      background: var(--bg-panel);
-      border: 1px solid var(--red);
-      border-radius: 6px;
-      max-width: 420px;
+      background: #090e15;
+      border: 2px solid var(--red);
+      max-width: 480px;
       width: 100%;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      box-shadow: 0 0 20px rgba(255, 56, 56, 0.4);
     }
-    .modal-title {
-      color: var(--red);
-      font-weight: 700;
-      font-size: 14px;
+
+    /* Footer */
+    .tui-footer {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 10px;
+      background: #06090e;
+      border-top: 1px solid var(--border-color);
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Status Bar -->
-  <header>
-    <div class="status-left">
-      <a href="index.html" class="app-title">[LIFELINE//RX-BASE]</a>
-      <div class="status-pill">
-        <div id="dotConn" class="dot"></div>
-        <span id="labelConn">OFFLINE</span>
+  <div class="tui-container">
+
+    <!-- Box Drawing Main Frame -->
+    <div class="tui-frame">
+
+      <!-- ASCII Header Box -->
+      <div class="ascii-banner">
+╔══════════════════════════════════════════════════════════════════════════════╗
+║               LIFELINE EMERGENCY BASE STATION v3.1 PRO                       ║
+║                [ INCIDENT COMMAND &amp; DISPATCH CONSOLE ]                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝</div>
+
+      <!-- Top Status Header Bar -->
+      <div class="tui-header-bar">
+        <div>
+          <span>LINK: </span>
+          <span id="connLabel" style="color:var(--red);">[● OFFLINE]</span>
+          <span style="margin-left:12px;">RF: 433.0 MHz (SX1278)</span>
+          <span style="margin-left:12px;">ACTIVE NODES: <strong id="nodeCount" style="color:var(--cyan)">00</strong></span>
+        </div>
+        <div>
+          <a href="tx_companion.html">[SWITCH: TX COMMUNICATOR]</a>
+          <a href="index.html" style="margin-left:8px;">[MENU]</a>
+        </div>
       </div>
-      <div class="status-pill">
-        <span>RF: 433.0MHz</span>
+
+      <!-- Toolbar -->
+      <div class="tui-toolbar">
+        <button id="btnBle" class="tui-btn active" onclick="toggleBle()">[B] BLE CONNECT</button>
+        <button id="btnSerial" class="tui-btn" onclick="toggleSerial()">[U] USB SERIAL</button>
+        <button id="btnSim" class="tui-btn" onclick="toggleSim()">[S] SIMULATOR: OFF</button>
+        <button id="btnSiren" class="tui-btn active" onclick="toggleSiren()">[M] SIREN: ON</button>
+        <button class="tui-btn" onclick="exportCsv()">[E] EXPORT CSV</button>
+        <button class="tui-btn" onclick="clearStream()">[C] CLEAR STREAM</button>
       </div>
+
+      <!-- Active Field Nodes Channel Strip -->
+      <div id="peerStrip" class="peer-strip">
+        <span style="color:var(--text-dim); font-size:11px;">NODES:</span>
+        <div class="peer-chip active" onclick="selectChannel('ALL')">[ #ALL-CHANNELS ]</div>
+        <!-- Injected peer chips: [ #TX-003 (-65dBm) ] -->
+      </div>
+
+      <!-- Live LoRa Message Stream (TUI Window) -->
+      <div id="chatStream" class="chat-stream">
+        <div class="log-row">
+          <span class="log-ts">[00:00:00]</span>
+          <span class="log-node sys">&lt;SYSTEM&gt;</span>
+          <span class="log-msg">╔═══════════════════════════════════════════════════════════════════════════╗</span>
+        </div>
+        <div class="log-row">
+          <span class="log-ts">[00:00:00]</span>
+          <span class="log-node sys">&lt;SYSTEM&gt;</span>
+          <span class="log-msg">║ LifeLine RX Pro Base Console Online. Monitoring 433MHz LoRa channel...   ║</span>
+        </div>
+        <div class="log-row">
+          <span class="log-ts">[00:00:00]</span>
+          <span class="log-node sys">&lt;SYSTEM&gt;</span>
+          <span class="log-msg">╚═══════════════════════════════════════════════════════════════════════════╝</span>
+        </div>
+      </div>
+
+      <!-- 1-Click Command Downlink Presets -->
+      <div class="presets-grid">
+        <button class="preset-btn" onclick="sendPreset('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
+          [1] /airborne  : APF squad airborne ETA 20m
+        </button>
+        <button class="preset-btn" onclick="sendPreset('STANDBY', 'Hold position and stay warm')">
+          [2] /hold      : Hold position, rescue en route
+        </button>
+        <button class="preset-btn" onclick="sendPreset('MEDICAL', 'Keep injured warm apply direct pressure')">
+          [3] /medical   : Keep warm, apply pressure
+        </button>
+        <button class="preset-btn" onclick="sendPreset('EN_ROUTE', 'Ground rescue team on foot ETA 45m')">
+          [4] /ground    : Ground team on foot ETA 45m
+        </button>
+        <button class="preset-btn evac" onclick="openEvac()">
+          [!] /evac      : *** MASS EVACUATION ORDER ***
+        </button>
+      </div>
+
+      <!-- Command Line Transmit Bar -->
+      <div class="tui-input-line">
+        <span style="color:var(--text-dim);font-size:11px;">TARGET:</span>
+        <select id="targetSelect" class="target-box">
+          <option value="ALL">#ALL (Broadcast)</option>
+          <option value="3">#TX-003</option>
+          <option value="1">#TX-001</option>
+          <option value="12">#TX-012</option>
+        </select>
+        <span class="prompt-symbol">&gt;</span>
+        <input id="inputCmd" type="text" class="input-cmd" placeholder="Type downlink instruction (/reply, /evac, or text)..." maxlength="48" onkeydown="if(event.key==='Enter')sendInput()" />
+        <button class="btn-send" onclick="sendInput()">TRANSMIT ↵</button>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="tui-footer">
+        <span>GATT: Nordic UART Service (NUS 6E400001)</span>
+        <span>BAUD: 115200 (USB Serial)</span>
+        <span>PROTOCOL: SX1278 TDD LoRa</span>
+      </div>
+
     </div>
 
-    <div class="status-right">
-      <button id="btnSiren" class="btn-sm active" onclick="toggleSiren()">🔔 SIREN: ON</button>
-      <button id="btnSim" class="btn-sm" onclick="toggleSim()">SIM: OFF</button>
-      <button id="btnSerial" class="btn-sm" onclick="toggleSerial()">USB</button>
-      <button id="btnBle" class="btn-sm active" onclick="toggleBle()">BLE</button>
-      <button class="btn-sm" onclick="exportLog()">CSV</button>
-      <a href="tx_companion.html" class="btn-sm">→ TX APP</a>
-    </div>
-  </header>
-
-  <!-- Channel & Active Peer Strip (BitChat inspired) -->
-  <div id="channelStrip" class="channel-strip">
-    <div class="channel-tab active" onclick="setChannel('ALL')">
-      <span>#all-traffic</span>
-      <span id="badgeAllCount" class="badge">0</span>
-    </div>
-    <!-- Dynamically added peer tabs: #tx-003, #tx-001 -->
   </div>
 
-  <!-- Main Terminal / Chat Log Stream -->
-  <div id="chatLog">
-    <div class="msg-line msg-sys">
-      [00:00:00] *** LifeLine RX Base Console initialized. Ready for 433MHz LoRa traffic ***
-    </div>
-  </div>
-
-  <!-- Quick Command Dispatch Chips -->
-  <div class="quick-actions">
-    <span class="action-chip" onclick="quickDispatch('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
-      /dispatch: Airborne Rescue ETA 20m
-    </span>
-    <span class="action-chip" onclick="quickDispatch('STANDBY', 'Hold position and stay sheltered')">
-      /dispatch: Hold Position
-    </span>
-    <span class="action-chip" onclick="quickDispatch('MEDICAL', 'Keep injured warm apply direct pressure')">
-      /dispatch: Medical Instructions
-    </span>
-    <span class="action-chip" onclick="quickDispatch('EN_ROUTE', 'Ground rescue team en route on foot')">
-      /dispatch: Ground Team
-    </span>
-    <span class="action-chip evac" onclick="openEvacModal()">
-      /broadcast: MASS EVACUATION
-    </span>
-  </div>
-
-  <!-- Bottom Message Input Bar -->
-  <footer>
-    <select id="targetUnitSelect" class="target-select">
-      <option value="ALL">ALL (Broadcast)</option>
-      <option value="3">#TX-003</option>
-      <option value="1">#TX-001</option>
-      <option value="12">#TX-012</option>
-    </select>
-
-    <input id="inputCmd" type="text" class="input-cmd" placeholder="Type downlink instruction (/reply, /evac, or text)..." maxlength="48" onkeydown="if(event.key==='Enter')sendFromInput()" />
-
-    <button class="btn-send" onclick="sendFromInput()">TRANSMIT</button>
-  </footer>
-
-  <!-- Evacuation Confirmation Modal -->
-  <div id="evacModal" class="modal-overlay">
+  <!-- Evacuation Order Modal -->
+  <div id="evacModal" class="tui-modal">
     <div class="modal-box">
-      <div class="modal-title">⚠️ CONFIRM MASS EVACUATION (433MHz LoRa)</div>
-      <div style="font-size:12px; color:var(--text-muted);">
-        This transmits an emergency evacuation frame to ALL field communicators in range.
+      <div style="color:var(--red); font-weight:bold; font-size:13px;">
+        ╔═══════════════════════════════════════════════════════════╗<br/>
+        ║   ⚠️  CONFIRM MASS EVACUATION BROADCAST OVER 433MHz LORA   ║<br/>
+        ╚═══════════════════════════════════════════════════════════╝
+      </div>
+      <div style="color:var(--text); font-size:12px;">
+        This will broadcast an urgent evacuation packet to ALL field communicators.
       </div>
       <input id="evacInput" class="input-cmd" value="Dam breach risk: head immediately to high ridge" maxlength="48" />
-      <div style="display:flex; gap:8px; justify-content:flex-end;">
-        <button class="btn-sm" onclick="closeEvacModal()">Cancel</button>
-        <button class="btn-sm danger" style="background:var(--red); color:#fff;" onclick="execEvac()">BROADCAST EVAC</button>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="tui-btn" onclick="closeEvac()">[ CANCEL ]</button>
+        <button class="tui-btn danger" style="background:var(--red); color:#000; font-weight:bold;" onclick="execEvac()">[ EXECUTE EVAC ]</button>
       </div>
     </div>
   </div>
 
   <script>
-    // NUS UUIDs
     const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
     const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
     const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
@@ -462,219 +480,220 @@
     let bleDevice = null;
     let rxCharacteristic = null;
     let txCharacteristic = null;
-    let isBleConnected = false;
+    let isBle = false;
 
-    // Web Serial
     let serialPort = null;
     let serialReader = null;
-    let isSerialConnected = false;
+    let isSerial = false;
 
-    // State
-    let isSirenOn = true;
-    let isSimOn = false;
+    let isSiren = true;
+    let isSim = false;
     let simTimer = null;
-    let currentChannel = 'ALL'; // 'ALL' or '3', '1'
+    let currentChannel = 'ALL';
 
-    const activePeers = new Map(); // devId -> { lastRssi, lastSeen, count }
-    const logHistory = []; // { time, sender, text, rssi, isAlert, devId }
+    const activePeers = new Map();
+    const logHistory = [];
 
-    // Audio Synthesizer (BitChat style feedback)
+    // Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function beep(freq, dur, type = 'sine') {
-      if (!isSirenOn) return;
+    function beep(f, d, t = 'sine') {
+      if (!isSiren) return;
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+      osc.type = t;
+      osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + d);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + dur);
+      osc.stop(audioCtx.currentTime + d);
     }
     function alertSiren() {
-      if (!isSirenOn) return;
-      beep(880, 0.25, 'sawtooth');
-      setTimeout(() => beep(440, 0.35, 'sawtooth'), 260);
+      if (!isSiren) return;
+      beep(900, 0.25, 'sawtooth');
+      setTimeout(() => beep(450, 0.35, 'sawtooth'), 260);
       if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
     }
-    function chatBeep() { beep(750, 0.12, 'sine'); }
+    function chatBeep() { beep(700, 0.12); }
 
-    // Chat Log Renderer
-    function appendLog(sender, text, rssi = '', isAlert = false, devId = 'ALL') {
+    function addLog(sender, text, rssi = '', isAlert = false, devId = 'ALL') {
       const now = new Date();
       const time = now.toTimeString().split(' ')[0];
-      const entry = { time, sender, text, rssi, isAlert, devId };
-      logHistory.push(entry);
+      const item = { time, sender, text, rssi, isAlert, devId };
+      logHistory.push(item);
 
       if (isAlert) alertSiren();
       else if (sender !== 'BASE') chatBeep();
 
-      renderLine(entry);
+      renderRow(item);
     }
 
-    function renderLine(entry) {
-      if (currentChannel !== 'ALL' && entry.devId !== 'ALL' && entry.devId !== currentChannel && !entry.sender.includes(currentChannel)) {
-        return; // Filtered out
+    function renderRow(item) {
+      if (currentChannel !== 'ALL' && item.devId !== 'ALL' && item.devId !== currentChannel && !item.sender.includes(currentChannel)) {
+        return;
       }
-
-      const log = document.getElementById('chatLog');
+      const stream = document.getElementById('chatStream');
       const div = document.createElement('div');
-      div.className = 'msg-line';
+      div.className = 'log-row';
 
-      let senderCls = 'msg-sender';
-      if (entry.sender === 'BASE') senderCls += ' sender-base';
-      else if (entry.sender === 'SYSTEM') senderCls += ' sender-sys';
-      else if (entry.isAlert) senderCls += ' sender-alert';
+      let nodeCls = 'log-node';
+      if (item.sender === 'BASE') nodeCls += ' base';
+      else if (item.sender === 'SYSTEM') nodeCls += ' sys';
+      else if (item.isAlert) nodeCls += ' alert';
 
-      const rssiHtml = entry.rssi ? `<span class="msg-rssi">[${entry.rssi}dBm]</span>` : '';
-      const textCls = entry.isAlert ? 'msg-text alert-text' : 'msg-text';
+      const rssiStr = item.rssi ? `<span class="log-rssi">[${item.rssi}dBm]</span>` : '';
+      const msgCls = item.isAlert ? 'log-msg alert' : 'log-msg';
 
       div.innerHTML = `
-        <span class="msg-time">[${entry.time}]</span>
-        <span class="${senderCls}">&lt;${entry.sender}&gt;</span>
-        <span class="${textCls}">${entry.text}</span>
-        ${rssiHtml}
+        <span class="log-ts">[${item.time}]</span>
+        <span class="${nodeCls}">&lt;${item.sender}&gt;</span>
+        <span class="${msgCls}">${item.text}</span>
+        ${rssiStr}
       `;
-      log.appendChild(div);
-      log.scrollTop = log.scrollHeight;
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
     }
 
-    function refreshLogView() {
-      const log = document.getElementById('chatLog');
-      log.innerHTML = '';
-      logHistory.forEach(renderLine);
+    function refreshLog() {
+      const stream = document.getElementById('chatStream');
+      stream.innerHTML = '';
+      logHistory.forEach(renderRow);
     }
 
-    // Peers & Channels
-    function updatePeer(devId, rssi) {
-      const idStr = String(devId);
-      const peer = activePeers.get(idStr) || { count: 0 };
-      peer.lastRssi = rssi;
-      peer.lastSeen = new Date().toTimeString().split(' ')[0];
-      peer.count += 1;
-      activePeers.set(idStr, peer);
-
-      renderPeerTabs();
-      updateSelect();
-    }
-
-    function renderPeerTabs() {
-      const strip = document.getElementById('channelStrip');
-      strip.innerHTML = `
-        <div class="channel-tab ${currentChannel === 'ALL' ? 'active' : ''}" onclick="setChannel('ALL')">
-          <span>#all-traffic</span>
-          <span class="badge">${logHistory.length}</span>
+    function clearStream() {
+      logHistory.length = 0;
+      document.getElementById('chatStream').innerHTML = `
+        <div class="log-row">
+          <span class="log-ts">[${new Date().toTimeString().split(' ')[0]}]</span>
+          <span class="log-node sys">&lt;SYSTEM&gt;</span>
+          <span class="log-msg">Stream buffer cleared by operator.</span>
         </div>
       `;
+    }
+
+    function updatePeer(devId, rssi) {
+      const id = String(devId);
+      const p = activePeers.get(id) || { count: 0 };
+      p.rssi = rssi;
+      p.time = new Date().toTimeString().split(' ')[0];
+      p.count += 1;
+      activePeers.set(id, p);
+
+      renderPeers();
+      updateTargetDropdown();
+      document.getElementById('nodeCount').innerText = String(activePeers.size).padStart(2, '0');
+    }
+
+    function renderPeers() {
+      const strip = document.getElementById('peerStrip');
+      strip.innerHTML = '<span style="color:var(--text-dim);font-size:11px;">NODES:</span>';
+
+      const all = document.createElement('div');
+      all.className = `peer-chip ${currentChannel === 'ALL' ? 'active' : ''}`;
+      all.innerText = `[ #ALL-CHANNELS (${logHistory.length}) ]`;
+      all.onclick = () => selectChannel('ALL');
+      strip.appendChild(all);
 
       activePeers.forEach((data, id) => {
-        const tab = document.createElement('div');
-        tab.className = `channel-tab ${currentChannel === id ? 'active' : ''}`;
-        tab.onclick = () => setChannel(id);
-        tab.innerHTML = `
-          <span>#tx-${String(id).padStart(3, '0')}</span>
-          <span class="badge">${data.lastRssi}dBm</span>
-        `;
-        strip.appendChild(tab);
+        const chip = document.createElement('div');
+        chip.className = `peer-chip ${currentChannel === id ? 'active' : ''}`;
+        chip.innerText = `[ #TX-${String(id).padStart(3, '0')} (${data.rssi}dBm) ]`;
+        chip.onclick = () => selectChannel(id);
+        strip.appendChild(chip);
       });
     }
 
-    function setChannel(ch) {
+    function selectChannel(ch) {
       currentChannel = ch;
-      renderPeerTabs();
-      refreshLogView();
-
-      const select = document.getElementById('targetUnitSelect');
-      if (ch !== 'ALL') select.value = ch;
+      renderPeers();
+      refreshLog();
+      if (ch !== 'ALL') document.getElementById('targetSelect').value = ch;
     }
 
-    function updateSelect() {
-      const select = document.getElementById('targetUnitSelect');
-      const val = select.value;
-      select.innerHTML = '<option value="ALL">ALL (Broadcast)</option>';
+    function updateTargetDropdown() {
+      const sel = document.getElementById('targetSelect');
+      const cur = sel.value;
+      sel.innerHTML = '<option value="ALL">#ALL (Broadcast)</option>';
       activePeers.forEach((data, id) => {
         const opt = document.createElement('option');
         opt.value = id;
         opt.innerText = `#TX-${String(id).padStart(3, '0')}`;
-        select.appendChild(opt);
+        sel.appendChild(opt);
       });
-      select.value = val;
+      sel.value = cur;
     }
 
-    // Command Dispatch
-    async function quickDispatch(action, msg) {
-      const target = document.getElementById('targetUnitSelect').value;
-      const cmd = `REPLY:${target === 'ALL' ? '3' : target},${action},${msg}`;
+    async function sendPreset(act, msg) {
+      const target = document.getElementById('targetSelect').value;
+      const cmd = `REPLY:${target === 'ALL' ? '3' : target},${act},${msg}`;
       const ok = await transmit(cmd);
-      if (ok || isSimOn) {
-        appendLog('BASE', `[DOWNLINK -> #${target}] [${action}] ${msg}`, '', false, target);
+      if (ok || isSim) {
+        addLog('BASE', `[DOWNLINK -> #${target}] [${act}] ${msg}`, '', false, target);
       }
     }
 
-    async function sendFromInput() {
+    async function sendInput() {
       const input = document.getElementById('inputCmd');
-      const text = input.value.trim();
-      if (!text) return;
+      const txt = input.value.trim();
+      if (!txt) return;
 
-      const target = document.getElementById('targetUnitSelect').value;
-      if (text.startsWith('/')) {
-        // IRC slash command style: /reply 3 text or /evac text
-        handleSlashCommand(text);
+      const target = document.getElementById('targetSelect').value;
+      if (txt.startsWith('/')) {
+        handleSlash(txt);
       } else {
-        const cmd = `REPLY:${target === 'ALL' ? '3' : target},COMMAND,${text}`;
+        const cmd = `REPLY:${target === 'ALL' ? '3' : target},COMMAND,${txt}`;
         const ok = await transmit(cmd);
-        if (ok || isSimOn) {
-          appendLog('BASE', `[DOWNLINK -> #${target}] "${text}"`, '', false, target);
+        if (ok || isSim) {
+          addLog('BASE', `[DOWNLINK -> #${target}] "${txt}"`, '', false, target);
         }
       }
       input.value = '';
     }
 
-    function handleSlashCommand(cmdStr) {
-      const parts = cmdStr.split(' ');
+    function handleSlash(str) {
+      const parts = str.split(' ');
       const verb = parts[0].toLowerCase();
       if (verb === '/evac') {
-        const reason = parts.slice(1).join(' ') || 'Evacuate to high ground';
+        const reason = parts.slice(1).join(' ') || 'Evacuate immediately';
         transmit(`EVAC:${reason}`);
-        appendLog('BASE', `*** BROADCAST EVAC: ${reason} ***`, '', true, 'ALL');
+        addLog('BASE', `*** BROADCAST MASS EVACUATION: "${reason}" ***`, '', true, 'ALL');
       } else if (verb === '/reply' && parts.length >= 3) {
-        const devId = parts[1];
+        const id = parts[1];
         const msg = parts.slice(2).join(' ');
-        transmit(`REPLY:${devId},COMMAND,${msg}`);
-        appendLog('BASE', `[DOWNLINK -> #${devId}] "${msg}"`, '', false, devId);
+        transmit(`REPLY:${id},COMMAND,${msg}`);
+        addLog('BASE', `[DOWNLINK -> #${id}] "${msg}"`, '', false, id);
+      } else if (verb === '/airborne') {
+        sendPreset('DISPATCHED', 'APF Rescue squad airborne ETA 20m');
       } else if (verb === '/status') {
         transmit('STATUS');
-        appendLog('SYSTEM', 'Queried Base Station hardware status');
+        addLog('SYSTEM', 'Queried Base hardware status.');
       } else {
-        appendLog('SYSTEM', `Unknown command: ${verb}. Use /reply <id> <msg> or /evac <msg>`);
+        addLog('SYSTEM', `Unknown command: ${verb}`);
       }
     }
 
-    // Modal Evac
-    function openEvacModal() { document.getElementById('evacModal').classList.add('open'); }
-    function closeEvacModal() { document.getElementById('evacModal').classList.remove('open'); }
+    function openEvac() { document.getElementById('evacModal').classList.add('open'); }
+    function closeEvac() { document.getElementById('evacModal').classList.remove('open'); }
     async function execEvac() {
       const msg = document.getElementById('evacInput').value.trim() || 'EVACUATE IMMEDIATELY';
-      closeEvacModal();
+      closeEvac();
       await transmit(`EVAC:${msg}`);
-      appendLog('BASE', `*** BROADCAST MASS EVACUATION: "${msg}" ***`, '', true, 'ALL');
+      addLog('BASE', `*** BROADCAST MASS EVACUATION: "${msg}" ***`, '', true, 'ALL');
     }
 
-    // Transmit Router
     async function transmit(str) {
-      if (isBleConnected && rxCharacteristic) {
+      if (isBle && rxCharacteristic) {
         try {
           const enc = new TextEncoder();
           await rxCharacteristic.writeValueWithoutResponse(enc.encode(str));
           return true;
         } catch (e) {
-          appendLog('SYSTEM', `BLE TX Error: ${e}`);
+          addLog('SYSTEM', `BLE TX Error: ${e}`);
           return false;
         }
-      } else if (isSerialConnected && serialPort && serialPort.writable) {
+      } else if (isSerial && serialPort && serialPort.writable) {
         try {
           const writer = serialPort.writable.getWriter();
           const enc = new TextEncoder();
@@ -682,33 +701,30 @@
           writer.releaseLock();
           return true;
         } catch (e) {
-          appendLog('SYSTEM', `Serial TX Error: ${e}`);
+          addLog('SYSTEM', `Serial TX Error: ${e}`);
           return false;
         }
       }
       return false;
     }
 
-    // Inbound Frame Parser
-    function parseInbound(line) {
+    function parseFrame(line) {
       if (line.startsWith('ALERT:')) {
-        // ALERT:DEV=003,CODE=A,NAME=CRITICAL SOS,RSSI=-65
         const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
         const code = (line.match(/CODE=([^,]+)/) || [])[1] || 'A';
         const name = (line.match(/NAME=([^,]+)/) || [])[1] || 'SOS';
         const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
 
         updatePeer(dev, rssi);
-        appendLog(`TX-${String(dev).padStart(3, '0')}`, `🚨 [ALERT ${code}] ${name}`, rssi, true, dev);
+        addLog(`TX-${String(dev).padStart(3, '0')}`, `🚨 [ALERT ${code}] ${name}`, rssi, true, dev);
       }
       else if (line.startsWith('CHAT:')) {
-        // CHAT:DEV=003,TEXT=...,RSSI=-62
         const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
-        const text = (line.match(/TEXT=([^,]+)/) || [])[1] || '';
+        const txt = (line.match(/TEXT=([^,]+)/) || [])[1] || '';
         const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
 
         updatePeer(dev, rssi);
-        appendLog(`TX-${String(dev).padStart(3, '0')}`, `"${text}"`, rssi, false, dev);
+        addLog(`TX-${String(dev).padStart(3, '0')}`, `"${txt}"`, rssi, false, dev);
       }
       else if (line.startsWith('TELEMETRY:')) {
         const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
@@ -718,73 +734,64 @@
         const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
 
         updatePeer(dev, rssi);
-        appendLog(`TX-${String(dev).padStart(3, '0')}`, `[TELEMETRY] ${temp}°C | GPS: ${lat},${lon}`, rssi, false, dev);
+        addLog(`TX-${String(dev).padStart(3, '0')}`, `[TELEMETRY] ${temp}°C | GPS: ${lat},${lon}`, rssi, false, dev);
       }
       else if (line.startsWith('STATUS:')) {
-        appendLog('SYSTEM', line);
+        addLog('SYSTEM', line);
       }
     }
 
-    // BLE Connect
     async function toggleBle() {
-      if (isBleConnected) {
+      if (isBle) {
         if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
-        setConnState(false);
+        setConn(false);
       } else {
-        if (!navigator.bluetooth) {
-          alert('Web Bluetooth requires Google Chrome or Bluefy on iOS.');
-          return;
-        }
+        if (!navigator.bluetooth) return alert('Web Bluetooth requires Chrome or Bluefy on iOS.');
         try {
           bleDevice = await navigator.bluetooth.requestDevice({
             filters: [{ namePrefix: 'LifeLine-RX' }, { namePrefix: 'LifeLine' }, { services: [NUS_SERVICE_UUID] }],
             optionalServices: [NUS_SERVICE_UUID]
           });
-          bleDevice.addEventListener('gattserverdisconnected', () => setConnState(false));
-          const server = await bleDevice.gatt.connect();
-          const svc = await server.getPrimaryService(NUS_SERVICE_UUID);
+          bleDevice.addEventListener('gattserverdisconnected', () => setConn(false));
+          const s = await bleDevice.gatt.connect();
+          const svc = await s.getPrimaryService(NUS_SERVICE_UUID);
           rxCharacteristic = await svc.getCharacteristic(NUS_RX_CHAR_UUID);
           txCharacteristic = await svc.getCharacteristic(NUS_TX_CHAR_UUID);
 
           await txCharacteristic.startNotifications();
           txCharacteristic.addEventListener('characteristicvaluechanged', e => {
             const dec = new TextDecoder();
-            parseInbound(dec.decode(e.target.value).trim());
+            parseFrame(dec.decode(e.target.value).trim());
           });
 
-          setConnState(true, `BLE:${bleDevice.name}`);
-          appendLog('SYSTEM', `Connected to ${bleDevice.name} via Nordic UART`);
+          setConn(true, `[● BLE: ${bleDevice.name}]`);
+          addLog('SYSTEM', `GATT Nordic UART connected to ${bleDevice.name}`);
           transmit('STATUS');
         } catch (e) {
-          appendLog('SYSTEM', `BLE Error: ${e}`);
-          setConnState(false);
+          addLog('SYSTEM', `BLE Error: ${e}`);
+          setConn(false);
         }
       }
     }
 
-    // Web Serial
     async function toggleSerial() {
-      if (isSerialConnected) {
+      if (isSerial) {
         if (serialReader) await serialReader.cancel();
         if (serialPort) await serialPort.close();
-        isSerialConnected = false;
-        setConnState(false);
+        isSerial = false;
+        setConn(false);
       } else {
-        if (!('serial' in navigator)) {
-          alert('Web Serial requires Chrome / Edge.');
-          return;
-        }
+        if (!('serial' in navigator)) return alert('Web Serial requires Chrome / Edge.');
         try {
           serialPort = await navigator.serial.requestPort();
           await serialPort.open({ baudRate: 115200 });
-          isSerialConnected = true;
-          setConnState(true, 'USB:115200');
-          appendLog('SYSTEM', 'Connected via USB Web Serial (115200)');
-
+          isSerial = true;
+          setConn(true, '[● USB: 115200]');
+          addLog('SYSTEM', 'Connected via USB Serial (115200 baud)');
           readSerial();
         } catch (e) {
-          appendLog('SYSTEM', `Serial Error: ${e}`);
-          setConnState(false);
+          addLog('SYSTEM', `Serial Error: ${e}`);
+          setConn(false);
         }
       }
     }
@@ -804,70 +811,68 @@
             const lines = buf.split('\n');
             buf = lines.pop();
             for (const l of lines) {
-              const clean = l.trim();
-              if (clean) parseInbound(clean);
+              const c = l.trim();
+              if (c) parseFrame(c);
             }
           }
         }
       } catch (e) {
-        appendLog('SYSTEM', `Serial stream closed: ${e}`);
+        addLog('SYSTEM', `Serial stream closed: ${e}`);
       }
     }
 
-    function setConnState(online, label = '') {
-      isBleConnected = online && label.startsWith('BLE');
-      isSerialConnected = online && label.startsWith('USB');
-
-      const dot = document.getElementById('dotConn');
-      const text = document.getElementById('labelConn');
+    function setConn(online, label = '') {
+      isBle = online && label.includes('BLE');
+      isSerial = online && label.includes('USB');
+      const el = document.getElementById('connLabel');
       if (online) {
-        dot.className = 'dot on';
-        text.innerText = label;
+        el.style.color = 'var(--green)';
+        el.innerText = label;
       } else {
-        dot.className = isSimOn ? 'dot sim' : 'dot';
-        text.innerText = isSimOn ? 'SIMULATOR' : 'OFFLINE';
+        el.style.color = isSim ? 'var(--amber)' : 'var(--red)';
+        el.innerText = isSim ? '[● SIMULATOR]' : '[● OFFLINE]';
       }
     }
 
     function toggleSiren() {
-      isSirenOn = !isSirenOn;
-      const btn = document.getElementById('btnSiren');
-      btn.innerText = `🔔 SIREN: ${isSirenOn ? 'ON' : 'MUTED'}`;
-      btn.classList.toggle('active', isSirenOn);
+      isSiren = !isSiren;
+      const b = document.getElementById('btnSiren');
+      b.innerText = `[M] SIREN: ${isSiren ? 'ON' : 'MUTED'}`;
+      b.classList.toggle('active', isSiren);
     }
 
     function toggleSim() {
-      isSimOn = !isSimOn;
-      const btn = document.getElementById('btnSim');
-      btn.innerText = `SIM: ${isSimOn ? 'ON' : 'OFF'}`;
-      btn.classList.toggle('active', isSimOn);
-      setConnState(false);
+      isSim = !isSim;
+      const b = document.getElementById('btnSim');
+      b.innerText = `[S] SIMULATOR: ${isSim ? 'ON' : 'OFF'}`;
+      b.classList.toggle('active', isSim);
+      setConn(false);
 
-      if (isSimOn) {
-        appendLog('SYSTEM', 'Simulation started. Injecting mock peer units...');
+      if (isSim) {
+        addLog('SYSTEM', 'Simulation active. Injecting field distress packets...');
         updatePeer(3, -65);
         updatePeer(1, -74);
         updatePeer(12, -82);
-        appendLog('TX-003', '🚨 [ALERT A] CRITICAL SOS (आपतकालीन उद्धार)', '-65', true, '3');
-        appendLog('TX-001', '"Landslide blocking road near bridge"', '-74', false, '1');
+        addLog('TX-003', '🚨 [ALERT A] CRITICAL SOS (आपतकालीन उद्धार)', '-65', true, '3');
+        addLog('TX-001', '"Landslide blocking road near bridge"', '-74', false, '1');
 
         simTimer = setInterval(() => {
-          if (!isSimOn) return;
+          if (!isSim) return;
           const mock = [
-            () => appendLog('TX-003', '"Elderly patient hypothermia, need blankets"', '-67', false, '3'),
-            () => appendLog('TX-012', '🚨 [ALERT B] DELIVERY / LABOR (सुत्केरी / प्रसूति)', '-81', true, '12'),
-            () => appendLog('TX-001', '"River levels rising fast"', '-72', false, '1')
+            () => addLog('TX-003', '"Elderly patient hypothermia, need blankets"', '-67', false, '3'),
+            () => addLog('TX-012', '🚨 [ALERT B] DELIVERY / LABOR (सुत्केरी / प्रसूति)', '-81', true, '12'),
+            () => addLog('TX-001', '"River levels rising fast"', '-72', false, '1')
           ];
           mock[Math.floor(Math.random() * mock.length)]();
         }, 14000);
       } else {
         clearInterval(simTimer);
-        appendLog('SYSTEM', 'Simulation stopped.');
+        addLog('SYSTEM', 'Simulation stopped.');
       }
     }
 
-    function exportLog() {
-      if (!logHistory.length) return alert('No logs to export');
+    function exportCsv() {
+      if (!logHistory.length) return alert('No logs to export.');
       let csv = 'Timestamp,Sender,Text,RSSI,Alert,DevID\n';
       logHistory.forEach(l => {
         csv += `"${l.time}","${l.sender}","${l.text.replace(/"/g, '""')}","${l.rssi}",${l.isAlert},"${l.devId}"\n`;
@@ -876,7 +881,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lifeline_rx_log_${Date.now()}.csv`;
+      a.download = `lifeline_tui_rx_${Date.now()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
