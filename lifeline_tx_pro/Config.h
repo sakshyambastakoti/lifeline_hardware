@@ -86,6 +86,8 @@
 #define MARGIN              10                         // Universal margin
 #define MARGIN_SMALL        5                          // Small margin
 #define BORDER_RADIUS       6                          // Rounded corner radius
+#define CORNER_TICK_LEN     5                          // Sharp tactical corner bracket length (px)
+#define CARD_HEADER_H       14                         // Sharp card title header height (px)
 
 #define MENU_ITEM_HEIGHT    34                         // Height per menu item
 #define VISIBLE_MENU_ITEMS  5                          // Visible items in scroll list
@@ -183,7 +185,7 @@ char getAlertCode(int index);
 //                              TIMING CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-#define BOOT_DISPLAY_TIME       1000    // Boot screen duration (ms)
+#define BOOT_DISPLAY_TIME       1800    // Boot screen duration (ms)
 #define SENDING_MIN_DISPLAY     400     // Minimum sending screen time (ms)
 #define RESULT_SUCCESS_TIME     1800    // Success screen auto-return (ms)
 #define RESULT_FAILURE_TIME     0       // Failure requires user input

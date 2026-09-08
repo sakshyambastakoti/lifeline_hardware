@@ -19,6 +19,7 @@ void drawRightText(const char* text, int y, uint8_t textSize, uint16_t color);
 void drawGradientH(int x, int y, int w, int h, uint16_t colorStart, uint16_t colorEnd);
 void drawGradientV(int x, int y, int w, int h, uint16_t colorTop, uint16_t colorBottom);
 void drawPremiumCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor, bool hasGlow = false);
+void drawSharpCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor, uint16_t accentColor = 0, bool cornerTicks = true);
 void drawGlowCircle(int cx, int cy, int r, uint16_t color);
 void drawStatusIndicator(int x, int y, int r, uint16_t color, bool active = true);
 

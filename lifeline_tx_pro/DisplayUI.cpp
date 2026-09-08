@@ -105,11 +105,51 @@ void drawGradientV(int x, int y, int w, int h, uint16_t colorTop, uint16_t color
     }
 }
 
+void drawSharpCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor, uint16_t accentColor, bool cornerTicks) {
+    // 1. Sharp drop-shadow on bottom-right for clean depth
+    tft.drawFastHLine(x + SHADOW_OFFSET, y + h, w, RGB565(5, 5, 10));
+    tft.drawFastHLine(x + SHADOW_OFFSET + 1, y + h + 1, w - 1, RGB565(2, 2, 5));
+    tft.drawFastVLine(x + w, y + SHADOW_OFFSET, h, RGB565(5, 5, 10));
+    tft.drawFastVLine(x + w + 1, y + SHADOW_OFFSET + 1, h - 1, RGB565(2, 2, 5));
+    
+    // 2. Crisp rectangular fill & outer border
+    tft.fillRect(x, y, w, h, bgColor);
+    tft.drawRect(x, y, w, h, borderColor);
+    
+    // 3. Top subtle highlight line for chiseled look
+    tft.drawFastHLine(x + 1, y + 1, w - 2, RGB565(60, 70, 95));
+    
+    // 4. Tactical corner ticks / brackets
+    if (cornerTicks) {
+        uint16_t tickCol = (accentColor != 0) ? accentColor : borderColor;
+        int tLen = CORNER_TICK_LEN;
+        if (tLen > w / 3) tLen = w / 3;
+        if (tLen > h / 3) tLen = h / 3;
+        
+        // Top-Left
+        tft.drawFastHLine(x, y, tLen, tickCol);
+        tft.drawFastVLine(x, y, tLen, tickCol);
+        tft.drawFastHLine(x + 1, y + 1, tLen - 1, tickCol);
+        
+        // Top-Right
+        tft.drawFastHLine(x + w - tLen, y, tLen, tickCol);
+        tft.drawFastVLine(x + w - 1, y, tLen, tickCol);
+        tft.drawFastHLine(x + w - tLen, y + 1, tLen - 1, tickCol);
+        
+        // Bottom-Left
+        tft.drawFastHLine(x, y + h - 1, tLen, tickCol);
+        tft.drawFastVLine(x, y + h - tLen, tLen, tickCol);
+        tft.drawFastHLine(x + 1, y + h - 2, tLen - 1, tickCol);
+        
+        // Bottom-Right
+        tft.drawFastHLine(x + w - tLen, y + h - 1, tLen, tickCol);
+        tft.drawFastVLine(x + w - 1, y + h - tLen, tLen, tickCol);
+        tft.drawFastHLine(x + w - tLen, y + h - 2, tLen - 1, tickCol);
+    }
+}
+
 void drawPremiumCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor, bool hasGlow) {
-    tft.fillRoundRect(x + SHADOW_OFFSET, y + SHADOW_OFFSET, w, h, BORDER_RADIUS, RGB565(5, 5, 10));
-    tft.fillRoundRect(x, y, w, h, BORDER_RADIUS, bgColor);
-    tft.drawRoundRect(x, y, w, h, BORDER_RADIUS, borderColor);
-    tft.drawFastHLine(x + 4, y + 1, w - 8, RGB565(60, 60, 80));
+    drawSharpCard(x, y, w, h, bgColor, borderColor, hasGlow ? COLOR_CYAN : borderColor, true);
 }
 
 void drawGlowCircle(int cx, int cy, int r, uint16_t color) {
@@ -169,8 +209,8 @@ void drawFooter(const char* hints) {
 }
 
 void drawKeyBadge(int x, int y, char key, const char* label, uint16_t keyColor) {
-    tft.fillRoundRect(x, y - 2, 14, 12, 2, COLOR_BADGE_BG);
-    tft.drawRoundRect(x, y - 2, 14, 12, 2, keyColor);
+    tft.fillRect(x, y - 2, 14, 12, COLOR_BADGE_BG);
+    tft.drawRect(x, y - 2, 14, 12, keyColor);
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(keyColor);
     tft.setCursor(x + 4, y);
@@ -186,92 +226,205 @@ void drawSeparator(int y) {
 }
 
 void drawBootScreen() {
-    drawGradientV(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, RGB565(15, 20, 35), COLOR_BG_PRIMARY);
-    drawGradientH(0, 0, SCREEN_WIDTH, 4, COLOR_CYAN_DARK, COLOR_PURPLE_DARK);
+    // 1. Deep tactical dark background
+    tft.fillScreen(RGB565(8, 12, 18));
     
-    int crossCenterX = SCREEN_WIDTH / 2;
-    int crossCenterY = 50;
-    int crossSize = 22;
-    int crossThick = 10;
+    // Technical hairline outer border
+    tft.drawRect(2, 2, SCREEN_WIDTH - 4, SCREEN_HEIGHT - 4, RGB565(25, 35, 52));
+    tft.drawRect(4, 4, SCREEN_WIDTH - 8, SCREEN_HEIGHT - 8, RGB565(15, 22, 34));
     
-    for (int g = 4; g > 0; g--) {
-        uint16_t glowColor = RGB565(80 - g*15, 20 - g*4, 20 - g*4);
-        tft.fillRect(crossCenterX - crossThick/2 - g, crossCenterY - crossSize - g, 
-                     crossThick + g*2, crossSize * 2 + g*2, glowColor);
-        tft.fillRect(crossCenterX - crossSize - g, crossCenterY - crossThick/2 - g, 
-                     crossSize * 2 + g*2, crossThick + g*2, glowColor);
-    }
+    // Tactical corner registration marks
+    int mDist = 8;
+    // Top-Left
+    tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_CYAN_DARK);
+    // Top-Right
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_CYAN_DARK);
+    // Bottom-Left
+    tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_DARK);
+    // Bottom-Right
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_DARK);
+
+    // 2. Top Header Telemetry Strip
+    int topStripY = 6;
+    int topStripH = 15;
+    tft.fillRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(14, 22, 34));
+    tft.drawRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(35, 52, 75));
+    tft.drawFastHLine(6, topStripY + topStripH, SCREEN_WIDTH - 12, COLOR_CYAN_DARK);
     
-    tft.fillRect(crossCenterX - crossThick/2, crossCenterY - crossSize, 
-                 crossThick, crossSize * 2, COLOR_RED);
-    tft.fillRect(crossCenterX - crossSize, crossCenterY - crossThick/2, 
-                 crossSize * 2, crossThick, COLOR_RED);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(14, topStripY + 4);
+    tft.print(F("LIFELINE EMERGENCY SYSTEM"));
     
-    tft.fillRect(crossCenterX - crossThick/2 + 2, crossCenterY - crossSize + 2, 
-                 2, crossSize - 4, COLOR_RED_BRIGHT);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(SCREEN_WIDTH - 122, topStripY + 4);
+    tft.print(F("MIL-SPEC // SECURE"));
+
+    // 3. Central Emblem: Precision Sharp Cross + Glowing Neon ECG Pulse + Reticle
+    int emblemY = 54;
+    int emblemX = SCREEN_WIDTH / 2;
     
-    tft.setTextSize(TEXT_XLARGE);
+    // Outer tactical reticle rings & ticks
+    tft.drawCircle(emblemX, emblemY, 26, RGB565(22, 36, 54));
+    tft.drawCircle(emblemX, emblemY, 28, RGB565(16, 26, 40));
+    tft.drawFastVLine(emblemX, emblemY - 32, 5, COLOR_CYAN_DARK);
+    tft.drawFastVLine(emblemX, emblemY + 28, 5, COLOR_CYAN_DARK);
+    tft.drawFastHLine(emblemX - 32, emblemY, 5, COLOR_CYAN_DARK);
+    tft.drawFastHLine(emblemX + 28, emblemY, 5, COLOR_CYAN_DARK);
+    
+    // Sharp Geometric Medical Cross
+    int crossSize = 17;
+    int crossThick = 8;
+    
+    // Crisp shadow behind cross
+    tft.fillRect(emblemX - crossThick/2 + 1, emblemY - crossSize + 1, crossThick, crossSize * 2, RGB565(4, 4, 8));
+    tft.fillRect(emblemX - crossSize + 1, emblemY - crossThick/2 + 1, crossSize * 2, crossThick, RGB565(4, 4, 8));
+    
+    // Vibrant Red Cross Fill
+    tft.fillRect(emblemX - crossThick/2, emblemY - crossSize, crossThick, crossSize * 2, COLOR_RED);
+    tft.fillRect(emblemX - crossSize, emblemY - crossThick/2, crossSize * 2, crossThick, COLOR_RED);
+    
+    // Chiseled Highlight Border
+    tft.drawFastHLine(emblemX - crossThick/2 + 1, emblemY - crossSize + 1, crossThick - 2, COLOR_RED_BRIGHT);
+    tft.drawFastVLine(emblemX - crossThick/2 + 1, emblemY - crossSize + 1, crossSize * 2 - 2, COLOR_RED_BRIGHT);
+    tft.drawFastHLine(emblemX - crossSize + 1, emblemY - crossThick/2 + 1, crossSize * 2 - 2, COLOR_RED_BRIGHT);
+    tft.drawFastVLine(emblemX - crossSize + 1, emblemY - crossThick/2 + 1, crossThick - 2, COLOR_RED_BRIGHT);
+    
+    // Dynamic Cyan & White ECG Pulse Trace
+    int ecgY = emblemY;
+    int ecgLeft = emblemX - 44;
+    int ecgRight = emblemX + 44;
+    
+    tft.drawLine(ecgLeft, ecgY, emblemX - 16, ecgY, COLOR_CYAN_DARK);
+    tft.drawLine(emblemX - 16, ecgY, emblemX - 10, ecgY, COLOR_CYAN_BRIGHT);
+    tft.drawLine(emblemX - 10, ecgY, emblemX - 6, ecgY + 5, COLOR_CYAN_BRIGHT);
+    tft.drawLine(emblemX - 6, ecgY + 5, emblemX, ecgY - 14, COLOR_CYAN_BRIGHT);
+    tft.drawLine(emblemX, ecgY - 14, emblemX + 6, ecgY + 9, COLOR_CYAN_BRIGHT);
+    tft.drawLine(emblemX + 6, ecgY + 9, emblemX + 10, ecgY, COLOR_CYAN_BRIGHT);
+    tft.drawLine(emblemX + 10, ecgY, emblemX + 16, ecgY, COLOR_CYAN_BRIGHT);
+    tft.drawLine(emblemX + 16, ecgY, ecgRight, ecgY, COLOR_CYAN_DARK);
+    
+    // Neon white core highlight on the peak
+    tft.drawLine(emblemX - 5, ecgY + 4, emblemX, ecgY - 13, COLOR_TEXT_PRIMARY);
+    tft.drawLine(emblemX, ecgY - 13, emblemX + 5, ecgY + 8, COLOR_TEXT_PRIMARY);
+
+    // 4. Clean Brand Typography
+    tft.setTextSize(TEXT_LARGE);
     int16_t x1, y1;
     uint16_t tw, th;
-    tft.getTextBounds("LifeLine", 0, 0, &x1, &y1, &tw, &th);
+    tft.getTextBounds("LIFELINE", 0, 0, &x1, &y1, &tw, &th);
     int titleX = (SCREEN_WIDTH - tw) / 2;
-    int titleY = 85;
+    int titleY = 88;
     
-    tft.setTextColor(COLOR_CYAN_DARK);
+    // Drop shadow
+    tft.setTextColor(RGB565(15, 35, 55));
     tft.setCursor(titleX + 2, titleY + 2);
-    tft.print(F("LifeLine"));
+    tft.print(F("LIFELINE"));
     
     tft.setTextColor(COLOR_TEXT_PRIMARY);
     tft.setCursor(titleX, titleY);
-    tft.print(F("LifeLine"));
+    tft.print(F("LIFELINE"));
     
-    for (int i = 0; i < tw; i++) {
-        uint16_t lineColor = (i < tw/2) ? COLOR_CYAN : COLOR_PURPLE;
-        tft.drawPixel(titleX + i, titleY + th + 6, lineColor);
-        tft.drawPixel(titleX + i, titleY + th + 7, lineColor);
-    }
+    // Technical underline
+    int lineW = tw + 40;
+    int lineStartX = (SCREEN_WIDTH - lineW) / 2;
+    tft.drawFastHLine(lineStartX, titleY + th + 4, lineW, COLOR_CYAN_DARK);
+    tft.drawFastHLine(lineStartX + 15, titleY + th + 5, lineW - 30, COLOR_CYAN);
+    tft.drawFastHLine(lineStartX + 35, titleY + th + 6, lineW - 70, COLOR_PURPLE);
     
-    drawCenteredText("EMERGENCY COMMUNICATION", 130, TEXT_SMALL, COLOR_CYAN);
-    tft.fillCircle(SCREEN_WIDTH/2 - 60, 144, 2, COLOR_ACCENT_LINE);
-    drawCenteredText("TRANSMITTER", 140, TEXT_MEDIUM, COLOR_TEXT_SECONDARY);
-    tft.fillCircle(SCREEN_WIDTH/2 + 60, 144, 2, COLOR_ACCENT_LINE);
-    
-    int cardY = SCREEN_HEIGHT - 65;
+    drawCenteredText("TACTICAL EMERGENCY TRANSMITTER", 120, TEXT_SMALL, COLOR_CYAN_BRIGHT);
+    drawCenteredText("FIELD SOS & TELEMETRY TERMINAL", 131, TEXT_SMALL, COLOR_TEXT_MUTED);
+
+    // 5. Dual Sharp Telemetry Cards
+    int cardY = 146;
+    int cardH = 58;
     int cardW = (SCREEN_WIDTH - MARGIN * 3) / 2;
+    int leftCardX = MARGIN;
+    int rightCardX = MARGIN * 2 + cardW;
     
-    drawPremiumCard(MARGIN, cardY, cardW, 50, COLOR_BG_CARD, COLOR_BORDER);
+    // LEFT CARD: NODE IDENT
+    drawSharpCard(leftCardX, cardY, cardW, cardH, COLOR_BG_CARD, COLOR_BORDER, COLOR_CYAN, true);
+    
+    int headerH = 14;
+    tft.fillRect(leftCardX + 1, cardY + 1, cardW - 2, headerH, RGB565(16, 28, 44));
+    tft.drawFastHLine(leftCardX + 1, cardY + headerH, cardW - 2, COLOR_CYAN_DARK);
+    
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(MARGIN + 8, cardY + 8);
-    tft.print(F("DEVICE"));
+    tft.setCursor(leftCardX + 8, cardY + 4);
+    tft.print(F("DEVICE IDENT"));
     
-    char deviceIdStr[16];
+    char deviceIdStr[20];
     sprintf(deviceIdStr, "TX #%03d", DEVICE_ID);
     tft.setTextSize(TEXT_MEDIUM);
     tft.setTextColor(COLOR_TEXT_PRIMARY);
-    tft.setCursor(MARGIN + 8, cardY + 26);
+    tft.setCursor(leftCardX + 8, cardY + 21);
     tft.print(deviceIdStr);
     
-    int rightCardX = MARGIN * 2 + cardW;
-    drawPremiumCard(rightCardX, cardY, cardW, 50, COLOR_BG_CARD, COLOR_BORDER);
     tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(rightCardX + 8, cardY + 8);
-    tft.print(F("STATUS"));
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(leftCardX + 8, cardY + 42);
+    tft.print(F("LoRa 433MHz SF10"));
+    
+    // RIGHT CARD: SYSTEM STATUS
+    drawSharpCard(rightCardX, cardY, cardW, cardH, COLOR_BG_CARD, COLOR_BORDER, COLOR_GREEN, true);
+    
+    tft.fillRect(rightCardX + 1, cardY + 1, cardW - 2, headerH, RGB565(14, 34, 28));
+    tft.drawFastHLine(rightCardX + 1, cardY + headerH, cardW - 2, COLOR_GREEN_DARK);
     
     tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_GREEN);
-    tft.setCursor(rightCardX + 8, cardY + 24);
-    tft.print(F("Initializing..."));
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(rightCardX + 8, cardY + 4);
+    tft.print(F("SYS STATUS"));
+    
+    // Sharp square status LED
+    tft.fillRect(rightCardX + 8, cardY + 23, 7, 7, COLOR_GREEN_BRIGHT);
+    tft.drawRect(rightCardX + 7, cardY + 22, 9, 9, COLOR_GREEN_DARK);
+    
+    tft.setTextSize(TEXT_MEDIUM);
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(rightCardX + 22, cardY + 20);
+    tft.print(F("ONLINE"));
+    
+    tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(rightCardX + 8, cardY + 36);
+    tft.setCursor(rightCardX + 8, cardY + 42);
     tft.print(FIRMWARE_VERSION);
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(rightCardX + 75, cardY + 42);
+    tft.print(F("SPU:OK"));
+
+    // 6. Bottom Segmented Progress Bar & Footer Prompt
+    int barY = 211;
+    int barW = SCREEN_WIDTH - (MARGIN * 2);
+    int barX = MARGIN;
     
-    drawGradientH(0, SCREEN_HEIGHT - 3, SCREEN_WIDTH, 3, COLOR_PURPLE_DARK, COLOR_CYAN_DARK);
+    tft.drawRect(barX, barY, barW, 7, RGB565(25, 38, 55));
+    tft.fillRect(barX + 1, barY + 1, barW - 2, 5, RGB565(10, 15, 22));
+    
+    int numSegments = 16;
+    int segWidth = (barW - 4) / numSegments;
+    for (int s = 0; s < numSegments; s++) {
+        uint16_t segCol = (s < numSegments / 2) ? COLOR_CYAN_DARK : COLOR_CYAN;
+        if (s >= numSegments - 2) segCol = COLOR_GREEN_BRIGHT;
+        tft.fillRect(barX + 2 + s * segWidth, barY + 2, segWidth - 1, 3, segCol);
+    }
+    
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(MARGIN + 2, 224);
+    tft.print(F("STANDBY // READY FOR SOS TRANSMISSION"));
+    
+    drawGradientH(0, SCREEN_HEIGHT - 2, SCREEN_WIDTH, 2, COLOR_CYAN_DARK, COLOR_PURPLE_DARK);
     
     bootStartTime = millis();
-    Serial.println(F("[SCREEN] Premium boot screen displayed"));
+    Serial.println(F("[SCREEN] Tactical sharp-edge boot screen displayed"));
 }
+
 
 void updateMenuSelection(int oldIndex, int newIndex) {
     int listStartY = HEADER_HEIGHT + 26;
