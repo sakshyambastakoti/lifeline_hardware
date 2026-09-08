@@ -285,6 +285,7 @@ All in-depth documentation is organized inside the [`docs/`](file:///d:/lifeline
 | **Architecture** | [Dual-ESP32 Sensor Node](file:///d:/lifeline_hardware/docs/architecture/sensornode_dual_esp32.md) | Detailed DSP filtering equations, fusion logic & theory |
 | **Architecture** | [Sensor Node Specification](file:///d:/lifeline_hardware/docs/architecture/sensornode_specification.md) | Original architectural requirements and design baseline |
 | **Architecture** | [Base Station UI Flow](file:///d:/lifeline_hardware/docs/architecture/rx_pro_ui_flow.md) | 16×2 LCD screen states, buttons & alert popups |
+| **Architecture** | [Two-Way LoRa & BLE Architecture](file:///d:/lifeline_hardware/docs/architecture/two_way_ble_nepal_terrain_upgrade.md) | v4.0 Two-Way LoRa ACK, BLE smartphone integration & Nepal mountain resilience |
 | **Hardware** | [Wiring & Pinouts Master](file:///d:/lifeline_hardware/docs/hardware/wiring_and_pinouts.md) | Complete pin connection tables for all boards |
 | **Hardware** | [Schematics & Assets](file:///d:/lifeline_hardware/docs/hardware/schematics/) | Circuit schematics, breadboard diagrams, and PDFs |
 | **API** | [SPU Telemetry REST API](file:///d:/lifeline_hardware/docs/api/spu_telemetry_api.md) | Direct Cloud upload JSON schemas and HTTP endpoints |
