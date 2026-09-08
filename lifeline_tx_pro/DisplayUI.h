@@ -29,6 +29,10 @@ void drawKeyBadge(int x, int y, char key, const char* label, uint16_t keyColor);
 void drawSeparator(int y);
 
 void drawBootScreen();
+void drawHomeStatusBar();
+void drawSharpAlertCard(int index, int slotY, bool isSelected);
+void drawElevatorRail(int scrollOffset, int totalItems, int visibleCount);
+void drawHomeCommandDeck();
 void updateMenuSelection(int oldIndex, int newIndex);
 void drawMenuScreen();
 void drawConfirmScreen();
