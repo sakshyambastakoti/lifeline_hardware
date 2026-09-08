@@ -7,7 +7,7 @@
 
 ---
 
-## 📌 1. Overview & System Topology
+## 1. Overview & System Topology
 
 LifeLine integrates **Bluetooth Low Energy (BLE)** on **both field transmitters and base stations**, allowing offline smartphones (Android and iOS) to act as tactical companions without cellular towers or internet access.
 
@@ -34,7 +34,7 @@ LifeLine integrates **Bluetooth Low Energy (BLE)** on **both field transmitters 
 
 ---
 
-## 📡 2. BLE GATT Profile Specification
+## 2. BLE GATT Profile Specification
 
 Both devices implement the industry-standard **Nordic UART Service (NUS)**. This ensures immediate interoperability with third-party BLE terminal apps as well as the custom Web Bluetooth PWA.
 
@@ -57,7 +57,7 @@ Both devices implement the industry-standard **Nordic UART Service (NUS)**. This
 
 ---
 
-## 💬 3. Protocol & Command Set Reference
+## 3. Protocol & Command Set Reference
 
 ### 3.1 Field Transmitter (`LifeLine-TX-XXX`)
 
@@ -102,14 +102,14 @@ Both devices implement the industry-standard **Nordic UART Service (NUS)**. This
 
 ---
 
-## 🌐 4. Mobile Client Connection Guide
+## 4. Mobile Client Connection Guide
 
 ### Option 1: Dedicated Web Companion Applications (Recommended)
 
 LifeLine includes dedicated, offline **Progressive Web Apps (PWAs)** located in `docs/companion_app/`:
-* 📁 **Tactical Mission Hub & Auto-Detector**: [`docs/companion_app/index.html`](file:///d:/lifeline_hardware/docs/companion_app/index.html)
-* 📡 **LifeLine TX Pro (Field Communicator)**: [`docs/companion_app/tx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/tx_companion.html)
-* 🛡️ **LifeLine RX Pro (Base Incident Commander)**: [`docs/companion_app/rx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/rx_companion.html)
+* **Tactical Mission Hub & Auto-Detector**: [`docs/companion_app/index.html`](file:///d:/lifeline_hardware/docs/companion_app/index.html)
+* **LifeLine TX Pro (Field Communicator)**: [`docs/companion_app/tx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/tx_companion.html)
+* **LifeLine RX Pro (Base Incident Commander)**: [`docs/companion_app/rx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/rx_companion.html)
 
 #### How to Launch:
 1. **No Internet Required**: Double-click `index.html` (or `tx_companion.html` / `rx_companion.html`) on your PC, or open them in Chrome from your phone's storage / local Wi-Fi share.
@@ -127,7 +127,7 @@ LifeLine includes dedicated, offline **Progressive Web Apps (PWAs)** located in 
   - **Live Incident Triage Feed**: Categorized disaster distress packets with severity badges (Critical, High, Medium, Nominal).
   - **Acoustic High-dB Siren**: Synthesized emergency siren and alert klaxon using Web Audio API with mute toggle.
   - **Active Field Units Radar**: Real-time signal strength meter, estimated distance calculation, and last seen timer.
-  - **Reverse Commander Downlink**: 1-click tactical dispatch orders (`🚁 Rescue Dispatched`, `✋ Hold Position`, `🩺 Medical Guidance`) and custom downlink frames.
+  - **Reverse Commander Downlink**: 1-click tactical dispatch orders (`/airborne: APF Airborne ETA 20m`, `/hold: Hold Position`, `/medical: Medical Guidance`) and custom downlink frames.
   - **Mass Evacuation Broadcast**: Two-step safety locked `EVAC:ALL` broadcast over 433 MHz LoRa.
   - **Incident Audit Export**: Export timestamped incident records as CSV for government debrief.
 
@@ -161,7 +161,7 @@ If using a standard utility like **Serial Bluetooth Terminal** by Kai Morich:
 
 ---
 
-## 🎛️ 4. On-Device Hardware Controls & Display Portals
+## 4. On-Device Hardware Controls & Display Portals
 
 In addition to phone companion apps, both LifeLine devices feature dedicated hardware UI workflows for field operators without needing any phone attached:
 
@@ -228,7 +228,7 @@ When LifeLine RX Pro connects to your local Wi-Fi router, it displays its assign
 
 ---
 
-## 🔄 5. End-to-End Two-Way Communication Flow
+## 5. End-to-End Two-Way Communication Flow
 
 ```mermaid
 sequenceDiagram
@@ -270,7 +270,7 @@ sequenceDiagram
 
 ---
 
-## ⚙️ 6. Flash Partition & Memory Footprint
+## 6. Flash Partition & Memory Footprint
 
 To allow both **NimBLE-Arduino** and **Wi-Fi / OTA** to operate safely on the ESP32 without memory overflow:
 
@@ -297,7 +297,7 @@ lib_deps =
 
 ---
 
-## 🛠️ 7. Field Troubleshooting & Diagnostics
+## 7. Field Troubleshooting & Diagnostics
 
 1. **Smartphone cannot find device in Bluetooth scan**:
    - Ensure phone Bluetooth and **Location Services** (GPS) are turned ON (required by Android OS for BLE scanning).
