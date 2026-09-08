@@ -28,14 +28,6 @@ bool handleIncomingLoRaTelemetry() {
     FullTelemetryData telemetry;
     bool packetReceived = parseLoRaPacketExtended(telemetry);
 
-    #if SERIAL_DEBUG_ENABLED
-    if (!packetReceived) {
-        if (checkSerialSimulatedPacket(telemetry)) {
-            packetReceived = true;
-        }
-    }
-    #endif
-
     if (!packetReceived) return false;
 
     triggerRxBlink();
@@ -143,20 +135,70 @@ void loop() {
     handleLocalOTA();
     handleWiFiServer();
     
-    // Process Commander BLE dispatch commands
+    #if SERIAL_DEBUG_ENABLED
+    // Process Serial commands & simulated packets (from Web Serial companion app or terminal)
+    if (Serial.available()) {
+        FullTelemetryData simTelem;
+        if (checkSerialSimulatedPacket(simTelem)) {
+            triggerRxBlink();
+            playRxBeep();
+            if (simTelem.isChatMessage) {
+                Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", simTelem.deviceId, simTelem.chatMessage.c_str());
+                notifyBLEChat(simTelem.deviceId, simTelem.chatMessage.c_str(), simTelem.rssi);
+                sendDownlinkACK(simTelem.deviceId, 'M', "LOGGED", "Base received chat");
+                hasActiveChatMessage = true;
+                currentChatMessage = simTelem.chatMessage;
+                currentChatDeviceId = simTelem.deviceId;
+                currentChatRssi = simTelem.rssi;
+                currentChatScrollOffset = 0;
+                currentScreen = SCREEN_CUSTOM_MSG;
+                drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+                playAlertTone(0);
+            } else if (simTelem.emergencyCode == 'N') {
+                Serial.printf("[RX NORMAL LOG] Device=%d, Temp=%.1f, Lat=%.6f, Lon=%.6f\n",
+                              simTelem.deviceId, simTelem.temperature, simTelem.latitude, simTelem.longitude);
+                notifyBLETelemetry(simTelem.deviceId, simTelem.temperature, simTelem.humidity,
+                                   simTelem.latitude, simTelem.longitude, simTelem.rssi);
+                sendDownlinkACK(simTelem.deviceId, 'N', "LOGGED", "Heartbeat OK");
+                pushFullTelemetryToAPI(simTelem);
+            } else {
+                Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%ddB, SNR=%.1fdB, Dist=%.2fkm\n",
+                              simTelem.deviceId, simTelem.emergencyCode, alertNames[simTelem.alertIndex], 
+                              simTelem.rssi, simTelem.snr, simTelem.distanceKm);
+                currentScreen = SCREEN_ALERT;
+                drawAlertScreen(simTelem.alertIndex, simTelem.rssi, simTelem.snr, simTelem.distanceKm, false, false);
+                notifyBLEAlert(simTelem.deviceId, simTelem.emergencyCode, alertNames[simTelem.alertIndex], simTelem.rssi);
+                sendDownlinkACK(simTelem.deviceId, simTelem.emergencyCode, "LOGGED", "Base confirmed");
+                playAlertTone(alertPriority[simTelem.alertIndex]);
+                bool sentToWeb = pushFullTelemetryToAPI(simTelem);
+                updateAlertWebStatus(sentToWeb);
+            }
+        }
+    }
+    #endif
+
+    // Process Commander BLE / Serial dispatch commands
     if (hasPendingBLEReply()) {
         int devId;
         String action, msg;
         getPendingBLEReply(devId, action, msg);
         Serial.printf("[BASE COMMAND] Sending Downlink CMD to #%d: %s (%s)\n", devId, action.c_str(), msg.c_str());
-        sendDownlinkCommand(devId, action.c_str(), msg.c_str());
+        bool sentOk = sendDownlinkCommand(devId, action.c_str(), msg.c_str());
+        char confirm[128];
+        snprintf(confirm, sizeof(confirm), "CMD_SENT:DEV=%03d,ACTION=%s,OK=%d", devId, action.c_str(), sentOk ? 1 : 0);
+        sendBLEString(String(confirm));
+        Serial.println(confirm);
     }
     
-    // Process Commander BLE evacuation broadcast
+    // Process Commander BLE / Serial evacuation broadcast
     if (hasPendingBLEEvac()) {
         String evacMsg = getPendingBLEEvacMessage();
         Serial.printf("[BASE EVAC] Broadcasting Evacuation: '%s'\n", evacMsg.c_str());
-        sendBroadcastEvacuation(evacMsg.c_str());
+        bool sentOk = sendBroadcastEvacuation(evacMsg.c_str());
+        char confirm[128];
+        snprintf(confirm, sizeof(confirm), "EVAC_SENT:OK=%d", sentOk ? 1 : 0);
+        sendBLEString(String(confirm));
+        Serial.println(confirm);
     }
     
     if (isLocalOTAModeActive()) {
@@ -292,6 +334,14 @@ bool checkSerialSimulatedPacket(FullTelemetryData& telemetry) {
     
     if (input == "h" || input == "H" || input == "help" || input == "?") {
         printSerialDebugMenu();
+        return false;
+    }
+
+    // Intercept Base Station Downlink & Status commands (from Web Companion App or Terminal)
+    if (input.startsWith("REPLY:") || input.startsWith("CMD:") ||
+        input.startsWith("EVAC:")  || input.equalsIgnoreCase("STATUS") ||
+        input.equalsIgnoreCase("PING")) {
+        processIncomingBaseCommand(input);
         return false;
     }
     

@@ -16,7 +16,7 @@ static String pendingReplyMsg = "";
 static bool hasPendingEvacFlag = false;
 static String pendingEvacMsg = "";
 
-static void processIncomingBLECommand(const String& cmd) {
+void processIncomingBaseCommand(const String& cmd) {
     if (cmd.startsWith("REPLY:") || cmd.startsWith("CMD:")) {
         // Format: REPLY:<devId>,<action>,<message>
         String payload = cmd.substring(cmd.indexOf(':') + 1);
@@ -33,18 +33,18 @@ static void processIncomingBLECommand(const String& cmd) {
                 pendingReplyMsg = rem;
             }
             hasPendingReplyFlag = true;
-            Serial.printf("[BLE CMD] Queued Reply to Dev #%d: Action=%s, Msg=%s\n",
+            Serial.printf("[BASE CMD] Queued Reply to Dev #%d: Action=%s, Msg=%s\n",
                           pendingReplyDevId, pendingReplyAction.c_str(), pendingReplyMsg.c_str());
         }
     } else if (cmd.startsWith("EVAC:")) {
         pendingEvacMsg = cmd.substring(5);
         pendingEvacMsg.trim();
         hasPendingEvacFlag = true;
-        Serial.printf("[BLE CMD] Queued Broadcast EVAC: '%s'\n", pendingEvacMsg.c_str());
+        Serial.printf("[BASE CMD] Queued Broadcast EVAC: '%s'\n", pendingEvacMsg.c_str());
     } else if (cmd.equalsIgnoreCase("STATUS") || cmd.equalsIgnoreCase("PING")) {
         notifyBLEStatus();
     } else {
-        Serial.printf("[BLE CMD] Unknown Base command: '%s'\n", cmd.c_str());
+        Serial.printf("[BASE CMD] Unknown Base command: '%s'\n", cmd.c_str());
     }
 }
 
@@ -68,7 +68,7 @@ class RxCallbacks : public NimBLECharacteristicCallbacks {
             String val = String(rxValue.c_str());
             val.trim();
             Serial.printf("[BLE BASE RX] '%s'\n", val.c_str());
-            processIncomingBLECommand(val);
+            processIncomingBaseCommand(val);
         }
     }
 };
@@ -131,18 +131,21 @@ void notifyBLEStatus() {
     char buf[128];
     snprintf(buf, sizeof(buf), "STATUS:ROLE=BASE,LORA=OK,VER=%s", FIRMWARE_VERSION);
     sendBLEString(String(buf));
+    Serial.println(buf);
 }
 
 void notifyBLEAlert(int devId, char code, const char* name, int rssi) {
     char buf[128];
     snprintf(buf, sizeof(buf), "ALERT:DEV=%03d,CODE=%c,NAME=%s,RSSI=%d", devId, code, name, rssi);
     sendBLEString(String(buf));
+    Serial.println(buf);
 }
 
 void notifyBLEChat(int devId, const char* text, int rssi) {
     char buf[160];
     snprintf(buf, sizeof(buf), "CHAT:DEV=%03d,TEXT=%s,RSSI=%d", devId, text, rssi);
     sendBLEString(String(buf));
+    Serial.println(buf);
 }
 
 void notifyBLETelemetry(int devId, float temp, float hum, double lat, double lon, int rssi) {
@@ -150,6 +153,7 @@ void notifyBLETelemetry(int devId, float temp, float hum, double lat, double lon
     snprintf(buf, sizeof(buf), "TELEMETRY:DEV=%03d,TEMP=%.1f,HUM=%.1f,LAT=%.6f,LON=%.6f,RSSI=%d",
              devId, temp, hum, lat, lon, rssi);
     sendBLEString(String(buf));
+    Serial.println(buf);
 }
 
 bool hasPendingBLEReply() {

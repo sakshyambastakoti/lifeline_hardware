@@ -20,7 +20,8 @@ void notifyBLEAlert(int devId, char code, const char* name, int rssi);
 void notifyBLEChat(int devId, const char* text, int rssi);
 void notifyBLETelemetry(int devId, float temp, float hum, double lat, double lon, int rssi);
 
-// Inbound commands from commander smartphone
+// Inbound commands from commander smartphone or USB Serial
+void processIncomingBaseCommand(const String& cmd);
 bool hasPendingBLEReply();
 void getPendingBLEReply(int& devId, String& action, String& message);
 bool hasPendingBLEEvac();

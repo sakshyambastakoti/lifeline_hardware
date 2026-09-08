@@ -1065,16 +1065,26 @@
           <div class="inbox-title-row">
             <div class="inbox-filter-pill">
               <span>Active Field Units</span>
-              <span id="badgeActiveCount" class="inbox-count-badge">0</span>
+              <span id="badgeActiveCount" class="inbox-count-badge">1</span>
             </div>
-            <button class="btn-top" style="padding:3px 7px;" onclick="exportLog()" title="Download CSV">
-              <span class="svg-icon">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </span>
-              <span>CSV</span>
-            </button>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="btn-top active-primary" style="padding:3px 8px; font-size:11px;" onclick="promptNewDispatch()" title="Direct Downlink to any Field Unit #">
+                <span class="svg-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                </span>
+                <span>+ Target #</span>
+              </button>
+              <button class="btn-top" style="padding:3px 7px;" onclick="exportLog()" title="Download CSV">
+                <span class="svg-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                </span>
+                <span>CSV</span>
+              </button>
+            </div>
           </div>
           <div class="inbox-actions-row">
             <span>433.0 MHz LoRa Continuous Channel</span>
