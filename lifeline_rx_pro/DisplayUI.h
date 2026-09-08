@@ -43,7 +43,7 @@ void drawIdleScreen();
 void updateIdleAnimation();
 
 // Alert Screen
-void drawAlertScreen(int alertIndex, int rssi, float snr = 0.0f, float distanceKm = 0.0f, bool sentToWeb = false);
+void drawAlertScreen(int alertIndex, int rssi, float snr = 0.0f, float distanceKm = 0.0f, bool sentToWeb = false, bool playSound = true);
 void drawAlertScreen(int deviceId, int alertIndex, int rssi);
 void updateAlertWebStatus(bool sentToWeb);
 bool shouldReturnToIdle();

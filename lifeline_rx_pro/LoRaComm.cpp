@@ -31,22 +31,15 @@ bool initLoRa() {
 }
 
 static int mapEmergencyCodeToAlertIndex(char code) {
+    // 1. Direct 1-to-1 mapping for LifeLine TX Pro protocol codes 'A' through 'O'
+    if (code >= 'A' && code <= 'O') return code - 'A';
+    if (code >= 'a' && code <= 'o') return code - 'a';
+
+    // 2. SPU sensor event fallback codes
     switch (code) {
-        case 'N': return 14; // STATUS OK / ALL SAFE
-        case 'F': return 0;  // EMERGENCY (Critical SOS)
-        case 'L': return 12; // LANDSLIDE / HAZARD
-        case 'Q': return 0;  // EMERGENCY (Seismic / Structural)
-        case 'S': return 0;  // EMERGENCY (Manual SOS)
-        case 'M': return 5;  // SEVERE INJURY / MEDICAL
-        case 'H': return 7;  // ALTITUDE SICKNESS (AMS)
-        case 'C': return 11; // FREEZING / SHELTER
-        case 'W': return 9;  // WATER SHORTAGE
-        case 'G': return 0;  // HAZARD / SOS
-        case 'B': return 3;  // MEDICINE SHORTAGE
-        default:
-            if (code >= 'A' && code <= 'O') return code - 'A';
-            if (code >= 'a' && code <= 'o') return code - 'a';
-            return 14; // STATUS OK
+        case 'Q': return 0;  // Seismic / Earthquake -> CRITICAL SOS
+        case 'S': return 0;  // Manual SOS -> CRITICAL SOS
+        default:  return 0;  // Default fallback
     }
 }
 
@@ -156,10 +149,24 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
     telemetry.deviceId = data.substring(0, commaIndices[0]).toInt();
 
     // 2. Emergency Code
-    String codeStr = (tokenCount >= 1) ? data.substring(commaIndices[0] + 1, (tokenCount > 1) ? commaIndices[1] : data.length()) : "N";
+    String codeStr = (tokenCount >= 1) ? data.substring(commaIndices[0] + 1, (tokenCount > 1) ? commaIndices[1] : data.length()) : "A";
     codeStr.trim();
-    telemetry.emergencyCode = codeStr.length() > 0 ? codeStr[0] : 'N';
-    telemetry.alertIndex = mapEmergencyCodeToAlertIndex(telemetry.emergencyCode);
+    telemetry.emergencyCode = codeStr.length() > 0 ? codeStr[0] : 'A';
+
+    // Direct 1-to-1 letter decoding for TX Pro alert protocol ('A'-'O' -> 0-14)
+    if (codeStr.length() == 1 && codeStr[0] >= 'A' && codeStr[0] <= 'O') {
+        telemetry.alertIndex = codeStr[0] - 'A';
+    } else if (codeStr.length() == 1 && codeStr[0] >= 'a' && codeStr[0] <= 'o') {
+        telemetry.alertIndex = codeStr[0] - 'a';
+    } else if (codeStr.length() > 0 && isdigit(codeStr[0])) {
+        telemetry.alertIndex = codeStr.toInt();
+    } else {
+        telemetry.alertIndex = mapEmergencyCodeToAlertIndex(telemetry.emergencyCode);
+    }
+
+    if (telemetry.alertIndex < 0 || telemetry.alertIndex >= ALERT_COUNT) {
+        telemetry.alertIndex = 0;
+    }
 
     // If extended CSV packet (has 9 comma separators -> 10 tokens)
     if (tokenCount >= 9) {

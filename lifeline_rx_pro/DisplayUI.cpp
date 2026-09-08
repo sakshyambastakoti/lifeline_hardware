@@ -176,12 +176,13 @@ float calculateDistanceKm(int rssi, double lat, double lon) {
 }
 
 void formatDistance(float distKm, char* buffer, size_t maxLen) {
-    if (distKm < 1.0f) {
-        int meters = (int)(distKm * 1000.0f);
-        if (meters < 10) meters = 10;
-        snprintf(buffer, maxLen, "%dm", meters);
-    } else if (distKm < 10.0f) {
+    if (distKm < 0.05f) {
+        distKm = 0.1f;
+    }
+    if (distKm < 10.0f) {
         snprintf(buffer, maxLen, "%.1fkm", distKm);
+    } else if (distKm < 100.0f) {
+        snprintf(buffer, maxLen, "%.0fkm", distKm);
     } else {
         snprintf(buffer, maxLen, "%dkm", (int)distKm);
     }
@@ -256,7 +257,7 @@ void updateIdleAnimation() {
     }
 }
 
-void drawAlertScreen(int alertIndex, int rssi, float snr, float distanceKm, bool sentToWeb) {
+void drawAlertScreen(int alertIndex, int rssi, float snr, float distanceKm, bool sentToWeb, bool playSound) {
     if (alertIndex < 0 || alertIndex >= ALERT_COUNT) {
         alertIndex = ALERT_COUNT - 1;
     }
@@ -288,6 +289,9 @@ void drawAlertScreen(int alertIndex, int rssi, float snr, float distanceKm, bool
     
     char row1[17];
     snprintf(row1, sizeof(row1), "%-5s %-4s %5s", rssiStr, snrStr, distStr);
+    if (strlen(row1) > 16) {
+        snprintf(row1, sizeof(row1), "%s %s %s", rssiStr, snrStr, distStr);
+    }
     printLCDLine(1, row1);
     
     lastAlertIndex = alertIndex;
@@ -298,7 +302,9 @@ void drawAlertScreen(int alertIndex, int rssi, float snr, float distanceKm, bool
     alertReceivedTime = millis();
     
     addToHistory(lastDeviceId, alertIndex, rssi);
-    playAlertTone(priority);
+    if (playSound) {
+        playAlertTone(priority);
+    }
     
     Serial.printf("[SCREEN] Alert on LCD: Alert %d (%s), RSSI: %s, SNR: %s, Dist: %s, Web: %s\n", 
                   alertIndex, alertNames[alertIndex], rssiStr, snrStr, distStr, sentToWeb ? "YES" : "NO");
@@ -307,7 +313,7 @@ void drawAlertScreen(int alertIndex, int rssi, float snr, float distanceKm, bool
 void drawAlertScreen(int deviceId, int alertIndex, int rssi) {
     lastDeviceId = deviceId;
     float dist = calculateDistanceKm(rssi, 0.0, 0.0);
-    drawAlertScreen(alertIndex, rssi, lastSnr, dist, lastSentToWeb);
+    drawAlertScreen(alertIndex, rssi, lastSnr, dist, lastSentToWeb, true);
 }
 
 void updateAlertWebStatus(bool sentToWeb) {

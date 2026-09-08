@@ -65,23 +65,28 @@ bool handleIncomingLoRaTelemetry() {
         sendDownlinkACK(telemetry.deviceId, 'N', "LOGGED", "Heartbeat OK");
         pushFullTelemetryToAPI(telemetry);
     } else {
-        // Active Emergency Alert (Delivery, Medical Shortage, Oxygen, Landslide, SOS, etc.)
+        // Active Emergency Alert (Delivery, Heli Rescue, Medical Shortage, Oxygen, etc.)
         Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%ddB, SNR=%.1fdB, Dist=%.2fkm\n",
                       telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], 
                       telemetry.rssi, telemetry.snr, telemetry.distanceKm);
+
+        // 1. Render LCD UI IMMEDIATELY upon packet arrival (3ms latency, zero delay!)
+        currentScreen = SCREEN_ALERT;
+        drawAlertScreen(telemetry.alertIndex, telemetry.rssi, telemetry.snr, telemetry.distanceKm, false, false);
+
+        // 2. Notify BLE smartphone companion app
         notifyBLEAlert(telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
 
-        // Immediate Two-Way Downlink ACK over LoRa BEFORE blocking cloud HTTP push!
+        // 3. Send LoRa Downlink ACK to TX unit
         sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
 
-        // Immediately update LCD UI with alarm & show offline/pending Wi-Fi symbol
-        currentScreen = SCREEN_ALERT;
-        drawAlertScreen(telemetry.alertIndex, telemetry.rssi, telemetry.snr, telemetry.distanceKm, false);
+        // 4. Sound the audible alert siren
+        playAlertTone(alertPriority[telemetry.alertIndex]);
 
-        // Upload to Cloud Web API
+        // 5. Upload to Cloud Web API
         bool sentToWeb = pushFullTelemetryToAPI(telemetry);
 
-        // Dynamically update Wi-Fi icon on LCD to reflect real cloud push status
+        // 6. Dynamically update Wi-Fi icon on LCD to reflect real cloud push status
         updateAlertWebStatus(sentToWeb);
     }
 
