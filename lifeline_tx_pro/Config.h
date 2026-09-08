@@ -213,7 +213,8 @@ enum ScreenState {
     SCREEN_SYSTEM_INFO,     // 5 - System information display
     SCREEN_USER_MANUAL,     // 6 - User manual / help screen
     SCREEN_OTA,             // 7 - Wireless OTA Firmware Portal
-    SCREEN_SENSOR_LOG       // 8 - SPU Sensor Telemetry Log Dashboard
+    SCREEN_SENSOR_LOG,      // 8 - SPU Sensor Telemetry Log Dashboard
+    SCREEN_OTA_SELECT       // 9 - Interactive OTA Mode Selection (Local AP vs Net)
 };
 
 extern ScreenState currentScreen;

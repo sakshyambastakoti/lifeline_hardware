@@ -8,8 +8,8 @@ const byte KEYPAD_COLS = 4;
 char keypadLayout[KEYPAD_ROWS][KEYPAD_COLS] = {
     {'1', '2', '3', 'A'},   // Row 0: Numbers 1-3, Scroll Up
     {'4', '5', '6', 'B'},   // Row 1: Numbers 4-6, Scroll Down
-    {'7', '8', '9', 'C'},   // Row 2: Numbers 7-9, System Info
-    {'*', '0', '#', 'D'}    // Row 3: Confirm, 0, Cancel, Help
+    {'7', '8', '9', 'C'},   // Row 2: Numbers 7-9, OTA Upload
+    {'*', '0', '#', 'D'}    // Row 3: Confirm, 0, Cancel, Unused
 };
 
 // Keypad GPIO pins - WORKING CONFIGURATION
@@ -22,9 +22,11 @@ Keypad keypad = Keypad(makeKeymap(keypadLayout), rowPins, colPins, KEYPAD_ROWS, 
 void keypadEventListener(KeypadEvent key) {
     if (keypad.getState() == HOLD) {
         if (key == '0') {
-            Serial.println(F("\n[KEYPAD] Key '0' held for 3 seconds -> Triggering OTA Portal Mode!"));
+            Serial.println(F("\n[KEYPAD] Key '0' held for 3 seconds -> Displaying OTA Mode Selection!"));
             playConfirmTone();
-            startOTAMode();
+            previousScreen = currentScreen;
+            currentScreen = SCREEN_OTA_SELECT;
+            drawOTASelectScreen();
         } else if (key == 'A') {
             Serial.println(F("\n[KEYPAD] Key 'A' held for 3 seconds -> Displaying SPU Sensor Log Dashboard!"));
             playConfirmTone();
@@ -54,7 +56,7 @@ char readSerialKey() {
     }
     
     if (c != '\n' && c != '\r') {
-        Serial.println(F("\n[DEBUG] Keys: 0-9=Select, A=Up, B=Down, C=Info, D=Help, S/*=OK, X/#=Cancel"));
+        Serial.println(F("\n[DEBUG] Keys: 0-9=Select, A=Up, B=Down, C=OTA Upload, S/*=OK, X/#=Cancel"));
     }
     return '\0';
 }
@@ -87,8 +89,22 @@ void handleKeyPress(char key) {
         case SCREEN_USER_MANUAL:
             handleUserManualInput(key);
             break;
+        case SCREEN_OTA_SELECT:
+            if (key == '1' || key == 'A') {
+                playConfirmTone();
+                startOTAMode(OTA_MODE_LOCAL);
+            } else if (key == '2' || key == 'B') {
+                playConfirmTone();
+                startOTAMode(OTA_MODE_NET);
+            } else if (key == '#' || key == '*') {
+                playClickTone();
+                currentScreen = SCREEN_MENU;
+                drawMenuScreen();
+            }
+            break;
         case SCREEN_OTA:
             if (key == '#') {
+                playClickTone();
                 stopOTAMode();
                 currentScreen = SCREEN_MENU;
                 drawMenuScreen();
@@ -149,18 +165,11 @@ void handleMenuInput(char key) {
         return;
     }
     else if (key == 'C') {
+        Serial.println(F("\n[KEYPAD] Key 'C' pressed -> Opening OTA Upload Portal!"));
+        playConfirmTone();
         previousScreen = SCREEN_MENU;
-        currentScreen = SCREEN_SYSTEM_INFO;
-        drawSystemInfoScreen();
-        playClickTone();
-        return;
-    }
-    else if (key == 'D') {
-        previousScreen = SCREEN_MENU;
-        manualPage = 0;
-        currentScreen = SCREEN_USER_MANUAL;
-        drawUserManualScreen();
-        playClickTone();
+        currentScreen = SCREEN_OTA_SELECT;
+        drawOTASelectScreen();
         return;
     }
     

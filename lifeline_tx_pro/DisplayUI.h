@@ -37,6 +37,8 @@ void drawResultScreen();
 void drawSystemInfoScreen();
 void drawUserManualScreen();
 void drawOTAScreen();
+void drawOTASelectScreen();
+void updateOTAProgressBar(int progress, const char* status = nullptr);
 void drawSensorLogScreen();
 
 #endif // DISPLAY_UI_H

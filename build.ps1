@@ -22,7 +22,8 @@ param(
     [ValidateSet("all", "rx", "tx", "spu", "ccu", "clean")]
     [string]$Target = "all",
     [switch]$Upload,
-    [switch]$Monitor
+    [switch]$Monitor,
+    [switch]$OTA
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,6 +75,9 @@ foreach ($t in $buildTargets) {
     Write-Host "[BUILD] Compiling $($info.Name) in ./$($info.Path)..." -ForegroundColor Yellow
 
     $cmdArgs = @("run", "-d", $projDir)
+    if ($OTA) {
+        $cmdArgs += @("-e", "esp32dev_ota")
+    }
     if ($Upload) {
         $cmdArgs += @("-t", "upload")
     }

@@ -70,6 +70,7 @@ void loop() {
         case SCREEN_SYSTEM_INFO:
         case SCREEN_USER_MANUAL:
         case SCREEN_OTA:
+        case SCREEN_OTA_SELECT:
             {
                 char key = keypad.getKey();
                 #if SERIAL_DEBUG_ENABLED
