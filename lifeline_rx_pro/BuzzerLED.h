@@ -15,6 +15,7 @@ void playPortalOpenTone();
 void playSkipConfirmTone();
 void playReturnIdleTone();
 void playAlertTone(int priority);
+void playRxBeep();
 
 // Status/Data LED indicators
 void triggerRxBlink();

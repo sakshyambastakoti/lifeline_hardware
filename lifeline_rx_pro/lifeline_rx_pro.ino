@@ -39,6 +39,7 @@ bool handleIncomingLoRaTelemetry() {
     if (!packetReceived) return false;
 
     triggerRxBlink();
+    playRxBeep();
 
     if (telemetry.isChatMessage) {
         Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());

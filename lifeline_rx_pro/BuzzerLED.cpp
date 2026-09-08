@@ -10,54 +10,75 @@ static unsigned long rxBlinkEndTime = 0;
 static unsigned long lastWiFiBlinkTime = 0;
 static bool wifiBlinkState = false;
 
+// Universal Beep Driver: Compatible with both Active and Passive Buzzers
+static void executeBeep(uint16_t freq, uint16_t durationMs) {
+    // 1. Frequency driver for Passive Buzzers
+    tone(BUZZER_PIN, freq, durationMs);
+    
+    // 2. High-level pulse driver for Active Buzzers
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(durationMs);
+    digitalWrite(BUZZER_PIN, LOW);
+    
+    noTone(BUZZER_PIN);
+}
+
 void initBuzzerLED() {
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(LED_WIFI, OUTPUT);
     pinMode(LED_DATA, OUTPUT);
     
+    digitalWrite(BUZZER_PIN, LOW);
     digitalWrite(LED_WIFI, LOW);
     digitalWrite(LED_DATA, LOW);
 }
 
 void playBootTone() {
-    tone(BUZZER_PIN, 1500, 80);
+    executeBeep(1500, 80);
 }
 
 void playWiFiSuccessTone() {
-    tone(BUZZER_PIN, 1000, 80);
-    delay(100);
-    tone(BUZZER_PIN, 1500, 80);
+    executeBeep(1000, 80);
+    delay(80);
+    executeBeep(1500, 80);
 }
 
 void playWiFiFailTone() {
-    tone(BUZZER_PIN, 1500, 80);
-    delay(100);
-    tone(BUZZER_PIN, 1000, 80);
+    executeBeep(1500, 80);
+    delay(80);
+    executeBeep(1000, 80);
 }
 
 void playCountdownTickTone() {
-    tone(BUZZER_PIN, 2000, 50);
+    executeBeep(2000, 50);
 }
 
 void playPortalOpenTone() {
-    tone(BUZZER_PIN, 1800, 150);
+    executeBeep(1800, 150);
 }
 
 void playSkipConfirmTone() {
-    tone(BUZZER_PIN, 1500, 50);
+    executeBeep(1500, 50);
 }
 
 void playReturnIdleTone() {
-    tone(BUZZER_PIN, 1200, 80);
+    executeBeep(1200, 80);
 }
 
 void playAlertTone(int priority) {
     // Loud, high-visibility 2500 Hz triple alarm beep sequence for all incoming emergency packets
-    tone(BUZZER_PIN, 2500, 120);
-    delay(180);
-    tone(BUZZER_PIN, 2500, 120);
-    delay(180);
-    tone(BUZZER_PIN, 2500, 140);
+    executeBeep(2500, 120);
+    delay(100);
+    executeBeep(2500, 120);
+    delay(100);
+    executeBeep(2500, 140);
+}
+
+void playRxBeep() {
+    // Crisp, audible confirmation chirp when packet is received
+    executeBeep(2400, 80);
+    delay(40);
+    executeBeep(2700, 80);
 }
 
 void triggerRxBlink() {
