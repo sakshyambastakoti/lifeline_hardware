@@ -4,6 +4,8 @@
 #include "OTAManager.h"
 #include <WiFi.h>
 #include <Preferences.h>
+#include <Update.h>
+#include <ArduinoOTA.h>
 
 WebServer wifiServer(80);
 DNSServer dnsServer;
@@ -21,9 +23,38 @@ WiFiNetwork storedNetworks[MAX_WIFI_NETWORKS];
 int networkCount = 0;
 String activeSSID = "";
 
+String customApiKey = "";
+String customApiEndpoint = API_ENDPOINT;
+
+static bool routesConfigured = false;
+static bool stationServerStarted = false;
+
 // Forward declarations of server handlers
 static void handlePortalRoot();
 static void handlePortalSave();
+static void handleAPISave();
+static void setupServerRoutes();
+
+void loadAPICredentials() {
+    preferences.begin("lifeline", true);
+    customApiKey = preferences.getString("api_key", "");
+    customApiEndpoint = preferences.getString("api_url", API_ENDPOINT);
+    preferences.end();
+    if (customApiKey.length() > 0) {
+        Serial.printf("[API] Loaded Custom API Key: %s...\n", customApiKey.substring(0, min(8, (int)customApiKey.length())).c_str());
+    }
+    Serial.printf("[API] Active Endpoint: %s\n", customApiEndpoint.c_str());
+}
+
+void saveAPICredentials(const String& key, const String& endpoint) {
+    preferences.begin("lifeline", false);
+    preferences.putString("api_key", key);
+    preferences.putString("api_url", endpoint);
+    preferences.end();
+    customApiKey = key;
+    customApiEndpoint = endpoint;
+    Serial.println(F("[API] Saved custom API credentials to NVS."));
+}
 
 void loadWiFiCredentials() {
     preferences.begin("lifeline", true);
@@ -93,6 +124,7 @@ bool connectToWiFiSilent() {
             wifiConnected = true;
             activeSSID = storedNetworks[i].ssid;
             initNTPTime();
+            startStationWebServer();
             Serial.printf("[WIFI] Connected to %s! IP: %s\n", activeSSID.c_str(), WiFi.localIP().toString().c_str());
             return true;
         }
@@ -132,7 +164,8 @@ bool connectToWiFi() {
             activeSSID = storedNetworks[i].ssid;
             String ip = WiFi.localIP().toString();
             initNTPTime();
-            Serial.printf("[WIFI] Connected to %s! IP: %s\n", activeSSID.c_str(), ip.c_str());
+            startStationWebServer();
+            Serial.printf("[WIFI] Connected to %s! Web Dashboard: http://%s\n", activeSSID.c_str(), ip.c_str());
             
             currentScreen = SCREEN_WIFI_SPLASH;
             drawWiFiConnectedScreen(ip);
@@ -164,21 +197,11 @@ void startWiFiPortal() {
     // Start DNS Server for captive portal auto-popup on port 53
     dnsServer.start(53, "*", apIP);
     
-    wifiServer.on("/", handlePortalRoot);
-    wifiServer.on("/save", HTTP_POST, handlePortalSave);
-    
-    // Captive portal detect endpoints -> auto pop up HTML
-    wifiServer.on("/generate_204", handlePortalRoot);
-    wifiServer.on("/redirect", handlePortalRoot);
-    wifiServer.on("/hotspot-detect.html", handlePortalRoot);
-    wifiServer.on("/canonical.html", handlePortalRoot);
-    wifiServer.on("/nconnect.txt", handlePortalRoot);
-    wifiServer.onNotFound([]() {
-        wifiServer.sendHeader("Location", "http://192.168.4.1/", true);
-        wifiServer.send(302, "text/plain", "");
-    });
-    
-    wifiServer.begin();
+    setupServerRoutes();
+    if (!stationServerStarted) {
+        wifiServer.begin();
+        stationServerStarted = true;
+    }
     
     portalActive = true;
     portalStartTime = millis();
@@ -190,9 +213,8 @@ void startWiFiPortal() {
 void stopWiFiPortal() {
     if (!portalActive) return;
     
-    Serial.println(F("[WIFI] Stopping portal..."));
+    Serial.println(F("[WIFI] Stopping AP portal..."));
     dnsServer.stop();
-    wifiServer.stop();
     WiFi.softAPdisconnect(true);
     portalActive = false;
     
@@ -331,59 +353,124 @@ void handleWiFiPortal() {
     }
 }
 
-// HTML and Endpoint Handlers (Dark Theme, Sharp Edges, Crimson Red Aesthetic, Clean ASCII Text)
+// HTML and Endpoint Handlers (Dark Theme, Sharp Edges, Crimson Red & Cyan Aesthetic)
 static String getPortalHTML() {
-    String html = "<!DOCTYPE html><html><head>";
-    html += "<meta charset='UTF-8'>";
-    html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
-    html += "<title>LIFELINE RX - CAPTIVE PORTAL</title>";
-    html += "<style>";
-    html += "* { box-sizing: border-box; border-radius: 0px !important; }";
-    html += "body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #08080c; color: #f4f4f7; margin: 0; padding: 20px 15px; }";
-    html += ".container { max-width: 440px; margin: 0 auto; background: #121218; padding: 25px 22px; border: 1px solid #ff1e42; box-shadow: 0 0 25px rgba(255, 30, 66, 0.15); }";
-    html += ".header { border-bottom: 2px solid #ff1e42; padding-bottom: 12px; margin-bottom: 20px; text-align: left; }";
-    html += "h1 { color: #ffffff; font-size: 22px; margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; }";
-    html += ".brand-sub { color: #ff1e42; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }";
-    html += ".info-box { background: #1a1a24; border-left: 3px solid #ff1e42; padding: 10px 12px; margin-bottom: 22px; font-size: 12px; color: #b3b3c2; line-height: 1.4; }";
-    html += "h2 { color: #ffffff; font-size: 13px; font-weight: 700; margin: 18px 0 8px 0; text-transform: uppercase; letter-spacing: 1px; border-left: 2px solid #ff1e42; padding-left: 8px; }";
-    html += "label { display: block; font-size: 11px; color: #8c8c9e; text-transform: uppercase; font-weight: 700; margin-top: 8px; margin-bottom: 4px; letter-spacing: 0.5px; }";
-    html += "input[type=text], input[type=password] { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #282836; background: #0a0a0f; color: #ffffff; font-size: 14px; font-family: monospace; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }";
-    html += "input[type=text]:focus, input[type=password]:focus { border-color: #ff1e42; box-shadow: 0 0 10px rgba(255, 30, 66, 0.4); }";
-    html += "input[type=submit] { width: 100%; padding: 14px; background: #ff1e42; color: #ffffff; border: 1px solid #ff1e42; cursor: pointer; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px; transition: background 0.2s, box-shadow 0.2s; box-shadow: 0 0 12px rgba(255, 30, 66, 0.3); }";
-    html += "input[type=submit]:hover { background: #e01235; box-shadow: 0 0 20px rgba(255, 30, 66, 0.6); }";
-    html += ".status { text-align: center; margin-top: 20px; padding: 8px; font-size: 11px; background: #0a0a0f; border: 1px solid #282836; color: #727285; letter-spacing: 0.5px; }";
-    html += "</style></head><body>";
-    html += "<div class='container'>";
+    String currentIP = (wifiConnected && WiFi.status() == WL_CONNECTED) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+    String currentStatus = (wifiConnected && WiFi.status() == WL_CONNECTED) ? ("ONLINE &bull; " + activeSSID + " (" + String(WiFi.RSSI()) + " dBm)") : "STANDALONE AP SETUP";
+    String freeHeapStr = String(ESP.getFreeHeap() / 1024) + " KB";
+
+    String html = F("<!DOCTYPE html><html><head>"
+        "<meta charset='UTF-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<title>LIFELINE RX // BASE COMMAND DASHBOARD</title>"
+        "<style>"
+        "* { box-sizing: border-box; border-radius: 0px !important; margin: 0; padding: 0; }"
+        "body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #08080c; color: #f4f4f7; padding: 20px 14px; }"
+        ".container { max-width: 480px; margin: 0 auto; background: #121218; padding: 24px 20px; border: 1px solid #ff1e42; box-shadow: 0 0 25px rgba(255, 30, 66, 0.18); }"
+        ".header { border-bottom: 2px solid #ff1e42; padding-bottom: 12px; margin-bottom: 18px; }"
+        "h1 { color: #ffffff; font-size: 21px; font-weight: 800; letter-spacing: 1px; }"
+        ".brand-sub { color: #ff1e42; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }"
+        ".status-badge { background: #1a1a24; border-left: 3px solid #00ff87; padding: 10px 12px; margin-bottom: 20px; font-size: 11.5px; color: #d0d0dc; line-height: 1.5; font-family: monospace; }"
+        ".card { background: #171722; border: 1px solid #28283a; padding: 16px 14px; margin-bottom: 20px; }"
+        "h2 { color: #ffffff; font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #ff1e42; padding-left: 8px; }"
+        "h2.ota { border-left-color: #00d4ff; }"
+        "h2.api { border-left-color: #00ff87; }"
+        "label { display: block; font-size: 11px; color: #9c9cb0; text-transform: uppercase; font-weight: 700; margin: 8px 0 4px 0; letter-spacing: 0.5px; }"
+        "input[type=text], input[type=password], input[type=file] { width: 100%; padding: 11px; margin-bottom: 10px; border: 1px solid #2e2e42; background: #0a0a0f; color: #ffffff; font-size: 13px; font-family: monospace; outline: none; transition: border-color 0.2s; }"
+        "input[type=text]:focus, input[type=password]:focus { border-color: #ff1e42; }"
+        "input[type=file] { padding: 8px; }"
+        "input[type=submit] { width: 100%; padding: 13px; background: #ff1e42; color: #ffffff; border: 1px solid #ff1e42; cursor: pointer; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; transition: background 0.2s, box-shadow 0.2s; }"
+        "input[type=submit]:hover { background: #e01235; box-shadow: 0 0 15px rgba(255, 30, 66, 0.5); }"
+        "input.btn-ota { background: #00a8cc; border-color: #00d4ff; }"
+        "input.btn-ota:hover { background: #00c4ec; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }"
+        "input.btn-api { background: #008744; border-color: #00ff87; }"
+        "input.btn-api:hover { background: #00a855; box-shadow: 0 0 15px rgba(0, 255, 135, 0.5); }"
+        ".desc { font-size: 11.5px; color: #a4a4b8; line-height: 1.4; margin-bottom: 12px; }"
+        "</style></head><body><div class='container'>");
+
     html += "<div class='header'>";
-    html += "<h1>LIFELINE RX</h1>";
-    html += "<div class='brand-sub'>Base Station - Captive WiFi Setup</div>";
+    html += "<h1>LIFELINE RX PRO</h1>";
+    html += "<div class='brand-sub'>Base Station Gateway // Web Command Dashboard</div>";
     html += "</div>";
-    html += "<div class='info-box'>Configure 1, 2, or 3 WiFi networks. Network 1 is primary. Leave Network 2 & 3 blank if using only 1 WiFi network.</div>";
+
+    html += "<div class='status-badge'>";
+    html += "IP: " + currentIP + "<br>";
+    html += "LINK: " + currentStatus + "<br>";
+    html += "FREE HEAP: " + freeHeapStr + " | FW: v3.1.0 PRO";
+    html += "</div>";
+
+    // 1. API Configuration Section
+    html += "<div class='card'>";
+    html += "<h2 class='api'>1. Cloud REST API Configuration</h2>";
+    html += "<div class='desc'>Configure cloud endpoint & API key for forwarding emergency alerts & LoRa telemetry to your dashboard or server.</div>";
+    html += "<form action='/api-save' method='POST'>";
+    html += "<label>REST API Endpoint URL:</label>";
+    html += "<input type='text' name='api_url' value='" + (customApiEndpoint.length() > 0 ? customApiEndpoint : API_ENDPOINT) + "' placeholder='https://...'>";
+    html += "<label>API Key (X-API-Key / Bearer Authentication):</label>";
+    html += "<input type='text' name='api_key' value='" + customApiKey + "' placeholder='Enter API Key (or leave blank if none)'>";
+    html += "<input class='btn-api' type='submit' value='SAVE API CONFIGURATION'>";
+    html += "</form>";
+    html += "</div>";
+
+    // 2. Wireless OTA Firmware Upgrade Section
+    html += "<div class='card'>";
+    html += "<h2 class='ota'>2. Wireless OTA Firmware Upgrade</h2>";
+    html += "<div class='desc'>Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. The 16x2 LCD shows live progress and restarts the base station on completion.</div>";
+    html += "<form action='/update' method='POST' enctype='multipart/form-data'>";
+    html += "<label>Select Firmware Binary (.bin):</label>";
+    html += "<input type='file' name='update' accept='.bin' required>";
+    html += "<input class='btn-ota' type='submit' value='FLASH FIRMWARE (OTA)'>";
+    html += "</form>";
+    html += "</div>";
+
+    // 3. Wi-Fi Multi-Network Setup Section
+    html += "<div class='card'>";
+    html += "<h2>3. Wi-Fi Multi-Network Setup</h2>";
+    html += "<div class='desc'>Configure up to 3 local Wi-Fi networks for failover internet connectivity.</div>";
     html += "<form action='/save' method='POST'>";
-    
     for (int i = 0; i < 3; i++) {
         String numStr = String(i + 1);
         String currentS = (i < networkCount) ? storedNetworks[i].ssid : "";
         String currentP = (i < networkCount) ? storedNetworks[i].password : "";
-        
-        html += "<h2>WiFi Network #" + numStr + (i == 0 ? " (Primary Required)" : " (Optional Backup)") + "</h2>";
-        html += "<label>SSID (Network Name):</label>";
+        html += "<label>WiFi #" + numStr + " SSID" + (i == 0 ? " (Primary)" : " (Backup)") + ":</label>";
         html += "<input type='text' name='ssid" + numStr + "' placeholder='Network SSID' value='" + currentS + "'" + (i == 0 ? " required" : "") + ">";
-        html += "<label>WPA2 Password:</label>";
-        html += "<input type='password' name='pass" + numStr + "' placeholder='WiFi Password' value='" + currentP + "'>";
+        html += "<label>WiFi #" + numStr + " Password:</label>";
+        html += "<input type='password' name='pass" + numStr + "' placeholder='Password' value='" + currentP + "'>";
     }
-    
-    html += "<input type='submit' value='SAVE & CONNECT WI-FI'>";
+    html += "<input type='submit' value='SAVE & RECONNECT WI-FI'>";
     html += "</form>";
-    
-    html += "<div class='status'>STORED NETWORKS: " + String(networkCount) + " / 3</div>";
-    
+    html += "</div>";
+
     html += "</div></body></html>";
     return html;
 }
 
 static void handlePortalRoot() {
     wifiServer.send(200, "text/html", getPortalHTML());
+}
+
+static void handleAPISave() {
+    String newKey = wifiServer.arg("api_key");
+    String newUrl = wifiServer.arg("api_url");
+    newKey.trim();
+    newUrl.trim();
+    
+    if (newUrl.length() == 0) newUrl = API_ENDPOINT;
+    
+    saveAPICredentials(newKey, newUrl);
+    
+    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>LIFELINE RX - API SAVED</title>";
+    html += "<style>* { box-sizing: border-box; border-radius: 0px !important; } body{font-family:'Segoe UI',sans-serif;background:#08080c;color:#fff;text-align:center;padding:50px 15px;}";
+    html += ".card{background:#121218;border:1px solid #00ff87;padding:30px 20px;max-width:440px;margin:0 auto;box-shadow:0 0 25px rgba(0,255,135,0.2);}";
+    html += "h2{color:#00ff87;font-size:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;} p{color:#b3b3c2;font-size:13px;line-height:1.6;}";
+    html += "code{background:#0a0a0f;padding:4px 8px;border:1px solid #282836;color:#00d4ff;display:block;margin:10px 0;word-break:break-all;}";
+    html += "a{display:inline-block;margin-top:20px;padding:12px 24px;background:#ff1e42;color:#fff;text-decoration:none;font-weight:bold;letter-spacing:1px;}</style></head><body>";
+    html += "<div class='card'><h2>API SETTINGS SAVED</h2>";
+    html += "<p>API Key:</p><code>" + (newKey.length() > 0 ? newKey : "(None / Cleared)") + "</code>";
+    html += "<p>Endpoint URL:</p><code>" + newUrl + "</code>";
+    html += "<a href='/'>RETURN TO DASHBOARD</a></div></body></html>";
+    
+    wifiServer.send(200, "text/html", html);
 }
 
 static void handlePortalSave() {
@@ -420,4 +507,85 @@ static void handlePortalSave() {
     
     delay(2000);
     ESP.restart();
+}
+
+static void setupServerRoutes() {
+    if (routesConfigured) return;
+    
+    wifiServer.on("/", HTTP_GET, handlePortalRoot);
+    wifiServer.on("/save", HTTP_POST, handlePortalSave);
+    wifiServer.on("/api-save", HTTP_POST, handleAPISave);
+    
+    // Direct OTA Firmware Flash endpoint
+    wifiServer.on("/update", HTTP_POST, []() {
+        wifiServer.sendHeader("Connection", "close");
+        String res = (Update.hasError()) ? 
+            "<!DOCTYPE html><html><body style='background:#08080c;color:#ff1e42;font-family:sans-serif;text-align:center;padding:50px;'><h2>OTA UPDATE FAILED</h2><p style='color:#bbb;'>An error occurred during flashing.</p><br><a href='/' style='color:#fff;background:#ff1e42;padding:10px 20px;text-decoration:none;'>RETURN</a></body></html>" : 
+            "<!DOCTYPE html><html><body style='background:#08080c;color:#00ff87;font-family:sans-serif;text-align:center;padding:50px;'><h2>OTA UPDATE SUCCESSFUL!</h2><p style='color:#b3b3c2;'>Base station is rebooting with new firmware...</p></body></html>";
+        wifiServer.send(200, "text/html", res);
+        delay(1000);
+        ESP.restart();
+    }, []() {
+        HTTPUpload& upload = wifiServer.upload();
+        if (upload.status == UPLOAD_FILE_START) {
+            Serial.printf("[WEB OTA] Start: %s\n", upload.filename.c_str());
+            currentScreen = SCREEN_OTA;
+            drawOTAProgressScreen(0);
+            if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+                Update.printError(Serial);
+            }
+        } else if (upload.status == UPLOAD_FILE_WRITE) {
+            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+                Update.printError(Serial);
+            }
+            if (upload.totalSize > 0) {
+                int pct = (upload.currentSize * 100) / upload.totalSize;
+                drawOTAProgressScreen(pct);
+            }
+        } else if (upload.status == UPLOAD_FILE_END) {
+            if (Update.end(true)) {
+                Serial.printf("[WEB OTA] Success: %u bytes\n", upload.totalSize);
+                drawOTASuccessScreen();
+            } else {
+                Update.printError(Serial);
+                drawOTAFailedScreen("Flash Failed");
+            }
+        }
+    });
+
+    // Captive portal fallback routes
+    wifiServer.on("/generate_204", handlePortalRoot);
+    wifiServer.on("/redirect", handlePortalRoot);
+    wifiServer.on("/hotspot-detect.html", handlePortalRoot);
+    wifiServer.on("/canonical.html", handlePortalRoot);
+    wifiServer.on("/nconnect.txt", handlePortalRoot);
+    wifiServer.onNotFound([]() {
+        if (portalActive) {
+            wifiServer.sendHeader("Location", "http://192.168.4.1/", true);
+            wifiServer.send(302, "text/plain", "");
+        } else {
+            wifiServer.sendHeader("Location", "/", true);
+            wifiServer.send(302, "text/plain", "");
+        }
+    });
+
+    routesConfigured = true;
+}
+
+void startStationWebServer() {
+    setupServerRoutes();
+    if (!stationServerStarted) {
+        wifiServer.begin();
+        stationServerStarted = true;
+    }
+    ArduinoOTA.setHostname("lifeline-rx-base");
+    ArduinoOTA.begin();
+    Serial.printf("[WEB] Station Web Dashboard active on http://%s\n", WiFi.localIP().toString().c_str());
+}
+
+void handleWiFiServer() {
+    if (wifiConnected && !portalActive) {
+        wifiServer.handleClient();
+        ArduinoOTA.handle();
+    }
 }

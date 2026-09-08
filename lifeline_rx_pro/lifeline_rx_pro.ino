@@ -125,6 +125,7 @@ void loop() {
     updateLEDs();
     updateBLE();
     handleLocalOTA();
+    handleWiFiServer();
     
     // Process Commander BLE dispatch commands
     if (hasPendingBLEReply()) {
@@ -158,6 +159,7 @@ void loop() {
         case SCREEN_BOOT:
             if (updateBootAnimation()) {
                 loadWiFiCredentials();
+                loadAPICredentials();
                 if (networkCount > 0) {
                     Serial.printf("[WIFI] Auto-connecting to %d stored network(s). Primary: %s\n", networkCount, activeSSID.c_str());
                     bool connected = connectToWiFi();

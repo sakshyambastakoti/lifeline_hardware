@@ -19,13 +19,22 @@ extern WiFiNetwork storedNetworks[MAX_WIFI_NETWORKS];
 extern int networkCount;
 extern String activeSSID;
 
+extern String customApiKey;
+extern String customApiEndpoint;
+
 void loadWiFiCredentials();
 void saveWiFiCredentialsList(const WiFiNetwork nets[], int count);
+void loadAPICredentials();
+void saveAPICredentials(const String& key, const String& endpoint);
+
 bool connectToWiFi();
 bool connectToWiFiSilent();
 void startWiFiPortal();
 void stopWiFiPortal();
 void checkWiFiPortalButton();
 void handleWiFiPortal();
+
+void startStationWebServer();
+void handleWiFiServer();
 
 #endif // WIFI_PORTAL_H

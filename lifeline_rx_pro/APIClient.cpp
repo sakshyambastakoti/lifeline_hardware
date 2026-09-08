@@ -3,6 +3,8 @@
 #include <HTTPClient.h>
 
 extern bool wifiConnected;
+extern String customApiKey;
+extern String customApiEndpoint;
 
 void pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
     if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
@@ -10,16 +12,25 @@ void pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
         return;
     }
     
+    String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
     HTTPClient http;
     http.setTimeout(2500); // 2.5 second network timeout
-    http.begin(API_ENDPOINT);
+    http.begin(endpoint);
     http.addHeader("Content-Type", "application/json");
+    if (customApiKey.length() > 0) {
+        http.addHeader("X-API-Key", customApiKey);
+        http.addHeader("Authorization", "Bearer " + customApiKey);
+    }
     
     String jsonPayload = "{\"DID\":" + String(deviceId) + 
                          ",\"message_code\":" + String(alertIndex) + 
-                         ",\"RSSI\":" + String(rssi) + "}";
+                         ",\"RSSI\":" + String(rssi);
+    if (customApiKey.length() > 0) {
+        jsonPayload += ",\"api_key\":\"" + customApiKey + "\"";
+    }
+    jsonPayload += "}";
     
-    Serial.printf("[API] Sending: %s\n", jsonPayload.c_str());
+    Serial.printf("[API] Sending to %s: %s\n", endpoint.c_str(), jsonPayload.c_str());
     
     int httpResponseCode = http.POST(jsonPayload);
     
@@ -39,12 +50,20 @@ void pushFullTelemetryToAPI(const FullTelemetryData& data) {
         return;
     }
 
+    String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
     HTTPClient http;
     http.setTimeout(3000); // 3 second network timeout
-    http.begin(API_ENDPOINT);
+    http.begin(endpoint);
     http.addHeader("Content-Type", "application/json");
+    if (customApiKey.length() > 0) {
+        http.addHeader("X-API-Key", customApiKey);
+        http.addHeader("Authorization", "Bearer " + customApiKey);
+    }
 
     String jsonPayload = "{";
+    if (customApiKey.length() > 0) {
+        jsonPayload += "\"api_key\":\"" + customApiKey + "\",";
+    }
     jsonPayload += "\"DID\":" + String(data.deviceId) + ",";
     jsonPayload += "\"message_code\":" + String(data.alertIndex) + ",";
     jsonPayload += "\"code\":\"" + String(data.emergencyCode) + "\",";

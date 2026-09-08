@@ -207,6 +207,17 @@ On the LifeLine RX Pro Base Station:
   - Holding for 3 seconds still opens the **Wi-Fi Captive Configuration Portal**.
   - A short tap specifically handles scrolling without disturbing Wi-Fi settings.
 
+#### Station Web Dashboard (`http://<RX_IP>`):
+When LifeLine RX Pro connects to your local Wi-Fi router, it displays its assigned IP on the 16×2 LCD (`IP: 192.168.x.x`). Navigating to `http://<RX_IP>` in any web browser opens the **Base Station Command Dashboard**:
+1. **Live System Diagnostics**: Real-time IP, Wi-Fi link RSSI, free heap memory, and NTP time sync.
+2. **Cloud REST API Key & Endpoint Manager**:
+   - Update the **API Authentication Key** (`X-API-Key` and `Bearer`) and **API Endpoint URL** without reflashing the device.
+   - Settings are stored persistently in ESP32 Non-Volatile Storage (NVS).
+3. **Direct Web OTA Firmware Flashing**:
+   - Select any compiled `firmware.bin` file and click **FLASH FIRMWARE (OTA)**.
+   - The 16×2 LCD displays real-time flashing progress (`Updating FW XX%`), sounds a completion chime, and reboots the base station automatically.
+4. **Multi-WiFi Credential Management**: Update or add up to 3 fallback Wi-Fi networks.
+
 ---
 
 ## 🔄 5. End-to-End Two-Way Communication Flow
