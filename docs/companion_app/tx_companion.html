@@ -3,23 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>LifeLine TX Pro — Field Communicator (TUI)</title>
-  <meta name="description" content="Box-drawing ASCII / TUI emergency communicator for LifeLine TX Pro LoRa field unit." />
+  <title>LifeLine TX Pro — Field Communicator</title>
+  <meta name="description" content="Elegant, modern two-way field companion messenger for LifeLine TX Pro emergency LoRa communicator." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05080c;
-      --bg-box: #0b1017;
-      --bg-input: #040609;
-      --border-color: #2a3a50;
-      --text: #c8d6e5;
-      --text-dim: #576574;
-      --green: #00ff66;
-      --cyan: #00d4ff;
-      --red: #ff3838;
-      --amber: #ff9f1a;
-      --yellow: #feca57;
+      --sidebar-bg: #0d1e32;
+      --sidebar-hover: #172c44;
+      --main-bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
 
-      --font-tui: "Cascadia Code", "Courier New", Courier, "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+
+      --green: #10b981;
+      --green-light: #ecfdf5;
+      --red: #ef4444;
+      --red-light: #fef2f2;
+      --amber: #f59e0b;
+      --amber-light: #fffbeb;
+
+      --bubble-in: #ffffff;
+      --bubble-out: #2563eb;
     }
 
     * {
@@ -30,460 +43,662 @@
     }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-tui);
+      background-color: var(--main-bg);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      line-height: 1.35;
-      min-height: 100vh;
+      line-height: 1.5;
+      height: 100vh;
       display: flex;
-      flex-direction: column;
-      padding: 10px;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
-    .tui-container {
-      max-width: 960px;
+    /* SLIM LEFT ICON SIDEBAR */
+    aside.icon-sidebar {
+      width: 60px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .sidebar-top, .sidebar-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
       width: 100%;
-      margin: 0 auto;
+    }
+
+    .logo-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-radius: 12px;
       display: flex;
-      flex-direction: column;
-      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      text-decoration: none;
+    }
+
+    .side-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .side-icon:hover {
+      background: var(--sidebar-hover);
+      color: #fff;
+    }
+    .side-icon.active {
+      background: #ffffff;
+      color: var(--sidebar-bg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* MAIN APP WORKSPACE */
+    .app-workspace {
       flex: 1;
-    }
-
-    .tui-frame {
-      background: var(--bg-box);
-      border: 1px solid var(--border-color);
-      border-radius: 2px;
       display: flex;
       flex-direction: column;
-      position: relative;
+      overflow: hidden;
     }
 
-    .ascii-banner {
-      color: var(--cyan);
-      font-weight: bold;
-      white-space: pre;
-      overflow-x: auto;
-      text-align: center;
-      padding: 4px 0;
-      line-height: 1.25;
-    }
-
-    .tui-header-bar {
-      color: var(--cyan);
-      padding: 6px 10px;
-      background: #0e1520;
-      border-bottom: 1px solid var(--border-color);
+    header.top-header {
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-weight: bold;
+      padding: 0 20px;
+      flex-shrink: 0;
     }
 
-    .tui-header-bar a {
-      color: var(--green);
-      text-decoration: none;
-    }
-    .tui-header-bar a:hover {
-      text-decoration: underline;
-    }
-
-    .tui-toolbar {
+    .top-header-left {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      background: #090e15;
-      padding: 6px 10px;
-      border-bottom: 1px solid var(--border-color);
       align-items: center;
+      gap: 16px;
     }
 
-    .tui-btn {
-      background: #0f1722;
-      border: 1px solid var(--border-color);
-      color: var(--text);
-      font-family: var(--font-tui);
+    .page-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .top-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-top {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 8px;
       font-size: 12px;
-      padding: 3px 8px;
+      font-weight: 600;
+      color: var(--text-muted);
       cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .tui-btn:hover {
-      background: #192638;
-      border-color: var(--cyan);
-      color: #fff;
-    }
-    .tui-btn.active {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      background: rgba(0, 212, 255, 0.1);
-    }
-
-    /* Handshake Box */
-    .handshake-box {
-      background: #080c12;
-      border-bottom: 1px solid var(--border-color);
-      padding: 6px 10px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 11px;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-top:hover {
+      background: #f8fafc;
+      color: var(--text-main);
+    }
+    .btn-top.active-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
     }
 
-    .ack-state-pill {
-      font-weight: bold;
-      color: var(--green);
-    }
-    .ack-state-pill.wait { color: var(--amber); }
-    .ack-state-pill.fail { color: var(--red); }
-
-    /* 15 SOS Presets Grid (ASCII Style) */
-    .sos-grid {
+    /* 3-COLUMN MAIN LAYOUT */
+    .columns-container {
+      flex: 1;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 4px;
-      background: #090e15;
-      padding: 6px 10px;
-      border-bottom: 1px solid var(--border-color);
+      grid-template-columns: 310px 1fr 300px;
+      overflow: hidden;
+      background: #f1f5f9;
+      gap: 1px;
     }
 
-    .sos-cell {
-      background: #0f1722;
-      border: 1px solid #1e2c3d;
-      color: var(--text);
-      font-family: var(--font-tui);
-      font-size: 11px;
-      padding: 5px 8px;
-      cursor: pointer;
+    /* COLUMN 1: 15 EMERGENCY PRESETS */
+    .col-presets {
+      background: #ffffff;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .sos-cell:hover {
-      background: #182435;
-      border-color: var(--red);
-      color: #fff;
-    }
-    .sos-cell.critical {
-      border-color: rgba(255, 56, 56, 0.4);
-      color: #ff6b6b;
-    }
-    .sos-cell.critical:hover {
-      background: var(--red);
-      color: #000;
-    }
-    .sos-cell.nominal {
-      border-color: rgba(0, 255, 102, 0.3);
-      color: var(--green);
-    }
-    .sos-cell .code {
-      font-weight: bold;
-      color: var(--cyan);
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    /* Chat Stream Terminal Window */
-    .chat-stream {
-      background: #040609;
-      padding: 10px;
-      height: 320px;
+    .presets-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .presets-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .presets-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .preset-card {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: #ffffff;
+    }
+    .preset-card:hover {
+      border-color: var(--primary);
+      background: #f8fafc;
+      transform: translateY(-1px);
+    }
+    .preset-card.critical {
+      border-left: 3px solid var(--red);
+    }
+    .preset-card.high {
+      border-left: 3px solid var(--amber);
+    }
+    .preset-card.nominal {
+      border-left: 3px solid var(--green);
+    }
+
+    .preset-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .preset-name {
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 12px;
+    }
+    .preset-nepali {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .code-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* COLUMN 2: ACTIVE TWO-WAY MESSENGER */
+    .col-chat {
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-top-bar {
+      height: 58px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .chat-peer-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .base-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #10b981;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .chat-stream-area {
+      flex: 1;
+      padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      border-bottom: 1px solid var(--border-color);
-      font-family: var(--font-tui);
+      gap: 14px;
     }
 
-    .log-row {
+    .msg-group {
       display: flex;
-      align-items: baseline;
-      gap: 8px;
-      word-break: break-word;
+      gap: 10px;
+      max-width: 80%;
+    }
+    .msg-group.in {
+      align-self: flex-start;
+    }
+    .msg-group.out {
+      align-self: flex-end;
+      flex-direction: row-reverse;
     }
 
-    .log-ts {
-      color: var(--text-dim);
-      flex-shrink: 0;
-    }
-    .log-node {
-      font-weight: bold;
-      flex-shrink: 0;
-      color: var(--cyan);
-    }
-    .log-node.base { color: var(--green); }
-    .log-node.sys { color: var(--yellow); }
-    .log-node.alert { color: var(--red); }
-
-    .log-msg {
-      flex: 1;
-      color: var(--text);
-    }
-    .log-msg.alert {
-      color: var(--red);
-      font-weight: bold;
-    }
-
-    .log-meta {
-      color: var(--text-dim);
-      font-size: 11px;
-      flex-shrink: 0;
-    }
-
-    /* Quick Chips */
-    .chips-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      background: #080c12;
-      padding: 6px 10px;
-      border-bottom: 1px solid var(--border-color);
-      align-items: center;
-    }
-
-    .chip-btn {
-      background: #111822;
-      border: 1px solid var(--border-color);
-      color: var(--text-dim);
-      font-family: var(--font-tui);
-      font-size: 11px;
-      padding: 2px 7px;
-      cursor: pointer;
-    }
-    .chip-btn:hover {
-      border-color: var(--cyan);
-      color: var(--cyan);
-    }
-
-    /* Input Line */
-    .tui-input-line {
+    .bubble-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      background: #0b1118;
-    }
-
-    .prompt-symbol {
-      color: var(--cyan);
-      font-weight: bold;
-    }
-
-    .input-cmd {
-      flex: 1;
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
-      color: #fff;
-      font-family: var(--font-tui);
-      font-size: 13px;
-      padding: 5px 8px;
-      outline: none;
-    }
-    .input-cmd:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
-    }
-
-    .char-count {
-      color: var(--text-dim);
-      font-size: 11px;
-    }
-
-    .btn-send {
-      background: #0077aa;
-      border: 1px solid var(--cyan);
-      color: #fff;
-      font-family: var(--font-tui);
+      justify-content: center;
       font-size: 12px;
-      font-weight: bold;
-      padding: 5px 14px;
-      cursor: pointer;
-    }
-    .btn-send:hover {
-      background: var(--cyan);
-      color: #000;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
     }
 
-    /* Modal */
-    .tui-modal {
+    .bubble-body {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .msg-group.in .bubble {
+      background: var(--bubble-in);
+      color: #0f172a;
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 3px;
+    }
+    .msg-group.out .bubble {
+      background: var(--bubble-out);
+      color: #ffffff;
+      border-bottom-right-radius: 3px;
+    }
+    .msg-group.out .bubble.alert {
+      background: var(--red);
+    }
+
+    .bubble-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-faint);
+    }
+    .msg-group.out .bubble-footer {
+      justify-content: flex-end;
+    }
+
+    /* COMPOSER */
+    .chat-composer-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 0 16px 16px 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .composer-chips {
+      display: flex;
+      gap: 6px;
+      padding: 8px 14px 4px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .chip {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .chip:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .composer-textarea {
+      width: 100%;
+      border: none;
+      outline: none;
+      padding: 10px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: none;
+      height: 48px;
+      color: var(--text-main);
+    }
+
+    .composer-bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px 10px 14px;
+    }
+
+    .btn-send-msg {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    /* COLUMN 3: NODE PROPERTIES (RIGHT) */
+    .col-details {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    .details-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .detail-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .detail-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+    }
+    .detail-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .handshake-status-banner {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--green-light);
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* MODAL */
+    .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
       padding: 16px;
     }
-    .tui-modal.open { display: flex; }
+    .modal-overlay.open { display: flex; }
 
     .modal-box {
-      background: #090e15;
-      border: 2px solid var(--red);
+      background: #ffffff;
+      border-radius: 16px;
       max-width: 440px;
       width: 100%;
-      padding: 16px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 0 20px rgba(255, 56, 56, 0.4);
-    }
-
-    .tui-footer {
-      font-size: 11px;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 10px;
-      background: #06090e;
-      border-top: 1px solid var(--border-color);
+      gap: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
 
-  <div class="tui-container">
+  <!-- SLIM LEFT ICON SIDEBAR -->
+  <aside class="icon-sidebar">
+    <div class="sidebar-top">
+      <a href="index.html" class="logo-btn" title="LifeLine Mission Hub">💬</a>
+      <div class="side-icon active" title="Field Communicator">📡</div>
+      <a href="rx_companion.html" class="side-icon" title="Switch to Base Console (RX)">🛡️</a>
+      <div class="side-icon" onclick="toggleSim()" title="Toggle Demo Simulator">⚡</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="side-icon" onclick="toggleBle()" title="Bluetooth Connection">⚡</div>
+      <div class="side-icon" onclick="toggleSerial()" title="USB Serial Connection">🔌</div>
+      <a href="index.html" class="side-icon" title="Menu">⚙️</a>
+    </div>
+  </aside>
 
-    <div class="tui-frame">
+  <!-- APP WORKSPACE -->
+  <div class="app-workspace">
 
-      <!-- ASCII Header Box -->
-      <div class="ascii-banner">
-╔══════════════════════════════════════════════════════════════════════════════╗
-║              LIFELINE EMERGENCY FIELD COMMUNICATOR v3.1 PRO                  ║
-║                  [ TACTICAL LORA TWO-WAY MESH TERMINAL ]                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝</div>
+    <!-- GLOBAL TOP HEADER -->
+    <header class="top-header">
+      <div class="top-header-left">
+        <h1 class="page-title">LifeLine TX Pro — Field Communicator</h1>
+      </div>
 
-      <!-- Top Status Header Bar -->
-      <div class="tui-header-bar">
-        <div>
-          <span>LINK: </span>
-          <span id="connLabel" style="color:var(--red);">[● OFFLINE]</span>
-          <span style="margin-left:12px;">BAT: <strong id="labelBat" style="color:var(--green);">--%</strong></span>
-          <span style="margin-left:12px;">DEV: <strong id="labelDev">TX-003</strong></span>
-          <span style="margin-left:12px;">RF: 433.0 MHz (SX1278)</span>
+      <div class="top-header-right">
+        <button id="btnBle" class="btn-top active-primary" onclick="toggleBle()">
+          <span>⚡ Connect BLE</span>
+        </button>
+        <button id="btnSerial" class="btn-top" onclick="toggleSerial()">
+          <span>🔌 USB</span>
+        </button>
+        <button id="btnSim" class="btn-top" onclick="toggleSim()">
+          <span>Simulator: OFF</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 3-COLUMN CONTAINER -->
+    <div class="columns-container">
+
+      <!-- COLUMN 1: 15 EMERGENCY PRESETS (LEFT) -->
+      <section class="col-presets">
+        <div class="presets-header">
+          <div class="presets-title-row">
+            <span style="font-size:13px; font-weight:700; color:#0f172a;">Emergency Presets</span>
+            <span style="font-size:11px; background:#0f172a; color:#fff; padding:1px 7px; border-radius:12px; font-weight:700;">15</span>
+          </div>
+          <span style="font-size:11px; color:var(--text-faint);">Tap to broadcast over 433 MHz LoRa</span>
         </div>
-        <div>
-          <a href="rx_companion.html">[SWITCH: RX BASE]</a>
-          <a href="index.html" style="margin-left:8px;">[MENU]</a>
+
+        <div id="presetsList" class="presets-list">
+          <!-- Injected from registry -->
         </div>
-      </div>
+      </section>
 
-      <!-- Toolbar -->
-      <div class="tui-toolbar">
-        <button id="btnBle" class="tui-btn active" onclick="toggleBle()">[B] BLE CONNECT</button>
-        <button id="btnSerial" class="tui-btn" onclick="toggleSerial()">[U] USB SERIAL</button>
-        <button id="btnSim" class="tui-btn" onclick="toggleSim()">[S] SIMULATOR: OFF</button>
-        <button class="tui-btn" onclick="clearStream()">[C] CLEAR STREAM</button>
-      </div>
+      <!-- COLUMN 2: TWO-WAY LIVE CHAT (CENTER) -->
+      <section class="col-chat">
+        
+        <div class="chat-top-bar">
+          <div class="chat-peer-info">
+            <div class="base-avatar">HUB</div>
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#0f172a;">Base Command Hub (BASE01)</div>
+              <div style="font-size:11px; color:var(--text-faint);">Direct 433.0 MHz LoRa Link &bull; SX1278</div>
+            </div>
+          </div>
 
-      <!-- Two-Way Handshake Status Box -->
-      <div class="handshake-box">
-        <div>
-          <span>HANDSHAKE: </span>
-          <span id="ackState" class="ack-state-pill">STANDBY (Ready)</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:11px; font-weight:600; color:var(--green);" id="topLinkStatus">● LoRa Standby</span>
+          </div>
         </div>
-        <div>
-          <span>BASE ID: <strong id="ackBase" style="color:var(--cyan)">--</strong></span>
-          <span style="margin-left:12px;">SIGNAL: <strong id="ackRssi" style="color:var(--yellow)">--</strong></span>
+
+        <!-- Chat Stream -->
+        <div id="chatStream" class="chat-stream-area">
+          <div style="text-align:center; font-size:11px; color:var(--text-faint); margin:8px 0;">
+            SESSION STARTED &bull; 433.0 MHz SX1278 RF CHANNEL
+          </div>
         </div>
-      </div>
 
-      <!-- 15-Preset LoRa Emergency SOS Grid -->
-      <div class="sos-grid" id="sosGrid">
-        <!-- Injected from registry -->
-      </div>
+        <!-- Modern Composer -->
+        <div class="chat-composer-card">
+          <div class="composer-chips">
+            <span class="chip" onclick="setChip('3 trapped near school, need stretcher')">🚑 3 trapped near school</span>
+            <span class="chip" onclick="setChip('Landslide blocked main road')">⛰️ Landslide blocked road</span>
+            <span class="chip" onclick="setChip('River water rising rapid, need boat')">🌊 Flash flood danger</span>
+            <span class="chip" onclick="setChip('Elderly hypothermia, need blankets')">❄️ Extreme cold</span>
+          </div>
 
-      <!-- Live LoRa Message Stream (TUI Window) -->
-      <div id="chatStream" class="chat-stream">
-        <div class="log-row">
-          <span class="log-ts">[00:00:00]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">╔═══════════════════════════════════════════════════════════════════════════╗</span>
+          <textarea id="composerInput" class="composer-textarea" placeholder="Type custom situation report (48 chars max)..." maxlength="48" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomChat();}"></textarea>
+
+          <div class="composer-bottom-bar">
+            <span style="font-size:11px; color:var(--text-faint);" id="charCount">0/48</span>
+            <button class="btn-send-msg" onclick="sendCustomChat()">
+              <span>Send Uplink</span>
+              <span>➤</span>
+            </button>
+          </div>
         </div>
-        <div class="log-row">
-          <span class="log-ts">[00:00:00]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">║ LifeLine TX Pro Tactical Communicator Online. Ready for 433MHz Uplink...  ║</span>
+
+      </section>
+
+      <!-- COLUMN 3: NODE PROPERTIES & TELEMETRY (RIGHT) -->
+      <section class="col-details">
+        
+        <!-- Handshake Status -->
+        <div class="details-card">
+          <div style="font-size:13px; font-weight:700; color:#0f172a;">Two-Way Handshake</div>
+          <div class="handshake-status-banner" id="handshakeBanner">
+            <span>✓</span>
+            <span id="handshakeText">Ready &bull; Base Confirmed</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Base Confirmation</span>
+            <span class="detail-value" id="ackNote">"Logged by Commander"</span>
+          </div>
         </div>
-        <div class="log-row">
-          <span class="log-ts">[00:00:00]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">╚═══════════════════════════════════════════════════════════════════════════╝</span>
+
+        <!-- Device Telemetry -->
+        <div class="details-card">
+          <div style="font-size:13px; font-weight:700; color:#0f172a;">Device Telemetry</div>
+          <div class="detail-field">
+            <span class="detail-label">Transmitter ID</span>
+            <span class="detail-value" id="devIdLabel">LifeLine-TX-003</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Battery Level</span>
+            <span class="detail-value" id="batLabel">94% Nominal</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">LoRa Link Signal</span>
+            <span class="detail-value" id="rssiLabel">-68 dBm (SNR: 9 dB)</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Firmware</span>
+            <span class="detail-value">v3.1.0 PRO</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Quick Situation Chips -->
-      <div class="chips-strip">
-        <span style="color:var(--text-dim);font-size:11px;">CHIPS:</span>
-        <button class="chip-btn" onclick="setChip('3 trapped near school, need stretcher')">[ 3 TRAPPED SCHOOL ]</button>
-        <button class="chip-btn" onclick="setChip('Landslide blocked main road')">[ LANDSLIDE ROAD ]</button>
-        <button class="chip-btn" onclick="setChip('River water rising rapid, need boat')">[ FLOOD RISING ]</button>
-        <button class="chip-btn" onclick="setChip('Elderly hypothermia, need warm blankets')">[ HYPOTHERMIA ]</button>
-        <button class="chip-btn" onclick="setChip('All safe at ridge shelter, food low')">[ RIDGE CAMP SAFE ]</button>
-      </div>
-
-      <!-- Command Line Transmit Bar -->
-      <div class="tui-input-line">
-        <span class="prompt-symbol">&gt;</span>
-        <input id="inputMsg" type="text" class="input-cmd" placeholder="Type tactical message or select a preset above..." maxlength="48" oninput="updateLen()" onkeydown="if(event.key==='Enter')sendChat()" />
-        <span id="charLen" class="char-count">00/48</span>
-        <button class="btn-send" onclick="sendChat()">UPLINK ↵</button>
-      </div>
-
-      <!-- Footer Info -->
-      <div class="tui-footer">
-        <span>GATT: Nordic UART Service (NUS 6E400001)</span>
-        <span>BAUD: 115200 (USB Serial)</span>
-        <span>RANGE: ~15km Mountain LoRa</span>
-      </div>
+      </section>
 
     </div>
 
   </div>
 
-  <!-- SOS Confirmation Modal -->
-  <div id="confirmModal" class="tui-modal">
+  <!-- CONFIRMATION MODAL -->
+  <div id="confirmModal" class="modal-overlay">
     <div class="modal-box">
-      <div id="modalTitle" style="color:var(--red); font-weight:bold; font-size:13px;">
-        ╔═══════════════════════════════════════════════════════════╗<br/>
-        ║        CONFIRM EMERGENCY BROADCAST OVER 433MHz LORA       ║<br/>
-        ╚═══════════════════════════════════════════════════════════╝
-      </div>
-      <div id="modalDesc" style="color:var(--text); font-size:12px;">
-        Broadcast emergency code to base station?
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:var(--red-light); color:var(--red); display:flex; align-items:center; justify-content:center; font-size:20px;">🚨</div>
+        <div>
+          <h3 style="font-size:15px; font-weight:700; color:#0f172a;" id="modalTitle">Broadcast Emergency SOS</h3>
+          <p style="font-size:12px; color:var(--text-muted);" id="modalDesc">Broadcast emergency signal over 433 MHz LoRa.</p>
+        </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="tui-btn" onclick="closeModal()">[ CANCEL ]</button>
-        <button class="tui-btn" style="background:var(--red); color:#000; font-weight:bold;" onclick="execConfirmed()">[ BROADCAST ↵ ]</button>
+        <button class="btn-top" onclick="closeModal()">Cancel</button>
+        <button class="btn-top" style="background:var(--red); color:#fff; border-color:var(--red);" onclick="executeConfirmedAlert()">Broadcast SOS</button>
       </div>
     </div>
   </div>
 
   <script>
     const ALERT_REGISTRY = [
-      { code: 'A', name: 'CRITICAL SOS', nepali: 'आपतकालीन', prio: 'critical' },
-      { code: 'B', name: 'DELIVERY / LABOR', nepali: 'सुत्केरी', prio: 'critical' },
-      { code: 'C', name: 'HELI RESCUE', nepali: 'हेलिकप्टर', prio: 'critical' },
-      { code: 'D', name: 'MED SHORTAGE', nepali: 'औषधि', prio: 'medium' },
-      { code: 'E', name: 'OXYGEN SHORT', nepali: 'अक्सिजन', prio: 'critical' },
-      { code: 'F', name: 'SEVERE INJURY', nepali: 'चोटपटक', prio: 'high' },
-      { code: 'G', name: 'BLOOD NEEDED', nepali: 'रगत', prio: 'critical' },
-      { code: 'H', name: 'ALTITUDE SICK', nepali: 'लेक लाग्ने', prio: 'high' },
-      { code: 'I', name: 'FOOD SHORT', nepali: 'खाद्यान्न', prio: 'medium' },
-      { code: 'J', name: 'WATER SHORT', nepali: 'खानेपानी', prio: 'medium' },
-      { code: 'K', name: 'OUTBREAK', nepali: 'महामारी', prio: 'high' },
-      { code: 'L', name: 'COLD SHELTER', nepali: 'चिसो', prio: 'medium' },
-      { code: 'M', name: 'LANDSLIDE', nepali: 'पहिरो', prio: 'high' },
-      { code: 'N', name: 'DOCTOR REQ', nepali: 'डाक्टर', prio: 'medium' },
-      { code: 'O', name: 'STATUS OK', nepali: 'सुरक्षित', prio: 'nominal' }
+      { code: 'A', name: 'CRITICAL SOS', nepali: 'आपतकालीन उद्धार', prio: 'critical' },
+      { code: 'B', name: 'DELIVERY / LABOR', nepali: 'सुत्केरी / प्रसूति', prio: 'critical' },
+      { code: 'C', name: 'HELI RESCUE NEEDED', nepali: 'हेलिकप्टर उद्धार', prio: 'critical' },
+      { code: 'D', name: 'MEDICINE SHORTAGE', nepali: 'औषधि अभाव', prio: 'high' },
+      { code: 'E', name: 'OXYGEN SHORTAGE', nepali: 'अक्सिजन अभाव', prio: 'critical' },
+      { code: 'F', name: 'SEVERE INJURY', nepali: 'गम्भीर चोटपटक', prio: 'high' },
+      { code: 'G', name: 'BLOOD NEEDED', nepali: 'रगत आवश्यक', prio: 'critical' },
+      { code: 'H', name: 'ALTITUDE SICKNESS', nepali: 'लेक लाग्ने (AMS)', prio: 'high' },
+      { code: 'I', name: 'FOOD SHORTAGE', nepali: 'खाद्यान्न अभाव', prio: 'high' },
+      { code: 'J', name: 'WATER SHORTAGE', nepali: 'खानेपानी अभाव', prio: 'high' },
+      { code: 'K', name: 'DISEASE OUTBREAK', nepali: 'महामारी फैलिएको', prio: 'high' },
+      { code: 'L', name: 'FREEZING / SHELTER', nepali: 'चिसो / ओत अभाव', prio: 'high' },
+      { code: 'M', name: 'LANDSLIDE / HAZARD', nepali: 'पहिरो / जोखिम', prio: 'high' },
+      { code: 'N', name: 'DOCTOR / NURSE NEED', nepali: 'स्वास्थ्यकर्मी माग', prio: 'high' },
+      { code: 'O', name: 'STATUS OK / ALL SAFE', nepali: 'सबै सुरक्षित', prio: 'nominal' }
     ];
 
     const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -493,200 +708,157 @@
     let bleDevice = null;
     let rxCharacteristic = null;
     let txCharacteristic = null;
-    let isBle = false;
+    let isConnected = false;
 
     let serialPort = null;
     let serialReader = null;
     let isSerial = false;
 
-    let isSim = false;
-    let simAckTimer = null;
-    let pendingAlert = null;
+    let isSimOn = false;
+    let simTimer = null;
+    let pendingAlertItem = null;
+
+    const messages = [
+      { sender: 'You (TX-003)', text: '🚨 ALERT [A]: CRITICAL SOS (आपतकालीन उद्धार)', time: '10:11 AM', out: true, alert: true },
+      { sender: 'You (TX-003)', text: '3 trapped near school, need stretcher', time: '10:11 AM', out: true },
+      { sender: 'Base Commander (BASE01)', text: 'APF squad airborne ETA 20 min. Hold position and stay warm.', time: '10:12 AM', out: false }
+    ];
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function beep(f, d, t = 'sine') {
+    function playBeep(freq, dur, type = 'sine') {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = t;
-      osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
       gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + d);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + dur);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + d);
-    }
-    function soundAck() {
-      beep(520, 0.15);
-      setTimeout(() => beep(1040, 0.2), 160);
-      if ('vibrate' in navigator) navigator.vibrate([100, 50, 150]);
-    }
-    function soundAlert() {
-      beep(1200, 0.2, 'sawtooth');
-      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+      osc.stop(audioCtx.currentTime + dur);
     }
 
-    function renderGrid() {
-      const g = document.getElementById('sosGrid');
-      g.innerHTML = '';
+    function renderPresets() {
+      const container = document.getElementById('presetsList');
+      container.innerHTML = '';
       ALERT_REGISTRY.forEach(item => {
-        const d = document.createElement('div');
-        d.className = `sos-cell ${item.prio}`;
-        d.onclick = () => requestAlert(item);
-        d.innerHTML = `
-          <span><strong class="code">[${item.code}]</strong> ${item.name}</span>
-          <span style="color:var(--text-dim);font-size:10px;">${item.nepali}</span>
+        const card = document.createElement('div');
+        card.className = `preset-card ${item.prio}`;
+        card.onclick = () => requestAlert(item);
+        card.innerHTML = `
+          <div class="preset-info">
+            <span class="preset-name">${item.name}</span>
+            <span class="preset-nepali">${item.nepali}</span>
+          </div>
+          <span class="code-tag">[${item.code}]</span>
         `;
-        g.appendChild(d);
+        container.appendChild(card);
       });
     }
 
-    function addLog(sender, text, meta = '', isAlert = false) {
+    function renderMessages() {
       const stream = document.getElementById('chatStream');
-      const time = new Date().toTimeString().split(' ')[0];
-      const row = document.createElement('div');
-      row.className = 'log-row';
+      stream.innerHTML = '<div style="text-align:center; font-size:11px; color:var(--text-faint); margin:8px 0;">TODAY &bull; 433.0 MHz SX1278 RF CHANNEL</div>';
+      messages.forEach(m => {
+        const row = document.createElement('div');
+        row.className = `msg-group ${m.out ? 'out' : 'in'}`;
+        const avatarInitial = m.out ? 'TX' : 'HUB';
+        const avatarColor = m.out ? '#2563eb' : '#10b981';
 
-      let nodeCls = 'log-node';
-      if (sender === 'TX') nodeCls += ' alert';
-      else if (sender === 'BASE') nodeCls += ' base';
-      else if (sender === 'SYSTEM') nodeCls += ' sys';
-
-      const metaStr = meta ? `<span class="log-meta">${meta}</span>` : '';
-      const msgCls = isAlert ? 'log-msg alert' : 'log-msg';
-
-      row.innerHTML = `
-        <span class="log-ts">[${time}]</span>
-        <span class="${nodeCls}">&lt;${sender}&gt;</span>
-        <span class="${msgCls}">${text}</span>
-        ${metaStr}
-      `;
-      stream.appendChild(row);
+        row.innerHTML = `
+          <div class="bubble-avatar" style="background:${avatarColor};">${avatarInitial}</div>
+          <div class="bubble-body">
+            <div class="bubble-sender">${m.sender}</div>
+            <div class="bubble ${m.alert ? 'alert' : ''}">${m.text}</div>
+            <div class="bubble-footer">
+              <span>${m.time}</span>
+              ${m.out ? '<span style="color:#2563eb; font-weight:bold;">✓✓ Delivered</span>' : ''}
+            </div>
+          </div>
+        `;
+        stream.appendChild(row);
+      });
       stream.scrollTop = stream.scrollHeight;
     }
 
-    function clearStream() {
-      document.getElementById('chatStream').innerHTML = `
-        <div class="log-row">
-          <span class="log-ts">[${new Date().toTimeString().split(' ')[0]}]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">Stream buffer cleared by operator.</span>
-        </div>
-      `;
+    function setChip(txt) {
+      const input = document.getElementById('composerInput');
+      input.value = txt;
+      document.getElementById('charCount').innerText = `${txt.length}/48`;
+      input.focus();
     }
 
     function requestAlert(item) {
       if (item.prio === 'nominal') {
-        execAlert(item.code, item.name);
+        executeAlert(item.code, item.name);
         return;
       }
-      pendingAlert = item;
-      document.getElementById('modalTitle').innerHTML = `
-        ╔═══════════════════════════════════════════════════════════╗<br/>
-        ║   CONFIRM [${item.code}] ${item.name} (${item.nepali})  ║<br/>
-        ╚═══════════════════════════════════════════════════════════╝`;
-      document.getElementById('modalDesc').innerText = `Transmit code [${item.code}] over 433MHz LoRa to Base Station?`;
+      pendingAlertItem = item;
+      document.getElementById('modalTitle').innerText = `Broadcast [${item.code}] ${item.name}`;
+      document.getElementById('modalDesc').innerText = `Transmit emergency code ${item.code} (${item.nepali}) over 433 MHz LoRa?`;
       document.getElementById('confirmModal').classList.add('open');
     }
-    function closeModal() { document.getElementById('confirmModal').classList.remove('open'); pendingAlert = null; }
-    function execConfirmed() {
-      if (pendingAlert) {
-        const item = pendingAlert;
+    function closeModal() { document.getElementById('confirmModal').classList.remove('open'); pendingAlertItem = null; }
+    function executeConfirmedAlert() {
+      if (pendingAlertItem) {
+        const item = pendingAlertItem;
         closeModal();
-        execAlert(item.code, item.name);
+        executeAlert(item.code, item.name);
       }
     }
 
-    async function execAlert(code, name) {
-      soundAlert();
-      setAck('wait', 'UPLINK BROADCASTING (2.5s window)');
-      addLog('TX', `🚨 BROADCAST ALERT [${code}] ${name}`, '(LoRa 433MHz)', true);
+    async function executeAlert(code, name) {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      messages.push({ sender: 'You (TX-003)', text: `🚨 ALERT [${code}]: ${name}`, time, out: true, alert: true });
+      renderMessages();
+      playBeep(900, 0.2, 'sawtooth');
 
-      if (isSim) {
-        simUplink(code, name);
+      if (isSimOn) {
+        simulateBaseResponse(name);
         return;
       }
       await transmit(`ALERT:${code}`);
     }
 
-    function setChip(txt) {
-      const input = document.getElementById('inputMsg');
-      input.value = txt;
-      updateLen();
-      input.focus();
-    }
-    function updateLen() {
-      const len = document.getElementById('inputMsg').value.length;
-      document.getElementById('charLen').innerText = `${String(len).padStart(2, '0')}/48`;
-    }
-
-    async function sendChat() {
-      const input = document.getElementById('inputMsg');
+    async function sendCustomChat() {
+      const input = document.getElementById('composerInput');
       const text = input.value.trim();
       if (!text) return;
 
-      setAck('wait', 'UPLINK TRANSMITTING (2.5s window)');
-      addLog('TX', `"${text}"`, '(LoRa 433MHz)');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      messages.push({ sender: 'You (TX-003)', text, time, out: true });
+      renderMessages();
 
-      if (isSim) {
-        simUplink('MSG', text);
-        input.value = '';
-        updateLen();
+      input.value = '';
+      document.getElementById('charCount').innerText = '0/48';
+      playBeep(700, 0.15);
+
+      if (isSimOn) {
+        simulateBaseResponse(text);
         return;
       }
-      const ok = await transmit(`MSG:${text}`);
-      if (ok) {
-        input.value = '';
-        updateLen();
-      }
+      await transmit(`MSG:${text}`);
     }
 
-    function setAck(state, label, base = '--', rssi = '--') {
-      const el = document.getElementById('ackState');
-      el.className = `ack-state-pill ${state}`;
-      el.innerText = label;
-      document.getElementById('ackBase').innerText = base;
-      document.getElementById('ackRssi').innerText = rssi;
-    }
-
-    function parseFrame(line) {
-      if (line.startsWith('STATUS:')) {
-        const dev = (line.match(/DEV=(\w+)/) || [])[1];
-        if (dev) document.getElementById('labelDev').innerText = `TX-${dev}`;
-        const bat = (line.match(/BAT=(\d+)/) || [])[1];
-        if (bat) document.getElementById('labelBat').innerText = `${bat}%`;
-      }
-      else if (line.startsWith('ACK_RECV:')) {
-        soundAck();
-        const base = (line.match(/BASE=([^,]+)/) || [])[1] || 'BASE01';
-        const note = (line.match(/NOTE=([^,]+)/) || [])[1] || 'Acknowledged';
-        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-68';
-        const snr = (line.match(/SNR=([^,]+)/) || [])[1] || '8';
-
-        setAck('ok', `CONFIRMED (${note})`, base, `${rssi}dBm`);
-        addLog('BASE', `ACK CONFIRMED: "${note}"`, `[${base}] RSSI: ${rssi}dBm, SNR: ${snr}dB`);
-      }
-      else if (line.startsWith('ACK_TIMEOUT:')) {
-        setAck('fail', 'NO ACK (Base Unreachable)');
-        addLog('SYSTEM', 'ACK Timeout. Base station unreachable or out of line-of-sight.');
-      }
-      else if (line.startsWith('CMD:') || line.startsWith('REPLY:')) {
-        soundAlert();
-        addLog('BASE', `*** EMERGENCY DOWNLINK COMMAND: ${line} ***`, '', true);
-      }
+    function simulateBaseResponse(context) {
+      setTimeout(() => {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messages.push({ sender: 'Base Commander (BASE01)', text: 'Base ACK Confirmed: APF squad airborne, keep position.', time, out: false });
+        renderMessages();
+        playBeep(520, 0.15);
+        document.getElementById('handshakeText').innerText = 'Base Confirmed (Closed-Loop)';
+        document.getElementById('ackNote').innerText = '"Rescue airborne ETA 20m"';
+      }, 1200);
     }
 
     async function transmit(str) {
-      if (isBle && rxCharacteristic) {
+      if (isConnected && rxCharacteristic) {
         try {
           const enc = new TextEncoder();
           await rxCharacteristic.writeValueWithoutResponse(enc.encode(str));
           return true;
-        } catch (e) {
-          addLog('SYSTEM', `BLE TX Error: ${e}`);
-          return false;
-        }
+        } catch (e) { console.error('BLE send error', e); }
       } else if (isSerial && serialPort && serialPort.writable) {
         try {
           const writer = serialPort.writable.getWriter();
@@ -694,18 +866,43 @@
           await writer.write(enc.encode(str + '\n'));
           writer.releaseLock();
           return true;
-        } catch (e) {
-          addLog('SYSTEM', `Serial TX Error: ${e}`);
-          return false;
-        }
+        } catch (e) { console.error('Serial send error', e); }
       }
       return false;
     }
 
+    function parseInbound(line) {
+      if (line.startsWith('STATUS:')) {
+        const bat = (line.match(/BAT=(\d+)/) || [])[1];
+        if (bat) document.getElementById('batLabel').innerText = `${bat}% Nominal`;
+      }
+      else if (line.startsWith('ACK_RECV:')) {
+        const note = (line.match(/NOTE=([^,]+)/) || [])[1] || 'Acknowledged';
+        const base = (line.match(/BASE=([^,]+)/) || [])[1] || 'BASE01';
+        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-68';
+        const snr = (line.match(/SNR=([^,]+)/) || [])[1] || '8';
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messages.push({ sender: `Base Commander (${base})`, text: `ACK Confirmed: "${note}"`, time, out: false });
+        renderMessages();
+        playBeep(520, 0.15);
+
+        document.getElementById('handshakeText').innerText = 'Base Confirmed';
+        document.getElementById('ackNote').innerText = `"${note}"`;
+        document.getElementById('rssiLabel').innerText = `${rssi} dBm (SNR: ${snr} dB)`;
+      }
+      else if (line.startsWith('CMD:') || line.startsWith('REPLY:')) {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messages.push({ sender: 'Base Commander', text: line, time, out: false });
+        renderMessages();
+        playBeep(900, 0.25, 'sawtooth');
+      }
+    }
+
     async function toggleBle() {
-      if (isBle) {
+      if (isConnected) {
         if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
-        setConn(false);
+        updateConn(false);
       } else {
         if (!navigator.bluetooth) return alert('Web Bluetooth requires Chrome or Bluefy on iOS.');
         try {
@@ -713,7 +910,7 @@
             filters: [{ namePrefix: 'LifeLine-TX' }, { namePrefix: 'LifeLine' }, { services: [NUS_SERVICE_UUID] }],
             optionalServices: [NUS_SERVICE_UUID]
           });
-          bleDevice.addEventListener('gattserverdisconnected', () => setConn(false));
+          bleDevice.addEventListener('gattserverdisconnected', () => updateConn(false));
           const s = await bleDevice.gatt.connect();
           const svc = await s.getPrimaryService(NUS_SERVICE_UUID);
           rxCharacteristic = await svc.getCharacteristic(NUS_RX_CHAR_UUID);
@@ -722,15 +919,14 @@
           await txCharacteristic.startNotifications();
           txCharacteristic.addEventListener('characteristicvaluechanged', e => {
             const dec = new TextDecoder();
-            parseFrame(dec.decode(e.target.value).trim());
+            parseInbound(dec.decode(e.target.value).trim());
           });
 
-          setConn(true, `[● BLE: ${bleDevice.name}]`);
-          addLog('SYSTEM', `Paired with ${bleDevice.name} via Nordic UART`);
+          updateConn(true, bleDevice.name);
           transmit('STATUS');
         } catch (e) {
-          addLog('SYSTEM', `BLE Error: ${e}`);
-          setConn(false);
+          console.error('BLE error', e);
+          updateConn(false);
         }
       }
     }
@@ -740,19 +936,18 @@
         if (serialReader) await serialReader.cancel();
         if (serialPort) await serialPort.close();
         isSerial = false;
-        setConn(false);
+        updateConn(false);
       } else {
         if (!('serial' in navigator)) return alert('Web Serial requires Chrome / Edge.');
         try {
           serialPort = await navigator.serial.requestPort();
           await serialPort.open({ baudRate: 115200 });
           isSerial = true;
-          setConn(true, '[● USB: 115200]');
-          addLog('SYSTEM', 'Connected via USB Serial (115200 baud)');
+          updateConn(true, 'USB 115200');
           readSerial();
         } catch (e) {
-          addLog('SYSTEM', `Serial Error: ${e}`);
-          setConn(false);
+          console.error('Serial error', e);
+          updateConn(false);
         }
       }
     }
@@ -773,63 +968,42 @@
             buf = lines.pop();
             for (const l of lines) {
               const c = l.trim();
-              if (c) parseFrame(c);
+              if (c) parseInbound(c);
             }
           }
         }
-      } catch (e) {
-        addLog('SYSTEM', `Serial stream closed: ${e}`);
-      }
+      } catch (e) { console.warn('Serial closed', e); }
     }
 
-    function setConn(online, label = '') {
-      isBle = online && label.includes('BLE');
+    function updateConn(online, label = '') {
+      isConnected = online && label.includes('LifeLine');
       isSerial = online && label.includes('USB');
-      const el = document.getElementById('connLabel');
+      const bBle = document.getElementById('btnBle');
+      const bSer = document.getElementById('btnSerial');
+
       if (online) {
-        el.style.color = 'var(--green)';
-        el.innerText = label;
+        if (isConnected) bBle.className = 'btn-top active-primary';
+        if (isSerial) bSer.className = 'btn-top active-primary';
       } else {
-        el.style.color = isSim ? 'var(--amber)' : 'var(--red)';
-        el.innerText = isSim ? '[● SIMULATOR]' : '[● OFFLINE]';
+        bBle.className = 'btn-top';
+        bSer.className = 'btn-top';
       }
     }
 
     function toggleSim() {
-      isSim = !isSim;
+      isSimOn = !isSimOn;
       const b = document.getElementById('btnSim');
-      b.innerText = `[S] SIMULATOR: ${isSim ? 'ON' : 'OFF'}`;
-      b.classList.toggle('active', isSim);
-      setConn(false);
-
-      if (isSim) {
-        document.getElementById('labelBat').innerText = '94%';
-        addLog('SYSTEM', 'Simulation active. Trigger any alert or uplink message.');
-      } else {
-        document.getElementById('labelBat').innerText = '--%';
-        addLog('SYSTEM', 'Simulation stopped.');
-      }
+      b.innerText = `Simulator: ${isSimOn ? 'ON' : 'OFF'}`;
+      b.classList.toggle('active-primary', isSimOn);
     }
 
-    function simUplink(code, name) {
-      clearTimeout(simAckTimer);
-      simAckTimer = setTimeout(() => {
-        soundAck();
-        const replies = [
-          'APF Rescue squad airborne ETA 20m',
-          'Hold position, team en route',
-          'Medical team deployed with stretcher',
-          'Logged by Commander'
-        ];
-        const note = replies[Math.floor(Math.random() * replies.length)];
-        const rssi = -65 - Math.floor(Math.random() * 10);
-        setAck('ok', `CONFIRMED (${note})`, 'BASE01', `${rssi}dBm`);
-        addLog('BASE', `ACK CONFIRMED: "${note}"`, `[BASE01] RSSI: ${rssi}dBm, SNR: 9dB`);
-      }, 1100);
-    }
+    document.getElementById('composerInput').addEventListener('input', e => {
+      document.getElementById('charCount').innerText = `${e.target.value.length}/48`;
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
-      renderGrid();
+      renderPresets();
+      renderMessages();
     });
   </script>
 </body>

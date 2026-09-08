@@ -3,22 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>LifeLine — Tactical TUI Portal</title>
-  <meta name="description" content="Box-drawing ASCII / TUI portal for LifeLine TX and RX disaster companion applications." />
+  <title>LifeLine — Mission Hub</title>
+  <meta name="description" content="Modern, elegant portal for LifeLine TX Pro and RX Pro emergency LoRa companion applications." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05080c;
-      --bg-box: #0b1017;
-      --bg-hover: #121a24;
-      --border-color: #2a3a50;
-      --text: #c8d6e5;
-      --text-dim: #576574;
-      --green: #00ff66;
-      --cyan: #00d4ff;
-      --red: #ff3838;
-      --amber: #ff9f1a;
+      --sidebar-bg: #0d1e32;
+      --main-bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
 
-      --font-tui: "Cascadia Code", "Courier New", Courier, "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+
+      --green: #10b981;
+      --green-light: #ecfdf5;
+      --red: #ef4444;
+      --amber: #f59e0b;
     }
 
     * {
@@ -29,221 +37,334 @@
     }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-tui);
+      background-color: var(--main-bg);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      line-height: 1.4;
+      line-height: 1.5;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      padding: 20px 10px;
-      justify-content: center;
-      max-width: 820px;
-      margin: 0 auto;
     }
 
-    .tui-frame {
-      background: var(--bg-box);
-      border: 1px solid var(--border-color);
-      border-radius: 2px;
+    /* SLIM LEFT SIDEBAR */
+    aside.icon-sidebar {
+      width: 60px;
+      background: var(--sidebar-bg);
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: 16px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      flex-shrink: 0;
+    }
+    .logo-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      text-decoration: none;
+    }
+    .side-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .side-icon:hover { color: #fff; }
+    .side-icon.active { background: #fff; color: var(--sidebar-bg); }
+
+    /* WORKSPACE */
+    .app-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
-    .ascii-banner {
+    header.top-header {
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .main-container {
+      max-width: 920px;
+      width: 100%;
+      margin: 40px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .hero-title-section {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-title-section h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+    .hero-title-section p {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 540px;
+    }
+
+    /* CARDS GRID */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .app-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    .app-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+      border-color: #cbd5e1;
+    }
+
+    .card-top {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .card-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .card-header-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .card-bullets {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      color: #334155;
+      padding: 12px 0;
+      border-top: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .bullet-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .check-icon {
       color: var(--green);
       font-weight: bold;
-      white-space: pre;
-      overflow-x: auto;
-      text-align: center;
-      line-height: 1.25;
     }
 
-    .ascii-box {
-      border: 1px solid var(--border-color);
-      background: #080c12;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ascii-title {
-      font-weight: bold;
-      color: var(--cyan);
-      border-bottom: 1px dashed var(--border-color);
-      padding-bottom: 4px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .node-row {
-      background: #0f1622;
-      border: 1px solid #1c2838;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      text-decoration: none;
-      color: var(--text);
-      transition: all 0.15s ease;
-      cursor: pointer;
-    }
-    .node-row:hover {
-      background: var(--bg-hover);
-      border-color: var(--cyan);
+    .btn-card-launch {
+      background: var(--primary);
       color: #fff;
-    }
-    .node-row.rx:hover {
-      border-color: var(--green);
-    }
-
-    .node-title {
-      font-weight: bold;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .node-title.tx { color: var(--cyan); }
-    .node-title.rx { color: var(--green); }
-
-    .node-desc {
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-top: 2px;
-    }
-
-    .btn-launch {
-      background: #06090e;
-      border: 1px solid var(--border-color);
-      color: var(--text);
-      font-family: var(--font-tui);
-      font-size: 12px;
-      font-weight: bold;
-      padding: 6px 12px;
-      white-space: nowrap;
-    }
-    .node-row:hover .btn-launch {
-      background: var(--cyan);
-      color: #000;
-      border-color: var(--cyan);
-    }
-    .node-row.rx:hover .btn-launch {
-      background: var(--green);
-      color: #000;
-      border-color: var(--green);
-    }
-
-    .btn-auto {
-      background: #090e15;
-      border: 1px dashed var(--amber);
-      color: var(--amber);
-      font-family: var(--font-tui);
-      font-size: 12px;
-      font-weight: bold;
       padding: 10px;
-      cursor: pointer;
+      border-radius: 8px;
+      font-weight: 600;
       text-align: center;
-    }
-    .btn-auto:hover {
-      background: rgba(255, 159, 26, 0.1);
-      color: #fff;
-    }
-
-    .specs-line {
-      font-size: 11px;
-      color: var(--text-dim);
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      border-top: 1px solid var(--border-color);
-      padding-top: 8px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+    }
+    .btn-card-launch:hover {
+      background: var(--primary-hover);
+    }
+    .btn-card-launch.green {
+      background: #059669;
+    }
+    .btn-card-launch.green:hover {
+      background: #047857;
     }
 
-    footer {
-      text-align: center;
-      margin-top: 14px;
-      font-size: 11px;
-      color: var(--text-dim);
+    .auto-detect-box {
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .btn-auto-scan {
+      background: #0f172a;
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-auto-scan:hover {
+      background: #1e293b;
     }
   </style>
 </head>
 <body>
 
-  <div class="tui-frame">
-
-    <!-- ASCII Banner -->
-    <div class="ascii-banner">
-╔══════════════════════════════════════════════════════════════════════════════╗
-║             LIFELINE EMERGENCY DISASTER MESH NETWORK v3.1                   ║
-║                  [ ZERO-INSTALL WEB COMPANION SUITE ]                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝</div>
-
-    <!-- Node Selection Box -->
-    <div class="ascii-box">
-      <div class="ascii-title">
-        <span>┌─ [SELECT OPERATIONAL NODE ROLE] ─────────────────────────────────┐</span>
-        <span>AUTH: GUEST</span>
-      </div>
-
-      <!-- TX Node -->
-      <a href="tx_companion.html" class="node-row">
-        <div>
-          <div class="node-title tx">[1] LIFE-LINE TX PRO : TACTICAL FIELD COMMUNICATOR</div>
-          <div class="node-desc">• 15 Emergency Presets (A-O) &bull; 48-char LoRa situation chat &bull; Closed-loop 2.5s base ACK</div>
-        </div>
-        <div class="btn-launch">[ OPEN TX APP ↵ ]</div>
-      </a>
-
-      <!-- RX Node -->
-      <a href="rx_companion.html" class="node-row rx">
-        <div>
-          <div class="node-title rx">[2] LIFE-LINE RX PRO : INCIDENT COMMAND CONSOLE</div>
-          <div class="node-desc">• Live multi-unit incident triage &bull; Active field radar &bull; 1-click reverse dispatch &bull; Evac order</div>
-        </div>
-        <div class="btn-launch">[ OPEN RX APP ↵ ]</div>
-      </a>
+  <!-- SLIM LEFT SIDEBAR -->
+  <aside class="icon-sidebar">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <a href="index.html" class="logo-btn">💬</a>
+      <a href="rx_companion.html" class="side-icon" title="Incident Command (RX)">📥</a>
+      <a href="tx_companion.html" class="side-icon" title="Field Communicator (TX)">📡</a>
     </div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <div class="side-icon" onclick="detectDevice()" title="Scan Bluetooth">⚡</div>
+    </div>
+  </aside>
 
-    <!-- Auto-Detect Box -->
-    <div class="ascii-box">
-      <div class="ascii-title">
-        <span>┌─ [AUTOMATIC HARDWARE DETECTION] ─────────────────────────────────┐</span>
-        <span>NUS BLE</span>
-      </div>
-      <div style="font-size:11px; color:var(--text-dim);">
-        Scans for nearby LifeLine-TX-* or LifeLine-RX-Base Bluetooth LE signals and routes automatically.
-      </div>
-      <button class="btn-auto" onclick="detectDevice()">
-        [ SCAN &amp; AUTO-DETECT NEARBY LIFELINE BLE DEVICE ]
+  <!-- WORKSPACE -->
+  <div class="app-workspace">
+    <header class="top-header">
+      <div style="font-size:16px; font-weight:700; color:#0f172a;">LifeLine Mission Hub</div>
+      <button class="btn-auto-scan" onclick="detectDevice()">
+        <span>🔍 Auto-Detect BLE</span>
       </button>
-    </div>
+    </header>
 
-    <!-- Specs line -->
-    <div class="specs-line">
-      <span>RF: 433.0 MHz LoRa (SX1278)</span>
-      <span>GATT: Nordic UART Service (NUS)</span>
-      <span>SERIAL: 115200 Baud</span>
-      <span>CLIENT: Chrome / Bluefy</span>
-    </div>
+    <div class="main-container">
+      <div class="hero-title-section">
+        <h1>Two-Way Disaster Emergency Mesh Network</h1>
+        <p>Select your operational role below to open the dedicated team inbox or field communicator. Runs offline on Google Chrome (Android/Desktop) or Bluefy (iOS).</p>
+      </div>
 
+      <div class="cards-grid">
+        
+        <!-- CARD 1: BASE COMMAND (RX) -->
+        <a href="rx_companion.html" class="app-card">
+          <div>
+            <div class="card-top">
+              <div class="card-avatar" style="background:linear-gradient(135deg, #10b981, #059669);">📥</div>
+              <div class="card-header-info">
+                <span class="card-title">Incident Command Hub (RX Pro)</span>
+                <span class="card-sub">Base Station Emergency Coordinator</span>
+              </div>
+            </div>
+
+            <div class="card-bullets" style="margin-top:16px;">
+              <div class="bullet-item"><span class="check-icon">✓</span> Multi-unit emergency triage inbox</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Two-way live speech bubbles timeline</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> 1-Click canned dispatch (`/airborne`, `/hold`, `/medical`)</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Real-time field unit telemetry &amp; distance calculation</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Mass evacuation broadcast &amp; CSV log export</div>
+            </div>
+          </div>
+
+          <div class="btn-card-launch green">
+            <span>Launch Command Hub</span>
+            <span>➤</span>
+          </div>
+        </a>
+
+        <!-- CARD 2: FIELD COMMUNICATOR (TX) -->
+        <a href="tx_companion.html" class="app-card">
+          <div>
+            <div class="card-top">
+              <div class="card-avatar" style="background:linear-gradient(135deg, #2563eb, #1d4ed8);">📡</div>
+              <div class="card-header-info">
+                <span class="card-title">Field Communicator (TX Pro)</span>
+                <span class="card-sub">Tactical Disaster &amp; Mountain Unit</span>
+              </div>
+            </div>
+
+            <div class="card-bullets" style="margin-top:16px;">
+              <div class="bullet-item"><span class="check-icon">✓</span> 15 Emergency SOS presets (Nepali &amp; English)</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Freeform 48-character LoRa chat with Base Station</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Closed-loop 2.5s base ACK confirmation indicator</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Battery, signal RSSI &amp; link health monitoring</div>
+              <div class="bullet-item"><span class="check-icon">✓</span> Built-in offline simulation mode</div>
+            </div>
+          </div>
+
+          <div class="btn-card-launch">
+            <span>Launch Communicator</span>
+            <span>➤</span>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- AUTO DETECT BOX -->
+      <div class="auto-detect-box">
+        <div>
+          <div style="font-weight:700; color:#0f172a; font-size:14px;">Automatic Bluetooth Device Detection</div>
+          <div style="font-size:12px; color:var(--text-muted);">Scans for nearby LifeLine-TX-* or LifeLine-RX-Base signals and automatically opens the appropriate companion interface.</div>
+        </div>
+        <button class="btn-auto-scan" onclick="detectDevice()">
+          <span>Scan Nearby Device</span>
+        </button>
+      </div>
+
+    </div>
   </div>
-
-  <footer>
-    LifeLine Disaster Communication Network &bull; Pure ASCII Box-Drawing TUI
-  </footer>
 
   <script>
     const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 
     async function detectDevice() {
       if (!navigator.bluetooth) {
-        alert('Web Bluetooth requires Google Chrome or Bluefy on iOS.');
+        alert('Web Bluetooth is supported on Google Chrome (Android/Desktop) or Bluefy (iOS).');
         return;
       }
       try {

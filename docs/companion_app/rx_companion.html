@@ -3,23 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>LifeLine RX Pro — Base Station Console (TUI)</title>
-  <meta name="description" content="Box-drawing ASCII / TUI incident command console for LifeLine RX Pro disaster base station." />
+  <title>LifeLine RX Pro — Incident Command Hub</title>
+  <meta name="description" content="Elegant, modern team inbox and incident command center for LifeLine RX Pro disaster base station." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05080c;
-      --bg-box: #0b1017;
-      --bg-input: #040609;
-      --border-color: #2a3a50;
-      --text: #c8d6e5;
-      --text-dim: #576574;
-      --green: #00ff66;
-      --cyan: #00d4ff;
-      --red: #ff3838;
-      --amber: #ff9f1a;
-      --yellow: #feca57;
+      --sidebar-bg: #0d1e32;
+      --sidebar-hover: #172c44;
+      --sidebar-active: #1d3652;
+      --main-bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --border-focus: #3b82f6;
 
-      --font-tui: "Cascadia Code", "Courier New", Courier, "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+
+      --green: #10b981;
+      --green-light: #ecfdf5;
+      --red: #ef4444;
+      --red-light: #fef2f2;
+      --amber: #f59e0b;
+      --amber-light: #fffbeb;
+      --purple: #8b5cf6;
+      --purple-light: #f5f3ff;
+
+      --bubble-in: #e0f2fe;
+      --bubble-out: #ffffff;
     }
 
     * {
@@ -30,449 +47,1021 @@
     }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-tui);
+      background-color: var(--main-bg);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      line-height: 1.35;
-      min-height: 100vh;
+      line-height: 1.5;
+      height: 100vh;
       display: flex;
-      flex-direction: column;
-      padding: 10px;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
-    .tui-container {
-      max-width: 960px;
-      width: 100%;
-      margin: 0 auto;
+    /* 1. SLIM LEFT ICON SIDEBAR */
+    aside.icon-sidebar {
+      width: 60px;
+      background: var(--sidebar-bg);
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      flex: 1;
-    }
-
-    /* Box Drawing Containers */
-    .tui-frame {
-      background: var(--bg-box);
-      border: 1px solid var(--border-color);
-      border-radius: 2px;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    .tui-header-bar {
-      color: var(--green);
-      padding: 6px 10px;
-      background: #0e1520;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-weight: bold;
+      padding: 16px 0;
+      flex-shrink: 0;
+      z-index: 20;
     }
 
-    .tui-header-bar a {
-      color: var(--cyan);
-      text-decoration: none;
-    }
-    .tui-header-bar a:hover {
-      text-decoration: underline;
-    }
-
-    .tui-content {
-      padding: 8px 10px;
-    }
-
-    /* ASCII Title Banner */
-    .ascii-banner {
-      color: var(--green);
-      font-weight: bold;
-      white-space: pre;
-      overflow-x: auto;
-      text-align: center;
-      padding: 4px 0;
-      line-height: 1.25;
-    }
-
-    /* Toolbar buttons */
-    .tui-toolbar {
+    .sidebar-top, .sidebar-bottom {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      background: #090e15;
-      padding: 6px 10px;
-      border-bottom: 1px solid var(--border-color);
+      flex-direction: column;
       align-items: center;
+      gap: 16px;
+      width: 100%;
     }
 
-    .tui-btn {
-      background: #0f1722;
-      border: 1px solid var(--border-color);
-      color: var(--text);
-      font-family: var(--font-tui);
-      font-size: 12px;
-      padding: 3px 8px;
+    .logo-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
       cursor: pointer;
       text-decoration: none;
+    }
+
+    .side-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .side-icon:hover {
+      background: var(--sidebar-hover);
+      color: #fff;
+    }
+    .side-icon.active {
+      background: #ffffff;
+      color: var(--sidebar-bg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 2. APP WORKSPACE (TOP BAR + 3 COLUMNS) */
+    .app-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOP GLOBAL HEADER */
+    header.top-header {
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .top-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.2px;
+    }
+
+    .search-wrap {
+      position: relative;
+      width: 320px;
+    }
+    .search-input {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 7px 12px 7px 34px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-faint);
+      font-size: 13px;
+    }
+
+    .top-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-top {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-top:hover {
+      background: #f8fafc;
+      color: var(--text-main);
+      border-color: #cbd5e1;
+    }
+    .btn-top.active-green {
+      background: var(--green-light);
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+    .btn-top.active-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .operator-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 6px;
+      border-left: 1px solid var(--border);
+    }
+    .operator-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f59e0b;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* 3-COLUMN MAIN BODY */
+    .columns-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 310px 1fr 310px;
+      overflow: hidden;
+      background: #f1f5f9;
+      gap: 1px;
+    }
+
+    /* COLUMN 1: INBOX LIST (LEFT) */
+    .col-inbox {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .inbox-header {
+      padding: 14px 16px 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .inbox-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .inbox-filter-pill {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .inbox-count-badge {
+      background: #0f172a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 12px;
+    }
+
+    .inbox-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .inbox-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .inbox-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .inbox-item:hover {
+      background: #f8fafc;
+    }
+    .inbox-item.active {
+      background: #eff6ff;
+      border-left: 3px solid var(--primary);
+    }
+
+    .unit-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .avatar-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+    .dot-green { background: var(--green); }
+    .dot-red { background: var(--red); }
+    .dot-amber { background: var(--amber); }
+
+    .item-content {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .item-name {
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 13px;
+    }
+    .item-time {
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .item-snippet {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .alert-tag-pill {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 4px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-    .tui-btn:hover {
-      background: #192638;
-      border-color: var(--cyan);
-      color: #fff;
-    }
-    .tui-btn.active {
-      border-color: var(--green);
-      color: var(--green);
-      background: rgba(0, 255, 102, 0.1);
-    }
-    .tui-btn.danger {
-      border-color: var(--red);
-      color: var(--red);
-    }
-    .tui-btn.danger:hover {
-      background: var(--red);
-      color: #000;
-    }
+    .tag-critical { background: var(--red-light); color: var(--red); }
+    .tag-high { background: var(--amber-light); color: var(--amber); }
+    .tag-nominal { background: var(--green-light); color: var(--green); }
 
-    /* Channels / Peers strip */
-    .peer-strip {
+    /* COLUMN 2: CENTER CHAT / CONVERSATION */
+    .col-chat {
+      background: #f8fafc;
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      background: #080c12;
-      padding: 6px 10px;
-      border-bottom: 1px solid var(--border-color);
-      align-items: center;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    .peer-chip {
-      background: #111822;
-      border: 1px solid var(--border-color);
-      color: var(--text-dim);
-      padding: 2px 7px;
+    .chat-top-bar {
+      height: 58px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .chat-peer-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-peer-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chat-peer-sub {
       font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-action-pill {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
       cursor: pointer;
     }
-    .peer-chip:hover {
-      color: var(--text);
-      border-color: var(--cyan);
+    .btn-action-pill:hover {
+      background: #e2e8f0;
+      color: var(--text-main);
     }
-    .peer-chip.active {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      font-weight: bold;
-      background: rgba(0, 212, 255, 0.1);
+    .btn-resolve-check {
+      background: #0f172a;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
     }
 
-    /* Chat Stream Terminal Window */
-    .chat-stream {
-      background: #040609;
-      padding: 10px;
-      height: 380px;
+    /* SPEECH BUBBLE STREAM */
+    .chat-stream-area {
+      flex: 1;
+      padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      border-bottom: 1px solid var(--border-color);
-      font-family: var(--font-tui);
+      gap: 14px;
     }
 
-    .log-row {
+    .time-divider {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-faint);
+      margin: 8px 0;
+      position: relative;
+    }
+
+    .msg-group {
       display: flex;
-      align-items: baseline;
-      gap: 8px;
-      word-break: break-word;
+      gap: 10px;
+      max-width: 80%;
+    }
+    .msg-group.in {
+      align-self: flex-start;
+    }
+    .msg-group.out {
+      align-self: flex-end;
+      flex-direction: row-reverse;
     }
 
-    .log-ts {
-      color: var(--text-dim);
-      flex-shrink: 0;
-    }
-    .log-node {
-      font-weight: bold;
-      flex-shrink: 0;
-      color: var(--cyan);
-    }
-    .log-node.base { color: var(--green); }
-    .log-node.sys { color: var(--yellow); }
-    .log-node.alert { color: var(--red); }
-
-    .log-msg {
-      flex: 1;
-      color: var(--text);
-    }
-    .log-msg.alert {
-      color: var(--red);
-      font-weight: bold;
-    }
-
-    .log-rssi {
-      color: var(--text-dim);
-      font-size: 11px;
-      flex-shrink: 0;
-    }
-
-    /* Preset Commands Grid */
-    .presets-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 4px;
-      padding: 6px 10px;
-      background: #090e15;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .preset-btn {
-      background: #0f1622;
-      border: 1px solid #1e2c3d;
-      color: var(--text);
-      font-family: var(--font-tui);
-      font-size: 11px;
-      padding: 4px 8px;
-      cursor: pointer;
-      text-align: left;
-    }
-    .preset-btn:hover {
-      background: #182435;
-      border-color: var(--green);
-      color: var(--green);
-    }
-    .preset-btn.evac {
-      border-color: rgba(255, 56, 56, 0.4);
-      color: var(--red);
-    }
-    .preset-btn.evac:hover {
-      background: var(--red);
-      color: #000;
-    }
-
-    /* Bottom Command Line Input */
-    .tui-input-line {
+    .bubble-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      background: #0b1118;
-    }
-
-    .target-box {
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
-      color: var(--cyan);
-      font-family: var(--font-tui);
+      justify-content: center;
       font-size: 12px;
-      font-weight: bold;
-      padding: 5px 8px;
-      outline: none;
-    }
-
-    .prompt-symbol {
-      color: var(--green);
-      font-weight: bold;
-    }
-
-    .input-cmd {
-      flex: 1;
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
+      font-weight: 700;
       color: #fff;
-      font-family: var(--font-tui);
+      flex-shrink: 0;
+    }
+
+    .bubble-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .bubble-sender {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .msg-group.out .bubble-sender {
+      justify-content: flex-end;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
       font-size: 13px;
-      padding: 5px 8px;
-      outline: none;
+      line-height: 1.45;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .input-cmd:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 5px rgba(0, 255, 102, 0.3);
+    .msg-group.in .bubble {
+      background: var(--bubble-in);
+      color: #0c4a6e;
+      border-bottom-left-radius: 3px;
+    }
+    .msg-group.in .bubble.alert-highlight {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      font-weight: 600;
+    }
+    .msg-group.out .bubble {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid var(--border);
+      border-bottom-right-radius: 3px;
     }
 
-    .btn-send {
-      background: #008833;
-      border: 1px solid var(--green);
-      color: #fff;
-      font-family: var(--font-tui);
-      font-size: 12px;
+    .bubble-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+    .msg-group.out .bubble-footer {
+      justify-content: flex-end;
+    }
+    .check-double {
+      color: var(--primary);
       font-weight: bold;
-      padding: 5px 14px;
-      cursor: pointer;
-    }
-    .btn-send:hover {
-      background: var(--green);
-      color: #000;
     }
 
-    /* ASCII Modal */
-    .tui-modal {
+    /* COMPOSER CARD (BOTTOM) */
+    .chat-composer-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 0 16px 16px 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .composer-tabs {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .composer-tab {
+      color: var(--text-faint);
+      cursor: pointer;
+      padding-bottom: 2px;
+    }
+    .composer-tab.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .composer-canned-chips {
+      display: flex;
+      gap: 6px;
+      padding: 8px 14px 4px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .canned-chip {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .canned-chip:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .canned-chip.evac {
+      background: var(--red-light);
+      border-color: #fecaca;
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    .composer-textarea {
+      width: 100%;
+      border: none;
+      outline: none;
+      padding: 10px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: none;
+      height: 48px;
+      color: var(--text-main);
+    }
+    .composer-textarea::placeholder {
+      color: var(--text-faint);
+    }
+
+    .composer-bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px 10px 14px;
+    }
+
+    .composer-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-faint);
+      font-size: 15px;
+    }
+    .composer-btn-icon {
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    .composer-btn-icon:hover {
+      color: var(--primary);
+    }
+
+    .btn-send-msg {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-send-msg:hover {
+      background: var(--primary-hover);
+    }
+
+    /* COLUMN 3: NODE PROPERTIES & TELEMETRY (RIGHT) */
+    .col-details {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    .details-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .details-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .unit-profile-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+    }
+    .profile-avatar-lg {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    .profile-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .profile-location {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .profile-chips-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .chip-badge {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .detail-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .detail-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .detail-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* Evac Confirmation Modal */
+    .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
       padding: 16px;
     }
-    .tui-modal.open { display: flex; }
+    .modal-overlay.open { display: flex; }
 
     .modal-box {
-      background: #090e15;
-      border: 2px solid var(--red);
-      max-width: 480px;
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 440px;
       width: 100%;
-      padding: 16px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 0 20px rgba(255, 56, 56, 0.4);
+      gap: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
-    /* Footer */
-    .tui-footer {
-      font-size: 11px;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 10px;
-      background: #06090e;
-      border-top: 1px solid var(--border-color);
+    @media (max-width: 1024px) {
+      .columns-container {
+        grid-template-columns: 280px 1fr;
+      }
+      .col-details {
+        display: none;
+      }
+    }
+    @media (max-width: 768px) {
+      .columns-container {
+        grid-template-columns: 1fr;
+      }
+      .col-inbox {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="tui-container">
+  <!-- 1. SLIM LEFT ICON SIDEBAR (Reference design) -->
+  <aside class="icon-sidebar">
+    <div class="sidebar-top">
+      <a href="index.html" class="logo-btn" title="LifeLine Mission Hub">💬</a>
+      <div class="side-icon active" title="Incident Command Inbox">📥</div>
+      <a href="tx_companion.html" class="side-icon" title="Switch to Field Communicator (TX)">📡</a>
+      <div class="side-icon" onclick="exportLog()" title="Export Incident Log (CSV)">📊</div>
+      <div class="side-icon" onclick="toggleSiren()" id="iconSiren" title="Toggle Siren">🔔</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="side-icon" onclick="toggleBle()" title="Bluetooth LE Connection">⚡</div>
+      <div class="side-icon" onclick="toggleSerial()" title="Direct USB Serial">🔌</div>
+      <a href="index.html" class="side-icon" title="Mission Portal Menu">⚙️</a>
+    </div>
+  </aside>
 
-    <!-- Box Drawing Main Frame -->
-    <div class="tui-frame">
+  <!-- 2. MAIN APP WORKSPACE -->
+  <div class="app-workspace">
 
-      <!-- ASCII Header Box -->
-      <div class="ascii-banner">
-╔══════════════════════════════════════════════════════════════════════════════╗
-║               LIFELINE EMERGENCY BASE STATION v3.1 PRO                       ║
-║                [ INCIDENT COMMAND &amp; DISPATCH CONSOLE ]                       ║
-╚══════════════════════════════════════════════════════════════════════════════╝</div>
-
-      <!-- Top Status Header Bar -->
-      <div class="tui-header-bar">
-        <div>
-          <span>LINK: </span>
-          <span id="connLabel" style="color:var(--red);">[● OFFLINE]</span>
-          <span style="margin-left:12px;">RF: 433.0 MHz (SX1278)</span>
-          <span style="margin-left:12px;">ACTIVE NODES: <strong id="nodeCount" style="color:var(--cyan)">00</strong></span>
-        </div>
-        <div>
-          <a href="tx_companion.html">[SWITCH: TX COMMUNICATOR]</a>
-          <a href="index.html" style="margin-left:8px;">[MENU]</a>
-        </div>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="tui-toolbar">
-        <button id="btnBle" class="tui-btn active" onclick="toggleBle()">[B] BLE CONNECT</button>
-        <button id="btnSerial" class="tui-btn" onclick="toggleSerial()">[U] USB SERIAL</button>
-        <button id="btnSim" class="tui-btn" onclick="toggleSim()">[S] SIMULATOR: OFF</button>
-        <button id="btnSiren" class="tui-btn active" onclick="toggleSiren()">[M] SIREN: ON</button>
-        <button class="tui-btn" onclick="exportCsv()">[E] EXPORT CSV</button>
-        <button class="tui-btn" onclick="clearStream()">[C] CLEAR STREAM</button>
-      </div>
-
-      <!-- Active Field Nodes Channel Strip -->
-      <div id="peerStrip" class="peer-strip">
-        <span style="color:var(--text-dim); font-size:11px;">NODES:</span>
-        <div class="peer-chip active" onclick="selectChannel('ALL')">[ #ALL-CHANNELS ]</div>
-        <!-- Injected peer chips: [ #TX-003 (-65dBm) ] -->
-      </div>
-
-      <!-- Live LoRa Message Stream (TUI Window) -->
-      <div id="chatStream" class="chat-stream">
-        <div class="log-row">
-          <span class="log-ts">[00:00:00]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">╔═══════════════════════════════════════════════════════════════════════════╗</span>
-        </div>
-        <div class="log-row">
-          <span class="log-ts">[00:00:00]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">║ LifeLine RX Pro Base Console Online. Monitoring 433MHz LoRa channel...   ║</span>
-        </div>
-        <div class="log-row">
-          <span class="log-ts">[00:00:00]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">╚═══════════════════════════════════════════════════════════════════════════╝</span>
+    <!-- GLOBAL TOP HEADER -->
+    <header class="top-header">
+      <div class="top-header-left">
+        <h1 class="page-title">Incident Command Inbox</h1>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" placeholder="Search field units, alerts, reports..." />
         </div>
       </div>
 
-      <!-- 1-Click Command Downlink Presets -->
-      <div class="presets-grid">
-        <button class="preset-btn" onclick="sendPreset('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
-          [1] /airborne  : APF squad airborne ETA 20m
+      <div class="top-header-right">
+        <button id="btnBle" class="btn-top active-primary" onclick="toggleBle()">
+          <span>⚡ Connect BLE</span>
         </button>
-        <button class="preset-btn" onclick="sendPreset('STANDBY', 'Hold position and stay warm')">
-          [2] /hold      : Hold position, rescue en route
+        <button id="btnSerial" class="btn-top" onclick="toggleSerial()">
+          <span>🔌 USB</span>
         </button>
-        <button class="preset-btn" onclick="sendPreset('MEDICAL', 'Keep injured warm apply direct pressure')">
-          [3] /medical   : Keep warm, apply pressure
+        <button id="btnSim" class="btn-top" onclick="toggleSim()">
+          <span>Simulator: OFF</span>
         </button>
-        <button class="preset-btn" onclick="sendPreset('EN_ROUTE', 'Ground rescue team on foot ETA 45m')">
-          [4] /ground    : Ground team on foot ETA 45m
-        </button>
-        <button class="preset-btn evac" onclick="openEvac()">
-          [!] /evac      : *** MASS EVACUATION ORDER ***
-        </button>
-      </div>
 
-      <!-- Command Line Transmit Bar -->
-      <div class="tui-input-line">
-        <span style="color:var(--text-dim);font-size:11px;">TARGET:</span>
-        <select id="targetSelect" class="target-box">
-          <option value="ALL">#ALL (Broadcast)</option>
-          <option value="3">#TX-003</option>
-          <option value="1">#TX-001</option>
-          <option value="12">#TX-012</option>
-        </select>
-        <span class="prompt-symbol">&gt;</span>
-        <input id="inputCmd" type="text" class="input-cmd" placeholder="Type downlink instruction (/reply, /evac, or text)..." maxlength="48" onkeydown="if(event.key==='Enter')sendInput()" />
-        <button class="btn-send" onclick="sendInput()">TRANSMIT ↵</button>
+        <div class="operator-badge">
+          <div class="operator-avatar">OP</div>
+          <div style="display:flex; flex-direction:column; line-height:1.2;">
+            <span style="font-size:12px; font-weight:700; color:#0f172a;">Commander</span>
+            <span style="font-size:10px; color:var(--text-faint);" id="connStatusText">Offline</span>
+          </div>
+        </div>
       </div>
+    </header>
 
-      <!-- Footer Info -->
-      <div class="tui-footer">
-        <span>GATT: Nordic UART Service (NUS 6E400001)</span>
-        <span>BAUD: 115200 (USB Serial)</span>
-        <span>PROTOCOL: SX1278 TDD LoRa</span>
-      </div>
+    <!-- 3-COLUMN LAYOUT -->
+    <div class="columns-container">
+
+      <!-- COLUMN 1: CONVERSATIONS / FIELD UNITS INBOX -->
+      <section class="col-inbox">
+        <div class="inbox-header">
+          <div class="inbox-title-row">
+            <div class="inbox-filter-pill">
+              <span>Active Field Units</span>
+              <span id="badgeActiveCount" class="inbox-count-badge">3</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-top" style="padding:3px 7px;" onclick="exportLog()" title="Download CSV">CSV</button>
+            </div>
+          </div>
+          <div class="inbox-actions-row">
+            <span>Sorted by newest distress transmission</span>
+            <span>433 MHz LoRa</span>
+          </div>
+        </div>
+
+        <div id="inboxList" class="inbox-list">
+          <!-- Populated from active units -->
+        </div>
+      </section>
+
+      <!-- COLUMN 2: ACTIVE CHAT & TWO-WAY TIMELINE -->
+      <section class="col-chat">
+        
+        <!-- Chat Header -->
+        <div class="chat-top-bar">
+          <div class="chat-peer-info">
+            <div class="bubble-avatar" style="background:#2563eb;" id="activePeerAvatar">TX</div>
+            <div>
+              <div class="chat-peer-title">
+                <span id="activePeerTitle">Unit #003 — Field Distress Beacon</span>
+                <span class="alert-tag-pill tag-critical" id="activePeerPill">🚨 CRITICAL SOS</span>
+              </div>
+              <div class="chat-peer-sub" id="activePeerSub">via 433 MHz LoRa &bull; Langtang Valley Ridge</div>
+            </div>
+          </div>
+
+          <div class="chat-header-actions">
+            <div class="btn-action-pill" onclick="sendQuickDispatch('STANDBY', 'Hold position, rescue airborne')">
+              <span>✋ Hold Position</span>
+            </div>
+            <div class="btn-action-pill" onclick="sendQuickDispatch('MEDICAL', 'Keep warm and apply pressure')">
+              <span>🩺 Medical Advice</span>
+            </div>
+            <button class="btn-resolve-check" onclick="sendQuickDispatch('LOGGED', 'Coordinates logged by Base Hub')" title="Acknowledge Alert">
+              ✓
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Speech Bubbles Stream -->
+        <div id="chatStream" class="chat-stream-area">
+          <div class="time-divider">TODAY &bull; 433.0 MHz CONTINUOUS RX CHANNEL</div>
+          <!-- Injected chat bubbles -->
+        </div>
+
+        <!-- Modern Message Composer -->
+        <div class="chat-composer-card">
+          <div class="composer-tabs">
+            <span class="composer-tab active">Downlink Reply</span>
+            <span class="composer-tab" onclick="openEvacModal()" style="color:var(--red);">⚠️ Mass Evacuation</span>
+          </div>
+
+          <!-- Canned Responses Chips -->
+          <div class="composer-canned-chips">
+            <span class="canned-chip" onclick="sendQuickDispatch('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
+              🚁 /airborne: APF Airborne ETA 20m
+            </span>
+            <span class="canned-chip" onclick="sendQuickDispatch('STANDBY', 'Hold position and stay warm')">
+              ✋ /hold: Hold Position
+            </span>
+            <span class="canned-chip" onclick="sendQuickDispatch('MEDICAL', 'Keep injured warm apply pressure')">
+              🩺 /medical: Medical Guidance
+            </span>
+            <span class="canned-chip" onclick="sendQuickDispatch('EN_ROUTE', 'Ground team en route on foot')">
+              🚚 /ground: Ground Team SAR
+            </span>
+            <span class="canned-chip evac" onclick="openEvacModal()">
+              ⚠️ /evac: Mass Evacuation Broadcast
+            </span>
+          </div>
+
+          <textarea id="composerInput" class="composer-textarea" placeholder="Start with a '/' to add a Canned Response or type custom downlink..." maxlength="48" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomReply();}"></textarea>
+
+          <div class="composer-bottom-bar">
+            <div class="composer-actions-left">
+              <span class="composer-btn-icon" title="Canned Responses" onclick="document.getElementById('composerInput').value = '/';">⚡</span>
+              <span class="composer-btn-icon" title="Acoustic Alert" onclick="alertSiren()">🔔</span>
+              <span style="font-size:11px; color:var(--text-faint);" id="charCount">0/48</span>
+            </div>
+            <button class="btn-send-msg" onclick="sendCustomReply()">
+              <span>Send</span>
+              <span>➤</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- COLUMN 3: NODE PROPERTIES & HARDWARE TELEMETRY -->
+      <section class="col-details">
+        
+        <!-- Profile Card -->
+        <div class="details-card">
+          <div class="details-card-header">
+            <span>Node Profile</span>
+            <span style="color:var(--primary); cursor:pointer;" onclick="exportLog()">CSV</span>
+          </div>
+
+          <div class="unit-profile-center">
+            <div class="profile-avatar-lg" id="detailsAvatar">#03</div>
+            <div class="profile-name" id="detailsName">Unit #003 (Field TX)</div>
+            <div class="profile-location">Sector 4 &bull; Northern Ridge Pass</div>
+            <div class="profile-chips-row">
+              <span class="chip-badge" style="color:var(--green); background:var(--green-light);" id="detailsLinkBadge">LoRa 433MHz Active</span>
+              <span class="chip-badge" id="detailsAckBadge">2-Way ACK OK</span>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid #f1f5f9; padding-top:10px; display:flex; flex-direction:column; gap:8px;">
+            <div class="detail-field">
+              <span class="detail-label">Signal Link RSSI</span>
+              <span class="detail-value" id="detailsRssi">-65 dBm (Good Line-of-Sight)</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Estimated Distance</span>
+              <span class="detail-value" id="detailsDist">~1.8 km</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Battery Level</span>
+              <span class="detail-value" id="detailsBat">94% Nominal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hardware & RF Properties Card -->
+        <div class="details-card">
+          <div class="details-card-header">
+            <span>RF &amp; Hardware Telemetry</span>
+          </div>
+
+          <div class="detail-field">
+            <span class="detail-label">LoRa Configuration</span>
+            <span class="detail-value">433.0 MHz &bull; SF7 &bull; BW125kHz</span>
+          </div>
+
+          <div class="detail-field">
+            <span class="detail-label">Firmware Version</span>
+            <span class="detail-value">v3.1.0 PRO (SX1278 + NimBLE)</span>
+          </div>
+
+          <div class="detail-field">
+            <span class="detail-label">Last Transmission</span>
+            <span class="detail-value" id="detailsLastSeen">Just now</span>
+          </div>
+
+          <div class="detail-field">
+            <span class="detail-label">Triage Priority Tag</span>
+            <span class="detail-value" style="color:var(--red);" id="detailsPrioTag">Critical Emergency (Air Evac)</span>
+          </div>
+        </div>
+
+      </section>
 
     </div>
 
   </div>
 
-  <!-- Evacuation Order Modal -->
-  <div id="evacModal" class="tui-modal">
+  <!-- MASS EVACUATION CONFIRMATION MODAL -->
+  <div id="evacModal" class="modal-overlay">
     <div class="modal-box">
-      <div style="color:var(--red); font-weight:bold; font-size:13px;">
-        ╔═══════════════════════════════════════════════════════════╗<br/>
-        ║   ⚠️  CONFIRM MASS EVACUATION BROADCAST OVER 433MHz LORA   ║<br/>
-        ╚═══════════════════════════════════════════════════════════╝
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:var(--red-light); color:var(--red); display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>
+        <div>
+          <h3 style="font-size:15px; font-weight:700; color:#0f172a;">Broadcast Mass Evacuation</h3>
+          <p style="font-size:12px; color:var(--text-muted);">Transmit urgent evacuation frame (EVAC:ALL) over 433 MHz LoRa.</p>
+        </div>
       </div>
-      <div style="color:var(--text); font-size:12px;">
-        This will broadcast an urgent evacuation packet to ALL field communicators.
-      </div>
-      <input id="evacInput" class="input-cmd" value="Dam breach risk: head immediately to high ridge" maxlength="48" />
+      <input id="evacReason" type="text" class="search-input" style="padding:10px; width:100%;" value="Dam breach risk: head immediately to high ridge" maxlength="48" />
       <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="tui-btn" onclick="closeEvac()">[ CANCEL ]</button>
-        <button class="tui-btn danger" style="background:var(--red); color:#000; font-weight:bold;" onclick="execEvac()">[ EXECUTE EVAC ]</button>
+        <button class="btn-top" onclick="closeEvacModal()">Cancel</button>
+        <button class="btn-top" style="background:var(--red); color:#fff; border-color:var(--red);" onclick="executeEvac()">Transmit Evac Order</button>
       </div>
     </div>
   </div>
 
   <script>
+    // NUS Nordic UART Service UUIDs
     const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
     const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
     const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
@@ -480,218 +1069,210 @@
     let bleDevice = null;
     let rxCharacteristic = null;
     let txCharacteristic = null;
-    let isBle = false;
+    let isConnected = false;
 
     let serialPort = null;
     let serialReader = null;
     let isSerial = false;
 
-    let isSiren = true;
-    let isSim = false;
+    let isSirenOn = true;
+    let isSimOn = false;
     let simTimer = null;
-    let currentChannel = 'ALL';
+    let currentTargetId = 3;
 
-    const activePeers = new Map();
-    const logHistory = [];
+    // Active field units state
+    const unitsMap = new Map([
+      [3, { id: 3, name: 'Unit #003 (Field TX)', lastMsg: '3 trapped near school, need stretcher', time: '2m ago', alertTag: 'CRITICAL SOS', tagCls: 'tag-critical', rssi: -65, bat: 94, dot: 'dot-red', color: '#ef4444' }],
+      [1, { id: 1, name: 'Unit #001 (Trail Unit)', lastMsg: 'Landslide blocked road near bridge', time: '8m ago', alertTag: 'LANDSLIDE', tagCls: 'tag-high', rssi: -74, bat: 88, dot: 'dot-amber', color: '#f59e0b' }],
+      [12, { id: 12, name: 'Unit #012 (Ridge Base)', lastMsg: 'Status nominal, all safe', time: '2h ago', alertTag: 'STATUS OK', tagCls: 'tag-nominal', rssi: -82, bat: 98, dot: 'dot-green', color: '#10b981' }]
+    ]);
 
-    // Synthesizer
+    // Conversation messages per unit
+    const messagesMap = new Map([
+      [3, [
+        { sender: 'Unit #003', text: '🚨 ALERT [A]: CRITICAL SOS (आपतकालीन उद्धार)', time: '10:11 AM', in: true, alert: true },
+        { sender: 'Unit #003', text: '3 trapped near school, need medical stretcher', time: '10:11 AM', in: true },
+        { sender: 'Base Commander (You)', text: 'APF squad airborne ETA 20 min. Keep them warm and hold position.', time: '10:12 AM', in: false }
+      ]],
+      [1, [
+        { sender: 'Unit #001', text: '⚠️ Landslide blocked main trail near bridge pass', time: '09:45 AM', in: true, alert: true },
+        { sender: 'Base Commander (You)', text: 'Ground team dispatched on foot. Do not cross the slide.', time: '09:48 AM', in: false }
+      ]],
+      [12, [
+        { sender: 'Unit #012', text: 'Nominal check-in: all 5 team members safe at high camp.', time: '08:00 AM', in: true }
+      ]]
+    ]);
+
+    // Web Audio Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function beep(f, d, t = 'sine') {
-      if (!isSiren) return;
+    function playBeep(freq, dur, type = 'sine') {
+      if (!isSirenOn) return;
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = t;
-      osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
       gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + d);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + dur);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + d);
+      osc.stop(audioCtx.currentTime + dur);
     }
     function alertSiren() {
-      if (!isSiren) return;
-      beep(900, 0.25, 'sawtooth');
-      setTimeout(() => beep(450, 0.35, 'sawtooth'), 260);
+      if (!isSirenOn) return;
+      playBeep(900, 0.25, 'sawtooth');
+      setTimeout(() => playBeep(450, 0.35, 'sawtooth'), 260);
       if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
     }
-    function chatBeep() { beep(700, 0.12); }
-
-    function addLog(sender, text, rssi = '', isAlert = false, devId = 'ALL') {
-      const now = new Date();
-      const time = now.toTimeString().split(' ')[0];
-      const item = { time, sender, text, rssi, isAlert, devId };
-      logHistory.push(item);
-
-      if (isAlert) alertSiren();
-      else if (sender !== 'BASE') chatBeep();
-
-      renderRow(item);
+    function toggleSiren() {
+      isSirenOn = !isSirenOn;
+      const el = document.getElementById('iconSiren');
+      el.style.color = isSirenOn ? '#fff' : '#ef4444';
     }
 
-    function renderRow(item) {
-      if (currentChannel !== 'ALL' && item.devId !== 'ALL' && item.devId !== currentChannel && !item.sender.includes(currentChannel)) {
-        return;
-      }
+    // Render Inbox List
+    function renderInbox() {
+      const container = document.getElementById('inboxList');
+      container.innerHTML = '';
+      unitsMap.forEach((u, id) => {
+        const item = document.createElement('div');
+        item.className = `inbox-item ${id === currentTargetId ? 'active' : ''}`;
+        item.onclick = () => selectUnit(id);
+
+        item.innerHTML = `
+          <div class="unit-avatar" style="background:${u.color};">
+            #${String(u.id).padStart(2, '0')}
+            <div class="avatar-status-dot ${u.dot}"></div>
+          </div>
+          <div class="item-content">
+            <div class="item-top">
+              <span class="item-name">${u.name}</span>
+              <span class="item-time">${u.time}</span>
+            </div>
+            <div class="item-snippet">${u.lastMsg}</div>
+            <div class="item-bottom">
+              <span class="alert-tag-pill ${u.tagCls}">${u.alertTag}</span>
+              <span style="font-size:10px; color:var(--text-faint);">${u.rssi} dBm</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+      document.getElementById('badgeActiveCount').innerText = unitsMap.size;
+    }
+
+    // Select active conversation unit
+    function selectUnit(id) {
+      currentTargetId = id;
+      const u = unitsMap.get(id);
+      renderInbox();
+      renderChatStream();
+
+      document.getElementById('activePeerTitle').innerText = `${u.name}`;
+      document.getElementById('activePeerAvatar').innerText = `#${String(u.id).padStart(2, '0')}`;
+      document.getElementById('activePeerAvatar').style.background = u.color;
+      document.getElementById('activePeerPill').className = `alert-tag-pill ${u.tagCls}`;
+      document.getElementById('activePeerPill').innerText = u.alertTag;
+
+      // Update right panel details
+      document.getElementById('detailsAvatar').innerText = `#${String(u.id).padStart(2, '0')}`;
+      document.getElementById('detailsName').innerText = u.name;
+      document.getElementById('detailsRssi').innerText = `${u.rssi} dBm`;
+      document.getElementById('detailsBat').innerText = `${u.bat}%`;
+      document.getElementById('detailsDist').innerText = u.rssi > -70 ? '~0.6 km' : u.rssi > -80 ? '~1.8 km' : '~4.2 km';
+      document.getElementById('detailsPrioTag').innerText = u.alertTag;
+    }
+
+    // Render Chat Messages
+    function renderChatStream() {
       const stream = document.getElementById('chatStream');
-      const div = document.createElement('div');
-      div.className = 'log-row';
+      stream.innerHTML = '<div class="time-divider">TODAY &bull; 433.0 MHz LoRa TDD CHANNEL</div>';
 
-      let nodeCls = 'log-node';
-      if (item.sender === 'BASE') nodeCls += ' base';
-      else if (item.sender === 'SYSTEM') nodeCls += ' sys';
-      else if (item.isAlert) nodeCls += ' alert';
+      const msgs = messagesMap.get(currentTargetId) || [];
+      msgs.forEach(m => {
+        const row = document.createElement('div');
+        row.className = `msg-group ${m.in ? 'in' : 'out'}`;
 
-      const rssiStr = item.rssi ? `<span class="log-rssi">[${item.rssi}dBm]</span>` : '';
-      const msgCls = item.isAlert ? 'log-msg alert' : 'log-msg';
+        const avatarColor = m.in ? '#0284c7' : '#0f172a';
+        const avatarInitial = m.in ? `#${String(currentTargetId).padStart(2, '0')}` : 'OP';
 
-      div.innerHTML = `
-        <span class="log-ts">[${item.time}]</span>
-        <span class="${nodeCls}">&lt;${item.sender}&gt;</span>
-        <span class="${msgCls}">${item.text}</span>
-        ${rssiStr}
-      `;
-      stream.appendChild(div);
+        row.innerHTML = `
+          <div class="bubble-avatar" style="background:${avatarColor};">${avatarInitial}</div>
+          <div class="bubble-body">
+            <div class="bubble-sender">${m.sender}</div>
+            <div class="bubble ${m.alert ? 'alert-highlight' : ''}">${m.text}</div>
+            <div class="bubble-footer">
+              <span>${m.time}</span>
+              ${!m.in ? '<span class="check-double">✓✓ ACK</span>' : ''}
+            </div>
+          </div>
+        `;
+        stream.appendChild(row);
+      });
       stream.scrollTop = stream.scrollHeight;
     }
 
-    function refreshLog() {
-      const stream = document.getElementById('chatStream');
-      stream.innerHTML = '';
-      logHistory.forEach(renderRow);
+    // Quick Command Dispatch (Canned responses)
+    async function sendQuickDispatch(action, msg) {
+      const cmd = `REPLY:${currentTargetId},${action},${msg}`;
+      await transmit(cmd);
+
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const msgs = messagesMap.get(currentTargetId) || [];
+      msgs.push({ sender: 'Base Commander (You)', text: `[${action}] ${msg}`, time, in: false });
+      messagesMap.set(currentTargetId, msgs);
+
+      playBeep(700, 0.15);
+      renderChatStream();
     }
 
-    function clearStream() {
-      logHistory.length = 0;
-      document.getElementById('chatStream').innerHTML = `
-        <div class="log-row">
-          <span class="log-ts">[${new Date().toTimeString().split(' ')[0]}]</span>
-          <span class="log-node sys">&lt;SYSTEM&gt;</span>
-          <span class="log-msg">Stream buffer cleared by operator.</span>
-        </div>
-      `;
-    }
+    // Send from input composer
+    async function sendCustomReply() {
+      const input = document.getElementById('composerInput');
+      const text = input.value.trim();
+      if (!text) return;
 
-    function updatePeer(devId, rssi) {
-      const id = String(devId);
-      const p = activePeers.get(id) || { count: 0 };
-      p.rssi = rssi;
-      p.time = new Date().toTimeString().split(' ')[0];
-      p.count += 1;
-      activePeers.set(id, p);
+      const cmd = `REPLY:${currentTargetId},COMMAND,${text}`;
+      await transmit(cmd);
 
-      renderPeers();
-      updateTargetDropdown();
-      document.getElementById('nodeCount').innerText = String(activePeers.size).padStart(2, '0');
-    }
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const msgs = messagesMap.get(currentTargetId) || [];
+      msgs.push({ sender: 'Base Commander (You)', text, time, in: false });
+      messagesMap.set(currentTargetId, msgs);
 
-    function renderPeers() {
-      const strip = document.getElementById('peerStrip');
-      strip.innerHTML = '<span style="color:var(--text-dim);font-size:11px;">NODES:</span>';
-
-      const all = document.createElement('div');
-      all.className = `peer-chip ${currentChannel === 'ALL' ? 'active' : ''}`;
-      all.innerText = `[ #ALL-CHANNELS (${logHistory.length}) ]`;
-      all.onclick = () => selectChannel('ALL');
-      strip.appendChild(all);
-
-      activePeers.forEach((data, id) => {
-        const chip = document.createElement('div');
-        chip.className = `peer-chip ${currentChannel === id ? 'active' : ''}`;
-        chip.innerText = `[ #TX-${String(id).padStart(3, '0')} (${data.rssi}dBm) ]`;
-        chip.onclick = () => selectChannel(id);
-        strip.appendChild(chip);
-      });
-    }
-
-    function selectChannel(ch) {
-      currentChannel = ch;
-      renderPeers();
-      refreshLog();
-      if (ch !== 'ALL') document.getElementById('targetSelect').value = ch;
-    }
-
-    function updateTargetDropdown() {
-      const sel = document.getElementById('targetSelect');
-      const cur = sel.value;
-      sel.innerHTML = '<option value="ALL">#ALL (Broadcast)</option>';
-      activePeers.forEach((data, id) => {
-        const opt = document.createElement('option');
-        opt.value = id;
-        opt.innerText = `#TX-${String(id).padStart(3, '0')}`;
-        sel.appendChild(opt);
-      });
-      sel.value = cur;
-    }
-
-    async function sendPreset(act, msg) {
-      const target = document.getElementById('targetSelect').value;
-      const cmd = `REPLY:${target === 'ALL' ? '3' : target},${act},${msg}`;
-      const ok = await transmit(cmd);
-      if (ok || isSim) {
-        addLog('BASE', `[DOWNLINK -> #${target}] [${act}] ${msg}`, '', false, target);
-      }
-    }
-
-    async function sendInput() {
-      const input = document.getElementById('inputCmd');
-      const txt = input.value.trim();
-      if (!txt) return;
-
-      const target = document.getElementById('targetSelect').value;
-      if (txt.startsWith('/')) {
-        handleSlash(txt);
-      } else {
-        const cmd = `REPLY:${target === 'ALL' ? '3' : target},COMMAND,${txt}`;
-        const ok = await transmit(cmd);
-        if (ok || isSim) {
-          addLog('BASE', `[DOWNLINK -> #${target}] "${txt}"`, '', false, target);
-        }
-      }
       input.value = '';
+      document.getElementById('charCount').innerText = '0/48';
+      playBeep(700, 0.15);
+      renderChatStream();
     }
 
-    function handleSlash(str) {
-      const parts = str.split(' ');
-      const verb = parts[0].toLowerCase();
-      if (verb === '/evac') {
-        const reason = parts.slice(1).join(' ') || 'Evacuate immediately';
-        transmit(`EVAC:${reason}`);
-        addLog('BASE', `*** BROADCAST MASS EVACUATION: "${reason}" ***`, '', true, 'ALL');
-      } else if (verb === '/reply' && parts.length >= 3) {
-        const id = parts[1];
-        const msg = parts.slice(2).join(' ');
-        transmit(`REPLY:${id},COMMAND,${msg}`);
-        addLog('BASE', `[DOWNLINK -> #${id}] "${msg}"`, '', false, id);
-      } else if (verb === '/airborne') {
-        sendPreset('DISPATCHED', 'APF Rescue squad airborne ETA 20m');
-      } else if (verb === '/status') {
-        transmit('STATUS');
-        addLog('SYSTEM', 'Queried Base hardware status.');
-      } else {
-        addLog('SYSTEM', `Unknown command: ${verb}`);
-      }
+    // Evacuation Broadcast Modal
+    function openEvacModal() { document.getElementById('evacModal').classList.add('open'); }
+    function closeEvacModal() { document.getElementById('evacModal').classList.remove('open'); }
+    async function executeEvac() {
+      const reason = document.getElementById('evacReason').value.trim() || 'EVACUATE IMMEDIATELY';
+      closeEvacModal();
+      await transmit(`EVAC:${reason}`);
+      alertSiren();
+
+      // Add to current chat
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const msgs = messagesMap.get(currentTargetId) || [];
+      msgs.push({ sender: 'BROADCAST DISPATCH', text: `⚠️ MASS EVACUATION ORDER: ${reason}`, time, in: false });
+      renderChatStream();
     }
 
-    function openEvac() { document.getElementById('evacModal').classList.add('open'); }
-    function closeEvac() { document.getElementById('evacModal').classList.remove('open'); }
-    async function execEvac() {
-      const msg = document.getElementById('evacInput').value.trim() || 'EVACUATE IMMEDIATELY';
-      closeEvac();
-      await transmit(`EVAC:${msg}`);
-      addLog('BASE', `*** BROADCAST MASS EVACUATION: "${msg}" ***`, '', true, 'ALL');
-    }
-
+    // Hardware Transmission Router (BLE / USB / Sim)
     async function transmit(str) {
-      if (isBle && rxCharacteristic) {
+      console.log('[LORA TX]', str);
+      if (isConnected && rxCharacteristic) {
         try {
           const enc = new TextEncoder();
           await rxCharacteristic.writeValueWithoutResponse(enc.encode(str));
           return true;
         } catch (e) {
-          addLog('SYSTEM', `BLE TX Error: ${e}`);
-          return false;
+          console.error('BLE send failed', e);
         }
       } else if (isSerial && serialPort && serialPort.writable) {
         try {
@@ -701,97 +1282,111 @@
           writer.releaseLock();
           return true;
         } catch (e) {
-          addLog('SYSTEM', `Serial TX Error: ${e}`);
-          return false;
+          console.error('Serial send failed', e);
         }
       }
       return false;
     }
 
-    function parseFrame(line) {
+    // Parse Inbound LoRa Frame
+    function parseInbound(line) {
+      console.log('[LORA RX]', line);
       if (line.startsWith('ALERT:')) {
-        const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
+        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '3', 10);
         const code = (line.match(/CODE=([^,]+)/) || [])[1] || 'A';
-        const name = (line.match(/NAME=([^,]+)/) || [])[1] || 'SOS';
-        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
+        const name = (line.match(/NAME=([^,]+)/) || [])[1] || 'CRITICAL SOS';
+        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-65', 10);
 
-        updatePeer(dev, rssi);
-        addLog(`TX-${String(dev).padStart(3, '0')}`, `🚨 [ALERT ${code}] ${name}`, rssi, true, dev);
+        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#ef4444' };
+        u.lastMsg = `🚨 [${code}] ${name}`;
+        u.time = 'Just now';
+        u.alertTag = name;
+        u.tagCls = 'tag-critical';
+        u.rssi = rssi;
+        unitsMap.set(dev, u);
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const msgs = messagesMap.get(dev) || [];
+        msgs.push({ sender: u.name, text: `🚨 ALERT [${code}]: ${name}`, time, in: true, alert: true });
+        messagesMap.set(dev, msgs);
+
+        alertSiren();
+        renderInbox();
+        if (dev === currentTargetId) renderChatStream();
       }
       else if (line.startsWith('CHAT:')) {
-        const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
-        const txt = (line.match(/TEXT=([^,]+)/) || [])[1] || '';
-        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
+        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '3', 10);
+        const text = (line.match(/TEXT=([^,]+)/) || [])[1] || '';
+        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-65', 10);
 
-        updatePeer(dev, rssi);
-        addLog(`TX-${String(dev).padStart(3, '0')}`, `"${txt}"`, rssi, false, dev);
-      }
-      else if (line.startsWith('TELEMETRY:')) {
-        const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
-        const temp = (line.match(/TEMP=([^,]+)/) || [])[1] || '--';
-        const lat = (line.match(/LAT=([^,]+)/) || [])[1] || '';
-        const lon = (line.match(/LON=([^,]+)/) || [])[1] || '';
-        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
+        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#0284c7' };
+        u.lastMsg = text;
+        u.time = 'Just now';
+        u.rssi = rssi;
+        unitsMap.set(dev, u);
 
-        updatePeer(dev, rssi);
-        addLog(`TX-${String(dev).padStart(3, '0')}`, `[TELEMETRY] ${temp}°C | GPS: ${lat},${lon}`, rssi, false, dev);
-      }
-      else if (line.startsWith('STATUS:')) {
-        addLog('SYSTEM', line);
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const msgs = messagesMap.get(dev) || [];
+        msgs.push({ sender: u.name, text, time, in: true });
+        messagesMap.set(dev, msgs);
+
+        playBeep(800, 0.15);
+        renderInbox();
+        if (dev === currentTargetId) renderChatStream();
       }
     }
 
+    // BLE Connect
     async function toggleBle() {
-      if (isBle) {
+      if (isConnected) {
         if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
-        setConn(false);
+        updateConn(false);
       } else {
-        if (!navigator.bluetooth) return alert('Web Bluetooth requires Chrome or Bluefy on iOS.');
+        if (!navigator.bluetooth) return alert('Web Bluetooth requires Google Chrome or Bluefy on iOS.');
         try {
           bleDevice = await navigator.bluetooth.requestDevice({
             filters: [{ namePrefix: 'LifeLine-RX' }, { namePrefix: 'LifeLine' }, { services: [NUS_SERVICE_UUID] }],
             optionalServices: [NUS_SERVICE_UUID]
           });
-          bleDevice.addEventListener('gattserverdisconnected', () => setConn(false));
-          const s = await bleDevice.gatt.connect();
-          const svc = await s.getPrimaryService(NUS_SERVICE_UUID);
+          bleDevice.addEventListener('gattserverdisconnected', () => updateConn(false));
+          const server = await bleDevice.gatt.connect();
+          const svc = await server.getPrimaryService(NUS_SERVICE_UUID);
           rxCharacteristic = await svc.getCharacteristic(NUS_RX_CHAR_UUID);
           txCharacteristic = await svc.getCharacteristic(NUS_TX_CHAR_UUID);
 
           await txCharacteristic.startNotifications();
           txCharacteristic.addEventListener('characteristicvaluechanged', e => {
             const dec = new TextDecoder();
-            parseFrame(dec.decode(e.target.value).trim());
+            parseInbound(dec.decode(e.target.value).trim());
           });
 
-          setConn(true, `[● BLE: ${bleDevice.name}]`);
-          addLog('SYSTEM', `GATT Nordic UART connected to ${bleDevice.name}`);
+          updateConn(true, bleDevice.name);
           transmit('STATUS');
         } catch (e) {
-          addLog('SYSTEM', `BLE Error: ${e}`);
-          setConn(false);
+          console.error('BLE error', e);
+          updateConn(false);
         }
       }
     }
 
+    // Web Serial
     async function toggleSerial() {
       if (isSerial) {
         if (serialReader) await serialReader.cancel();
         if (serialPort) await serialPort.close();
         isSerial = false;
-        setConn(false);
+        updateConn(false);
       } else {
-        if (!('serial' in navigator)) return alert('Web Serial requires Chrome / Edge.');
+        if (!('serial' in navigator)) return alert('Web Serial requires Chrome or Edge.');
         try {
           serialPort = await navigator.serial.requestPort();
           await serialPort.open({ baudRate: 115200 });
           isSerial = true;
-          setConn(true, '[● USB: 115200]');
-          addLog('SYSTEM', 'Connected via USB Serial (115200 baud)');
+          updateConn(true, 'USB 115200');
           readSerial();
         } catch (e) {
-          addLog('SYSTEM', `Serial Error: ${e}`);
-          setConn(false);
+          console.error('Serial error', e);
+          updateConn(false);
         }
       }
     }
@@ -812,79 +1407,83 @@
             buf = lines.pop();
             for (const l of lines) {
               const c = l.trim();
-              if (c) parseFrame(c);
+              if (c) parseInbound(c);
             }
           }
         }
       } catch (e) {
-        addLog('SYSTEM', `Serial stream closed: ${e}`);
+        console.warn('Serial stream ended', e);
       }
     }
 
-    function setConn(online, label = '') {
-      isBle = online && label.includes('BLE');
+    function updateConn(online, label = '') {
+      isConnected = online && label.includes('LifeLine');
       isSerial = online && label.includes('USB');
-      const el = document.getElementById('connLabel');
-      if (online) {
-        el.style.color = 'var(--green)';
-        el.innerText = label;
-      } else {
-        el.style.color = isSim ? 'var(--amber)' : 'var(--red)';
-        el.innerText = isSim ? '[● SIMULATOR]' : '[● OFFLINE]';
-      }
-    }
+      const text = document.getElementById('connStatusText');
+      const btnBle = document.getElementById('btnBle');
+      const btnSerial = document.getElementById('btnSerial');
 
-    function toggleSiren() {
-      isSiren = !isSiren;
-      const b = document.getElementById('btnSiren');
-      b.innerText = `[M] SIREN: ${isSiren ? 'ON' : 'MUTED'}`;
-      b.classList.toggle('active', isSiren);
+      if (online) {
+        text.innerText = `Online (${label})`;
+        text.style.color = 'var(--green)';
+        if (isConnected) btnBle.className = 'btn-top active-green';
+        if (isSerial) btnSerial.className = 'btn-top active-green';
+      } else {
+        text.innerText = isSimOn ? 'Simulator Mode' : 'Offline';
+        text.style.color = isSimOn ? 'var(--amber)' : 'var(--text-faint)';
+        btnBle.className = 'btn-top';
+        btnSerial.className = 'btn-top';
+      }
     }
 
     function toggleSim() {
-      isSim = !isSim;
+      isSimOn = !isSimOn;
       const b = document.getElementById('btnSim');
-      b.innerText = `[S] SIMULATOR: ${isSim ? 'ON' : 'OFF'}`;
-      b.classList.toggle('active', isSim);
-      setConn(false);
+      b.innerText = `Simulator: ${isSimOn ? 'ON' : 'OFF'}`;
+      b.classList.toggle('active-green', isSimOn);
+      updateConn(false);
 
-      if (isSim) {
-        addLog('SYSTEM', 'Simulation active. Injecting field distress packets...');
-        updatePeer(3, -65);
-        updatePeer(1, -74);
-        updatePeer(12, -82);
-        addLog('TX-003', '🚨 [ALERT A] CRITICAL SOS (आपतकालीन उद्धार)', '-65', true, '3');
-        addLog('TX-001', '"Landslide blocking road near bridge"', '-74', false, '1');
-
+      if (isSimOn) {
         simTimer = setInterval(() => {
-          if (!isSim) return;
-          const mock = [
-            () => addLog('TX-003', '"Elderly patient hypothermia, need blankets"', '-67', false, '3'),
-            () => addLog('TX-012', '🚨 [ALERT B] DELIVERY / LABOR (सुत्केरी / प्रसूति)', '-81', true, '12'),
-            () => addLog('TX-001', '"River levels rising fast"', '-72', false, '1')
+          if (!isSimOn) return;
+          const mocks = [
+            () => parseInbound('CHAT:DEV=003,TEXT=Water levels rising rapidly near footbridge,RSSI=-67'),
+            () => parseInbound('ALERT:DEV=001,CODE=B,NAME=DELIVERY / LABOR,RSSI=-76'),
+            () => parseInbound('CHAT:DEV=012,TEXT=Avalanche hazard cleared, ridge trail nominal,RSSI=-81')
           ];
-          mock[Math.floor(Math.random() * mock.length)]();
-        }, 14000);
+          mocks[Math.floor(Math.random() * mocks.length)]();
+        }, 12000);
       } else {
         clearInterval(simTimer);
-        addLog('SYSTEM', 'Simulation stopped.');
       }
     }
 
-    function exportCsv() {
-      if (!logHistory.length) return alert('No logs to export.');
-      let csv = 'Timestamp,Sender,Text,RSSI,Alert,DevID\n';
-      logHistory.forEach(l => {
-        csv += `"${l.time}","${l.sender}","${l.text.replace(/"/g, '""')}","${l.rssi}",${l.isAlert},"${l.devId}"\n`;
+    function exportLog() {
+      let csv = 'Timestamp,UnitID,Sender,Text,Inbound\n';
+      messagesMap.forEach((msgs, unitId) => {
+        msgs.forEach(m => {
+          csv += `"${m.time}",${unitId},"${m.sender}","${m.text.replace(/"/g, '""')}",${m.in}\n`;
+        });
       });
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lifeline_tui_rx_${Date.now()}.csv`;
+      a.download = `lifeline_incident_inbox_${Date.now()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
+
+    // Textarea input char counter
+    document.getElementById('composerInput').addEventListener('input', e => {
+      document.getElementById('charCount').innerText = `${e.target.value.length}/48`;
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      renderInbox();
+      selectUnit(3);
+    });
   </script>
 </body>
 </html>
