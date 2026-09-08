@@ -528,21 +528,17 @@ void drawSharpAlertCard(int index, int slotY, bool isSelected) {
         
     } else {
         // SELECTED / ARMED CARD: Eye immediately drawn here
-        // 1. Subtle drop-shadow
-        tft.drawFastHLine(cardX + 2, slotY + cardH, cardW - 1, RGB565(4, 5, 8));
-        tft.drawFastVLine(cardX + cardW, slotY + 2, cardH - 1, RGB565(4, 5, 8));
-        
-        // 2. High-Contrast Deep Navy Body
+        // 1. High-Contrast Deep Navy Body
         tft.fillRect(cardX, slotY, cardW, cardH, RGB565(14, 32, 54));
         
-        // 3. Glowing Razor-Sharp Cyan Borders
+        // 2. Glowing Razor-Sharp Cyan Borders (cleanly bounded)
         tft.drawRect(cardX, slotY, cardW, cardH, COLOR_CYAN);
         tft.drawRect(cardX + 1, slotY + 1, cardW - 2, cardH - 2, COLOR_CYAN_DARK);
         
-        // 4. Solid Left Priority Indicator (6px)
+        // 3. Solid Left Priority Indicator (6px)
         tft.fillRect(cardX, slotY, 6, cardH, prioColor);
         
-        // 5. Solid Inverted Number Badge
+        // 4. Solid Inverted Number Badge
         tft.fillRect(cardX + 10, slotY + 6, 22, 20, COLOR_CYAN);
         tft.drawRect(cardX + 10, slotY + 6, 22, 20, COLOR_WHITE);
         tft.setTextSize(TEXT_SMALL);
@@ -551,7 +547,7 @@ void drawSharpAlertCard(int index, int slotY, bool isSelected) {
         if (index + 1 < 10) tft.print('0');
         tft.print(index + 1);
         
-        // 6. Bold Pure White Title with Crisp Shadow
+        // 5. Bold Pure White Title with Crisp Shadow
         tft.setTextSize(TEXT_MEDIUM);
         tft.setTextColor(RGB565(5, 12, 20));
         tft.setCursor(cardX + 41, slotY + 10);
@@ -560,7 +556,7 @@ void drawSharpAlertCard(int index, int slotY, bool isSelected) {
         tft.setCursor(cardX + 40, slotY + 9);
         tft.print(alertNamesShort[index]);
         
-        // 7. Direct Action Tag: [* SEND >]
+        // 6. Direct Action Tag: [* SEND >]
         int btnW = 76;
         int btnH = 22;
         int btnX = cardX + cardW - btnW - 8;
@@ -579,10 +575,10 @@ void drawSharpAlertCard(int index, int slotY, bool isSelected) {
 void drawElevatorRail(int scrollOffset, int totalItems, int visibleCount) {
     int railX = 308;
     int railY = 36;
-    int railW = 3;
+    int railW = 4;
     int railH = 168;
     
-    // Minimalist 3px Track Line
+    // Minimalist 4px Track Line
     tft.fillRect(railX, railY, railW, railH, RGB565(24, 30, 42));
     
     // Glowing Cyan Thumb
@@ -593,7 +589,6 @@ void drawElevatorRail(int scrollOffset, int totalItems, int visibleCount) {
     int thumbY = railY + (scrollOffset * (railH - thumbH)) / maxOffset;
     
     tft.fillRect(railX, thumbY, railW, thumbH, COLOR_CYAN);
-    tft.drawFastVLine(railX - 1, thumbY, thumbH, COLOR_CYAN_DARK);
 }
 
 void drawHomeCommandDeck() {
@@ -650,13 +645,7 @@ void updateMenuSelection(int oldIndex, int newIndex) {
     drawElevatorRail(menuScrollOffset, ALERT_COUNT, VISIBLE_MENU_ITEMS);
 }
 
-void drawMenuScreen() {
-    tft.fillScreen(COLOR_BG_PRIMARY);
-    
-    // 1. Clean Hardware Status Bar (y = 0..31)
-    drawHomeStatusBar();
-    
-    // 2. 5 High-Legibility Alert Cards (y = 36..203)
+void drawMenuCards() {
     const int CARD_HEIGHT = 32;
     const int CARD_SPACING = 2;
     const int LIST_START_Y = 36;
@@ -669,8 +658,18 @@ void drawMenuScreen() {
         drawSharpAlertCard(alertIndex, slotY, isSelected);
     }
     
-    // 3. Minimalist 3px Scroll Rail (x = 308)
     drawElevatorRail(menuScrollOffset, ALERT_COUNT, VISIBLE_MENU_ITEMS);
+}
+
+void drawMenuScreen() {
+    // 1. Clean Hardware Status Bar (y = 0..31)
+    drawHomeStatusBar();
+    
+    // 2. Clear cards canvas area once (y = 32..207)
+    tft.fillRect(0, 32, SCREEN_WIDTH, 176, COLOR_BG_PRIMARY);
+    
+    // 3. 5 High-Legibility Alert Cards & Scroll Rail (y = 36..203)
+    drawMenuCards();
     
     // 4. Clean Action Command Footer (y = 208..239)
     drawHomeCommandDeck();

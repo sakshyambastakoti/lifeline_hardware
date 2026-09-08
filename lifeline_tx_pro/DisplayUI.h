@@ -33,6 +33,7 @@ void drawHomeStatusBar();
 void drawSharpAlertCard(int index, int slotY, bool isSelected);
 void drawElevatorRail(int scrollOffset, int totalItems, int visibleCount);
 void drawHomeCommandDeck();
+void drawMenuCards();
 void updateMenuSelection(int oldIndex, int newIndex);
 void drawMenuScreen();
 void drawConfirmScreen();

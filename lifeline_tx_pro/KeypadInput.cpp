@@ -175,7 +175,7 @@ void handleMenuInput(char key) {
     
     if (selectionChanged) {
         if (menuScrollOffset != oldScrollOffset) {
-            drawMenuScreen();
+            drawMenuCards();
         } else {
             updateMenuSelection(oldSelection, selectedAlertIndex);
         }
