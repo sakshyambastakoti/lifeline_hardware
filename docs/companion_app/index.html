@@ -46,6 +46,14 @@
       display: flex;
     }
 
+    .svg-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
     /* SLIM LEFT SIDEBAR */
     aside.icon-sidebar {
       width: 60px;
@@ -66,7 +74,6 @@
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 20px;
       text-decoration: none;
     }
     .side-icon {
@@ -79,7 +86,7 @@
       color: #94a3b8;
       cursor: pointer;
       text-decoration: none;
-      font-size: 18px;
+      transition: color 0.15s ease;
     }
     .side-icon:hover { color: #fff; }
     .side-icon.active { background: #fff; color: var(--sidebar-bg); }
@@ -169,7 +176,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
       color: #fff;
       flex-shrink: 0;
     }
@@ -205,7 +211,8 @@
     }
     .check-icon {
       color: var(--green);
-      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
     }
 
     .btn-card-launch {
@@ -253,7 +260,7 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .btn-auto-scan:hover {
       background: #1e293b;
@@ -262,15 +269,47 @@
 </head>
 <body>
 
-  <!-- SLIM LEFT SIDEBAR -->
+  <!-- SLIM LEFT SIDEBAR WITH CLEAN SVGS -->
   <aside class="icon-sidebar">
     <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
-      <a href="index.html" class="logo-btn">💬</a>
-      <a href="rx_companion.html" class="side-icon" title="Incident Command (RX)">📥</a>
-      <a href="tx_companion.html" class="side-icon" title="Field Communicator (TX)">📡</a>
+      <a href="index.html" class="logo-btn" title="LifeLine Hub">
+        <span class="svg-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </span>
+      </a>
+
+      <a href="rx_companion.html" class="side-icon" title="Incident Command (RX)">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+          </svg>
+        </span>
+      </a>
+
+      <a href="tx_companion.html" class="side-icon" title="Field Communicator (TX)">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.93 19.07A10 10 0 0 1 2 12a10 10 0 0 1 2.93-7.07"/>
+            <path d="M19.07 4.93A10 10 0 0 1 22 12a10 10 0 0 1-2.93 7.07"/>
+            <path d="M8.46 15.54A5 5 0 0 1 7 12a5 5 0 0 1 1.46-3.54"/>
+            <path d="M15.54 8.46A5 5 0 0 1 17 12a5 5 0 0 1-1.46 3.54"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </span>
+      </a>
     </div>
+
     <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
-      <div class="side-icon" onclick="detectDevice()" title="Scan Bluetooth">⚡</div>
+      <div class="side-icon" onclick="detectDevice()" title="Scan Bluetooth">
+        <span class="svg-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+          </svg>
+        </span>
+      </div>
     </div>
   </aside>
 
@@ -279,7 +318,12 @@
     <header class="top-header">
       <div style="font-size:16px; font-weight:700; color:#0f172a;">LifeLine Mission Hub</div>
       <button class="btn-auto-scan" onclick="detectDevice()">
-        <span>🔍 Auto-Detect BLE</span>
+        <span class="svg-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </span>
+        <span>Auto-Detect BLE</span>
       </button>
     </header>
 
@@ -295,7 +339,14 @@
         <a href="rx_companion.html" class="app-card">
           <div>
             <div class="card-top">
-              <div class="card-avatar" style="background:linear-gradient(135deg, #10b981, #059669);">📥</div>
+              <div class="card-avatar" style="background:linear-gradient(135deg, #10b981, #059669);">
+                <span class="svg-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+                    <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                  </svg>
+                </span>
+              </div>
               <div class="card-header-info">
                 <span class="card-title">Incident Command Hub (RX Pro)</span>
                 <span class="card-sub">Base Station Emergency Coordinator</span>
@@ -303,17 +354,56 @@
             </div>
 
             <div class="card-bullets" style="margin-top:16px;">
-              <div class="bullet-item"><span class="check-icon">✓</span> Multi-unit emergency triage inbox</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Two-way live speech bubbles timeline</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> 1-Click canned dispatch (`/airborne`, `/hold`, `/medical`)</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Real-time field unit telemetry &amp; distance calculation</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Mass evacuation broadcast &amp; CSV log export</div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Multi-unit emergency triage inbox</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Two-way live speech bubbles timeline</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>1-Click canned dispatch (/airborne, /hold, /medical)</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Real-time field unit telemetry &amp; distance calculation</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Mass evacuation broadcast &amp; CSV log export</span>
+              </div>
             </div>
           </div>
 
           <div class="btn-card-launch green">
             <span>Launch Command Hub</span>
-            <span>➤</span>
+            <span class="svg-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
           </div>
         </a>
 
@@ -321,7 +411,17 @@
         <a href="tx_companion.html" class="app-card">
           <div>
             <div class="card-top">
-              <div class="card-avatar" style="background:linear-gradient(135deg, #2563eb, #1d4ed8);">📡</div>
+              <div class="card-avatar" style="background:linear-gradient(135deg, #2563eb, #1d4ed8);">
+                <span class="svg-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4.93 19.07A10 10 0 0 1 2 12a10 10 0 0 1 2.93-7.07"/>
+                    <path d="M19.07 4.93A10 10 0 0 1 22 12a10 10 0 0 1-2.93 7.07"/>
+                    <path d="M8.46 15.54A5 5 0 0 1 7 12a5 5 0 0 1 1.46-3.54"/>
+                    <path d="M15.54 8.46A5 5 0 0 1 17 12a5 5 0 0 1-1.46 3.54"/>
+                    <circle cx="12" cy="12" r="2"/>
+                  </svg>
+                </span>
+              </div>
               <div class="card-header-info">
                 <span class="card-title">Field Communicator (TX Pro)</span>
                 <span class="card-sub">Tactical Disaster &amp; Mountain Unit</span>
@@ -329,17 +429,56 @@
             </div>
 
             <div class="card-bullets" style="margin-top:16px;">
-              <div class="bullet-item"><span class="check-icon">✓</span> 15 Emergency SOS presets (Nepali &amp; English)</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Freeform 48-character LoRa chat with Base Station</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Closed-loop 2.5s base ACK confirmation indicator</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Battery, signal RSSI &amp; link health monitoring</div>
-              <div class="bullet-item"><span class="check-icon">✓</span> Built-in offline simulation mode</div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>15 Emergency SOS presets (Nepali &amp; English)</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Freeform 48-character LoRa chat with Base Station</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Closed-loop 2.5s base ACK confirmation indicator</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Battery, signal RSSI &amp; link health monitoring</span>
+              </div>
+              <div class="bullet-item">
+                <span class="check-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>Built-in offline simulation mode</span>
+              </div>
             </div>
           </div>
 
           <div class="btn-card-launch">
             <span>Launch Communicator</span>
-            <span>➤</span>
+            <span class="svg-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
           </div>
         </a>
 
@@ -352,6 +491,11 @@
           <div style="font-size:12px; color:var(--text-muted);">Scans for nearby LifeLine-TX-* or LifeLine-RX-Base signals and automatically opens the appropriate companion interface.</div>
         </div>
         <button class="btn-auto-scan" onclick="detectDevice()">
+          <span class="svg-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
           <span>Scan Nearby Device</span>
         </button>
       </div>

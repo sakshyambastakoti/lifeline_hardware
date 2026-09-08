@@ -57,6 +57,14 @@
       overflow: hidden;
     }
 
+    .svg-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
     /* 1. SLIM LEFT ICON SIDEBAR */
     aside.icon-sidebar {
       width: 60px;
@@ -87,7 +95,6 @@
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 20px;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
       cursor: pointer;
       text-decoration: none;
@@ -104,7 +111,6 @@
       cursor: pointer;
       transition: all 0.2s ease;
       text-decoration: none;
-      font-size: 18px;
     }
     .side-icon:hover {
       background: var(--sidebar-hover);
@@ -124,7 +130,6 @@
       overflow: hidden;
     }
 
-    /* TOP GLOBAL HEADER */
     header.top-header {
       height: 56px;
       background: #ffffff;
@@ -175,7 +180,6 @@
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-faint);
-      font-size: 13px;
     }
 
     .top-header-right {
@@ -321,7 +325,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       color: #fff;
       flex-shrink: 0;
       position: relative;
@@ -379,7 +383,7 @@
     .alert-tag-pill {
       font-size: 10px;
       font-weight: 600;
-      padding: 1px 7px;
+      padding: 2px 7px;
       border-radius: 4px;
       display: inline-flex;
       align-items: center;
@@ -389,7 +393,7 @@
     .tag-high { background: var(--amber-light); color: var(--amber); }
     .tag-nominal { background: var(--green-light); color: var(--green); }
 
-    /* COLUMN 2: CENTER CHAT / CONVERSATION */
+    /* COLUMN 2: CENTER CHAT */
     .col-chat {
       background: #f8fafc;
       display: flex;
@@ -459,6 +463,10 @@
       justify-content: center;
       cursor: pointer;
       border: none;
+      transition: background 0.15s ease;
+    }
+    .btn-resolve-check:hover {
+      background: var(--green);
     }
 
     /* SPEECH BUBBLE STREAM */
@@ -540,6 +548,9 @@
       color: #991b1b;
       border: 1px solid #fecaca;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .msg-group.out .bubble {
       background: #ffffff;
@@ -561,10 +572,13 @@
     }
     .check-double {
       color: var(--primary);
-      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 600;
     }
 
-    /* COMPOSER CARD (BOTTOM) */
+    /* COMPOSER */
     .chat-composer-card {
       background: #ffffff;
       border: 1px solid var(--border);
@@ -606,12 +620,15 @@
       background: #f1f5f9;
       border: 1px solid var(--border);
       color: var(--text-muted);
-      padding: 3px 8px;
+      padding: 4px 9px;
       border-radius: 6px;
       font-size: 11px;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
     .canned-chip:hover {
       background: var(--primary-light);
@@ -652,10 +669,13 @@
       align-items: center;
       gap: 12px;
       color: var(--text-faint);
-      font-size: 15px;
     }
     .composer-btn-icon {
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-faint);
       transition: color 0.15s ease;
     }
     .composer-btn-icon:hover {
@@ -680,7 +700,7 @@
       background: var(--primary-hover);
     }
 
-    /* COLUMN 3: NODE PROPERTIES & TELEMETRY (RIGHT) */
+    /* COLUMN 3: NODE PROPERTIES & TELEMETRY */
     .col-details {
       background: #ffffff;
       display: flex;
@@ -725,7 +745,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
@@ -773,7 +793,7 @@
       color: #0f172a;
     }
 
-    /* Evac Confirmation Modal */
+    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -819,19 +839,92 @@
 </head>
 <body>
 
-  <!-- 1. SLIM LEFT ICON SIDEBAR (Reference design) -->
+  <!-- 1. SLIM LEFT ICON SIDEBAR WITH CLEAN SVGS -->
   <aside class="icon-sidebar">
     <div class="sidebar-top">
-      <a href="index.html" class="logo-btn" title="LifeLine Mission Hub">💬</a>
-      <div class="side-icon active" title="Incident Command Inbox">📥</div>
-      <a href="tx_companion.html" class="side-icon" title="Switch to Field Communicator (TX)">📡</a>
-      <div class="side-icon" onclick="exportLog()" title="Export Incident Log (CSV)">📊</div>
-      <div class="side-icon" onclick="toggleSiren()" id="iconSiren" title="Toggle Siren">🔔</div>
+      <a href="index.html" class="logo-btn" title="LifeLine Mission Hub">
+        <span class="svg-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </span>
+      </a>
+
+      <!-- Inbox Icon -->
+      <div class="side-icon active" title="Incident Command Inbox">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Field Unit Switch -->
+      <a href="tx_companion.html" class="side-icon" title="Switch to Field Communicator (TX)">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.93 19.07A10 10 0 0 1 2 12a10 10 0 0 1 2.93-7.07"/>
+            <path d="M19.07 4.93A10 10 0 0 1 22 12a10 10 0 0 1-2.93 7.07"/>
+            <path d="M8.46 15.54A5 5 0 0 1 7 12a5 5 0 0 1 1.46-3.54"/>
+            <path d="M15.54 8.46A5 5 0 0 1 17 12a5 5 0 0 1-1.46 3.54"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </span>
+      </a>
+
+      <!-- CSV Audit Log -->
+      <div class="side-icon" onclick="exportLog()" title="Export Incident Log (CSV)">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Siren Bell -->
+      <div class="side-icon" onclick="toggleSiren()" id="iconSiren" title="Toggle Siren">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </span>
+      </div>
     </div>
+
     <div class="sidebar-bottom">
-      <div class="side-icon" onclick="toggleBle()" title="Bluetooth LE Connection">⚡</div>
-      <div class="side-icon" onclick="toggleSerial()" title="Direct USB Serial">🔌</div>
-      <a href="index.html" class="side-icon" title="Mission Portal Menu">⚙️</a>
+      <!-- BLE -->
+      <div class="side-icon" onclick="toggleBle()" title="Bluetooth LE Connection">
+        <span class="svg-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+          </svg>
+        </span>
+      </div>
+
+      <!-- USB -->
+      <div class="side-icon" onclick="toggleSerial()" title="Direct USB Serial">
+        <span class="svg-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="7" y="2" width="10" height="7" rx="1"/>
+            <path d="M10 9v4a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9"/>
+            <path d="M12 15v7"/>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Settings / Menu -->
+      <a href="index.html" class="side-icon" title="Mission Portal Menu">
+        <span class="svg-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </span>
+      </a>
     </div>
   </aside>
 
@@ -843,18 +936,36 @@
       <div class="top-header-left">
         <h1 class="page-title">Incident Command Inbox</h1>
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon svg-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
           <input type="text" class="search-input" placeholder="Search field units, alerts, reports..." />
         </div>
       </div>
 
       <div class="top-header-right">
         <button id="btnBle" class="btn-top active-primary" onclick="toggleBle()">
-          <span>⚡ Connect BLE</span>
+          <span class="svg-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+            </svg>
+          </span>
+          <span>Connect BLE</span>
         </button>
+
         <button id="btnSerial" class="btn-top" onclick="toggleSerial()">
-          <span>🔌 USB</span>
+          <span class="svg-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="2" width="10" height="7" rx="1"/>
+              <path d="M10 9v4a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9"/>
+              <path d="M12 15v7"/>
+            </svg>
+          </span>
+          <span>USB</span>
         </button>
+
         <button id="btnSim" class="btn-top" onclick="toggleSim()">
           <span>Simulator: OFF</span>
         </button>
@@ -880,9 +991,14 @@
               <span>Active Field Units</span>
               <span id="badgeActiveCount" class="inbox-count-badge">3</span>
             </div>
-            <div style="display:flex; gap:6px;">
-              <button class="btn-top" style="padding:3px 7px;" onclick="exportLog()" title="Download CSV">CSV</button>
-            </div>
+            <button class="btn-top" style="padding:3px 7px;" onclick="exportLog()" title="Download CSV">
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </span>
+              <span>CSV</span>
+            </button>
           </div>
           <div class="inbox-actions-row">
             <span>Sorted by newest distress transmission</span>
@@ -891,7 +1007,7 @@
         </div>
 
         <div id="inboxList" class="inbox-list">
-          <!-- Populated from active units -->
+          <!-- Populated dynamically -->
         </div>
       </section>
 
@@ -905,7 +1021,14 @@
             <div>
               <div class="chat-peer-title">
                 <span id="activePeerTitle">Unit #003 — Field Distress Beacon</span>
-                <span class="alert-tag-pill tag-critical" id="activePeerPill">🚨 CRITICAL SOS</span>
+                <span class="alert-tag-pill tag-critical" id="activePeerPill">
+                  <span class="svg-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  </span>
+                  <span>CRITICAL SOS</span>
+                </span>
               </div>
               <div class="chat-peer-sub" id="activePeerSub">via 433 MHz LoRa &bull; Langtang Valley Ridge</div>
             </div>
@@ -913,13 +1036,29 @@
 
           <div class="chat-header-actions">
             <div class="btn-action-pill" onclick="sendQuickDispatch('STANDBY', 'Hold position, rescue airborne')">
-              <span>✋ Hold Position</span>
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                </svg>
+              </span>
+              <span>Hold Position</span>
             </div>
+
             <div class="btn-action-pill" onclick="sendQuickDispatch('MEDICAL', 'Keep warm and apply pressure')">
-              <span>🩺 Medical Advice</span>
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/>
+                </svg>
+              </span>
+              <span>Medical Advice</span>
             </div>
+
             <button class="btn-resolve-check" onclick="sendQuickDispatch('LOGGED', 'Coordinates logged by Base Hub')" title="Acknowledge Alert">
-              ✓
+              <span class="svg-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </span>
             </button>
           </div>
         </div>
@@ -934,25 +1073,61 @@
         <div class="chat-composer-card">
           <div class="composer-tabs">
             <span class="composer-tab active">Downlink Reply</span>
-            <span class="composer-tab" onclick="openEvacModal()" style="color:var(--red);">⚠️ Mass Evacuation</span>
+            <span class="composer-tab" onclick="openEvacModal()" style="color:var(--red); display:inline-flex; align-items:center; gap:4px;">
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </span>
+              <span>Mass Evacuation</span>
+            </span>
           </div>
 
           <!-- Canned Responses Chips -->
           <div class="composer-canned-chips">
             <span class="canned-chip" onclick="sendQuickDispatch('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
-              🚁 /airborne: APF Airborne ETA 20m
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 7h20M12 2v5M4 14h12a4 4 0 0 0 4-4v0M6 18h10M6 14v4M14 14v4"/>
+                </svg>
+              </span>
+              <span>/airborne: APF Airborne ETA 20m</span>
             </span>
+
             <span class="canned-chip" onclick="sendQuickDispatch('STANDBY', 'Hold position and stay warm')">
-              ✋ /hold: Hold Position
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                </svg>
+              </span>
+              <span>/hold: Hold Position</span>
             </span>
+
             <span class="canned-chip" onclick="sendQuickDispatch('MEDICAL', 'Keep injured warm apply pressure')">
-              🩺 /medical: Medical Guidance
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/>
+                </svg>
+              </span>
+              <span>/medical: Medical Guidance</span>
             </span>
+
             <span class="canned-chip" onclick="sendQuickDispatch('EN_ROUTE', 'Ground team en route on foot')">
-              🚚 /ground: Ground Team SAR
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+              </span>
+              <span>/ground: Ground Team SAR</span>
             </span>
+
             <span class="canned-chip evac" onclick="openEvacModal()">
-              ⚠️ /evac: Mass Evacuation Broadcast
+              <span class="svg-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </span>
+              <span>/evac: Mass Evacuation Broadcast</span>
             </span>
           </div>
 
@@ -960,13 +1135,32 @@
 
           <div class="composer-bottom-bar">
             <div class="composer-actions-left">
-              <span class="composer-btn-icon" title="Canned Responses" onclick="document.getElementById('composerInput').value = '/';">⚡</span>
-              <span class="composer-btn-icon" title="Acoustic Alert" onclick="alertSiren()">🔔</span>
+              <span class="composer-btn-icon" title="Canned Responses" onclick="document.getElementById('composerInput').value = '/';">
+                <span class="svg-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                </span>
+              </span>
+
+              <span class="composer-btn-icon" title="Acoustic Alert" onclick="alertSiren()">
+                <span class="svg-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                </span>
+              </span>
+
               <span style="font-size:11px; color:var(--text-faint);" id="charCount">0/48</span>
             </div>
+
             <button class="btn-send-msg" onclick="sendCustomReply()">
               <span>Send</span>
-              <span>➤</span>
+              <span class="svg-icon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </span>
             </button>
           </div>
         </div>
@@ -980,7 +1174,7 @@
         <div class="details-card">
           <div class="details-card-header">
             <span>Node Profile</span>
-            <span style="color:var(--primary); cursor:pointer;" onclick="exportLog()">CSV</span>
+            <span style="color:var(--primary); cursor:pointer; font-size:11px; font-weight:600;" onclick="exportLog()">EXPORT CSV</span>
           </div>
 
           <div class="unit-profile-center">
@@ -1045,8 +1239,14 @@
   <!-- MASS EVACUATION CONFIRMATION MODAL -->
   <div id="evacModal" class="modal-overlay">
     <div class="modal-box">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:40px; height:40px; border-radius:10px; background:var(--red-light); color:var(--red); display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:var(--red-light); color:var(--red); display:flex; align-items:center; justify-content:center;">
+          <span class="svg-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
+        </div>
         <div>
           <h3 style="font-size:15px; font-weight:700; color:#0f172a;">Broadcast Mass Evacuation</h3>
           <p style="font-size:12px; color:var(--text-muted);">Transmit urgent evacuation frame (EVAC:ALL) over 433 MHz LoRa.</p>
@@ -1090,12 +1290,12 @@
     // Conversation messages per unit
     const messagesMap = new Map([
       [3, [
-        { sender: 'Unit #003', text: '🚨 ALERT [A]: CRITICAL SOS (आपतकालीन उद्धार)', time: '10:11 AM', in: true, alert: true },
+        { sender: 'Unit #003', text: 'ALERT [A]: CRITICAL SOS (आपतकालीन उद्धार)', time: '10:11 AM', in: true, alert: true },
         { sender: 'Unit #003', text: '3 trapped near school, need medical stretcher', time: '10:11 AM', in: true },
         { sender: 'Base Commander (You)', text: 'APF squad airborne ETA 20 min. Keep them warm and hold position.', time: '10:12 AM', in: false }
       ]],
       [1, [
-        { sender: 'Unit #001', text: '⚠️ Landslide blocked main trail near bridge pass', time: '09:45 AM', in: true, alert: true },
+        { sender: 'Unit #001', text: 'Landslide blocked main trail near bridge pass', time: '09:45 AM', in: true, alert: true },
         { sender: 'Base Commander (You)', text: 'Ground team dispatched on foot. Do not cross the slide.', time: '09:48 AM', in: false }
       ]],
       [12, [
@@ -1152,7 +1352,12 @@
             </div>
             <div class="item-snippet">${u.lastMsg}</div>
             <div class="item-bottom">
-              <span class="alert-tag-pill ${u.tagCls}">${u.alertTag}</span>
+              <span class="alert-tag-pill ${u.tagCls}">
+                <span class="svg-icon">
+                  ${u.tagCls === 'tag-critical' ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>' : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'}
+                </span>
+                <span>${u.alertTag}</span>
+              </span>
               <span style="font-size:10px; color:var(--text-faint);">${u.rssi} dBm</span>
             </div>
           </div>
@@ -1173,7 +1378,14 @@
       document.getElementById('activePeerAvatar').innerText = `#${String(u.id).padStart(2, '0')}`;
       document.getElementById('activePeerAvatar').style.background = u.color;
       document.getElementById('activePeerPill').className = `alert-tag-pill ${u.tagCls}`;
-      document.getElementById('activePeerPill').innerText = u.alertTag;
+      document.getElementById('activePeerPill').innerHTML = `
+        <span class="svg-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </span>
+        <span>${u.alertTag}</span>
+      `;
 
       // Update right panel details
       document.getElementById('detailsAvatar').innerText = `#${String(u.id).padStart(2, '0')}`;
@@ -1204,7 +1416,14 @@
             <div class="bubble ${m.alert ? 'alert-highlight' : ''}">${m.text}</div>
             <div class="bubble-footer">
               <span>${m.time}</span>
-              ${!m.in ? '<span class="check-double">✓✓ ACK</span>' : ''}
+              ${!m.in ? `<span class="check-double">
+                <span class="svg-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </span>
+                <span>ACK</span>
+              </span>` : ''}
             </div>
           </div>
         `;
@@ -1256,10 +1475,9 @@
       await transmit(`EVAC:${reason}`);
       alertSiren();
 
-      // Add to current chat
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const msgs = messagesMap.get(currentTargetId) || [];
-      msgs.push({ sender: 'BROADCAST DISPATCH', text: `⚠️ MASS EVACUATION ORDER: ${reason}`, time, in: false });
+      msgs.push({ sender: 'BROADCAST DISPATCH', text: `MASS EVACUATION ORDER: ${reason}`, time, in: false });
       renderChatStream();
     }
 
@@ -1298,7 +1516,7 @@
         const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-65', 10);
 
         const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#ef4444' };
-        u.lastMsg = `🚨 [${code}] ${name}`;
+        u.lastMsg = `[${code}] ${name}`;
         u.time = 'Just now';
         u.alertTag = name;
         u.tagCls = 'tag-critical';
@@ -1307,7 +1525,7 @@
 
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const msgs = messagesMap.get(dev) || [];
-        msgs.push({ sender: u.name, text: `🚨 ALERT [${code}]: ${name}`, time, in: true, alert: true });
+        msgs.push({ sender: u.name, text: `ALERT [${code}]: ${name}`, time, in: true, alert: true });
         messagesMap.set(dev, msgs);
 
         alertSiren();
