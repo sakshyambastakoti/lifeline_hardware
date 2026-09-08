@@ -77,3 +77,33 @@ int successfulTransmissions = 0;
 // System status
 bool loraInitialized = false;
 int batteryPercent = -1;  // -1 = not available
+
+// BLE Portal & Message History
+RxMessageItem rxMessageHistory[RX_MESSAGE_HISTORY_MAX];
+int rxMessageCount = 0;
+int blePortalScrollIndex = 0;
+bool bleRadioEnabled = true;
+
+// Popup Modal State
+String popupTitle = "";
+String popupSender = "";
+String popupMessage = "";
+String popupStatus = "";
+int popupRssi = 0;
+unsigned long popupStartTime = 0;
+
+void addReceivedMessageToHistory(const String& sender, const String& status, const String& text, int rssi) {
+    if (rxMessageCount >= RX_MESSAGE_HISTORY_MAX) {
+        for (int i = 0; i < RX_MESSAGE_HISTORY_MAX - 1; i++) {
+            rxMessageHistory[i] = rxMessageHistory[i + 1];
+        }
+        rxMessageCount = RX_MESSAGE_HISTORY_MAX - 1;
+    }
+    rxMessageHistory[rxMessageCount].sender = sender;
+    rxMessageHistory[rxMessageCount].status = status;
+    rxMessageHistory[rxMessageCount].text = text;
+    rxMessageHistory[rxMessageCount].timestamp = millis();
+    rxMessageHistory[rxMessageCount].rssi = rssi;
+    rxMessageCount++;
+    blePortalScrollIndex = max(0, rxMessageCount - 1);
+}

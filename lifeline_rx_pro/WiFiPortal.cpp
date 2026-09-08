@@ -200,7 +200,7 @@ void stopWiFiPortal() {
         connectToWiFi();
     }
     
-    if (currentScreen != SCREEN_ALERT) {
+    if (currentScreen != SCREEN_ALERT && currentScreen != SCREEN_CUSTOM_MSG) {
         currentScreen = SCREEN_IDLE;
         drawIdleScreen();
     }
@@ -260,7 +260,8 @@ void checkWiFiPortalButton() {
                 playCountdownTickTone();
             }
             
-            if (!portalActive && pressDuration >= 150) {
+            int minCountdownMs = (previousScreenBeforePress == SCREEN_CUSTOM_MSG || hasActiveChatMessage) ? 450 : 150;
+            if (!portalActive && pressDuration >= minCountdownMs) {
                 currentScreen = SCREEN_COUNTDOWN;
                 drawProgressCountdownScreen(pressDuration, LONG_PRESS_DURATION);
             }
@@ -285,7 +286,10 @@ void checkWiFiPortalButton() {
             if (!portalActive) {
                 if (totalDuration < 1000) {
                     // Short press
-                    if (previousScreenBeforePress == SCREEN_NO_WIFI) {
+                    if (hasActiveChatMessage || previousScreenBeforePress == SCREEN_CUSTOM_MSG) {
+                        currentScreen = SCREEN_CUSTOM_MSG;
+                        scrollCurrentMessage();
+                    } else if (previousScreenBeforePress == SCREEN_NO_WIFI) {
                         // Skip No WiFi screen
                         playSkipConfirmTone();
                         currentScreen = SCREEN_IDLE;
@@ -300,7 +304,9 @@ void checkWiFiPortalButton() {
                 } else {
                     // Pressed between 1s and 3s, released before 3s -> cancel countdown
                     currentScreen = previousScreenBeforePress;
-                    if (currentScreen == SCREEN_NO_WIFI) {
+                    if (currentScreen == SCREEN_CUSTOM_MSG) {
+                        drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+                    } else if (currentScreen == SCREEN_NO_WIFI) {
                         drawNoWiFiScreen();
                     } else if (currentScreen == SCREEN_IDLE) {
                         drawIdleScreen();

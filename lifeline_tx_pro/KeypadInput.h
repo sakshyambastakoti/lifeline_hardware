@@ -19,5 +19,7 @@ void handleConfirmInput(char key);
 void handleResultInput(char key);
 void handleSystemInfoInput(char key);
 void handleUserManualInput(char key);
+void handleBLEPortalInput(char key);
+void handleMessagePopupInput(char key);
 
 #endif // KEYPAD_INPUT_H

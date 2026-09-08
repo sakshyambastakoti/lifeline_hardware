@@ -1,5 +1,6 @@
 #include "KeypadInput.h"
 #include "OTAManager.h"
+#include "BLEManager.h"
 
 const byte KEYPAD_ROWS = 4;
 const byte KEYPAD_COLS = 4;
@@ -117,6 +118,12 @@ void handleKeyPress(char key) {
                 drawMenuScreen();
             }
             break;
+        case SCREEN_BLE_PORTAL:
+            handleBLEPortalInput(key);
+            break;
+        case SCREEN_MESSAGE_POPUP:
+            handleMessagePopupInput(key);
+            break;
         default:
             break;
     }
@@ -170,6 +177,14 @@ void handleMenuInput(char key) {
         previousScreen = SCREEN_MENU;
         currentScreen = SCREEN_OTA_SELECT;
         drawOTASelectScreen();
+        return;
+    }
+    else if (key == 'D') {
+        Serial.println(F("\n[KEYPAD] Key 'D' pressed -> Opening Tactical Bluetooth Portal!"));
+        playConfirmTone();
+        previousScreen = SCREEN_MENU;
+        currentScreen = SCREEN_BLE_PORTAL;
+        drawBLEPortalScreen();
         return;
     }
     
@@ -243,6 +258,40 @@ void handleUserManualInput(char key) {
     }
     else if (key == '#' || key == '*') {
         currentScreen = SCREEN_MENU;
+        drawMenuScreen();
+    }
+}
+
+void handleBLEPortalInput(char key) {
+    if (key == '1' || key == '*') {
+        toggleBLERadio();
+        playConfirmTone();
+        drawBLEPortalScreen();
+    } else if (key == 'B') {
+        if (rxMessageCount > 0) {
+            blePortalScrollIndex = (blePortalScrollIndex + 1) % rxMessageCount;
+            playNavigateTone();
+            drawBLEPortalScreen();
+        }
+    } else if (key == '#' || key == 'D') {
+        playClickTone();
+        currentScreen = SCREEN_MENU;
+        drawMenuScreen();
+    }
+}
+
+void handleMessagePopupInput(char key) {
+    playClickTone();
+    currentScreen = previousScreen;
+    if (currentScreen == SCREEN_BLE_PORTAL) {
+        drawBLEPortalScreen();
+    } else if (currentScreen == SCREEN_MENU) {
+        drawMenuScreen();
+    } else if (currentScreen == SCREEN_SYSTEM_INFO) {
+        drawSystemInfoScreen();
+    } else if (currentScreen == SCREEN_SENSOR_LOG) {
+        drawSensorLogScreen();
+    } else {
         drawMenuScreen();
     }
 }

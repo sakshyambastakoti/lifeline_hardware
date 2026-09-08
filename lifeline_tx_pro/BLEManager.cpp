@@ -7,6 +7,7 @@ static NimBLECharacteristic* pRxCharacteristic = nullptr;
 
 static bool deviceConnected = false;
 static bool oldDeviceConnected = false;
+static String connectedClientInfo = "None";
 
 static bool hasPendingChat = false;
 static String pendingChatMessage = "";
@@ -37,13 +38,18 @@ static void processIncomingBLECommand(const String& cmd) {
 class ServerCallbacks : public NimBLEServerCallbacks {
     void onConnect(NimBLEServer* pServer) override {
         deviceConnected = true;
+        connectedClientInfo = "Smartphone (Paired)";
         Serial.println(F("[BLE] Mobile client paired and connected!"));
     }
 
     void onDisconnect(NimBLEServer* pServer) override {
         deviceConnected = false;
-        Serial.println(F("[BLE] Mobile client disconnected. Restarting advertising..."));
-        NimBLEDevice::startAdvertising();
+        connectedClientInfo = "None";
+        Serial.println(F("[BLE] Mobile client disconnected."));
+        if (bleRadioEnabled) {
+            Serial.println(F("[BLE] Restarting advertising..."));
+            NimBLEDevice::startAdvertising();
+        }
     }
 };
 
@@ -90,12 +96,16 @@ void initBLE() {
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(BLE_SERVICE_UUID);
     pAdvertising->setScanResponse(true);
-    pAdvertising->start();
-
-    Serial.println(F("[BLE INIT] BLE Nordic UART Service advertising active."));
+    
+    if (bleRadioEnabled) {
+        pAdvertising->start();
+        Serial.println(F("[BLE INIT] BLE Nordic UART Service advertising active."));
+    }
 }
 
 void updateBLE() {
+    if (!bleRadioEnabled) return;
+
     // Handle disconnect re-advertising if needed
     if (!deviceConnected && oldDeviceConnected) {
         delay(10);
@@ -108,11 +118,43 @@ void updateBLE() {
 }
 
 bool isBLEConnected() {
-    return deviceConnected;
+    return bleRadioEnabled && deviceConnected;
+}
+
+bool isBLERadioEnabled() {
+    return bleRadioEnabled;
+}
+
+void setBLERadioEnabled(bool enable) {
+    if (bleRadioEnabled == enable) return;
+    bleRadioEnabled = enable;
+
+    if (bleRadioEnabled) {
+        Serial.println(F("[BLE POWER] Radio turned ON -> Advertising active"));
+        NimBLEDevice::startAdvertising();
+    } else {
+        Serial.println(F("[BLE POWER] Radio turned OFF -> Advertising stopped"));
+        NimBLEDevice::stopAdvertising();
+        if (deviceConnected && pServer != nullptr) {
+            // Disconnect clients to save power
+            deviceConnected = false;
+            connectedClientInfo = "None";
+        }
+    }
+}
+
+void toggleBLERadio() {
+    setBLERadioEnabled(!bleRadioEnabled);
+}
+
+String getConnectedClientInfo() {
+    if (!bleRadioEnabled) return "RADIO OFF";
+    if (deviceConnected) return connectedClientInfo;
+    return "ADVERTISING (Waiting)";
 }
 
 void sendBLEString(const String& data) {
-    if (deviceConnected && pTxCharacteristic != nullptr) {
+    if (bleRadioEnabled && deviceConnected && pTxCharacteristic != nullptr) {
         pTxCharacteristic->setValue(data.c_str());
         pTxCharacteristic->notify();
         Serial.printf("[BLE TX] Sent: '%s'\n", data.c_str());

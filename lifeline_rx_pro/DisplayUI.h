@@ -43,6 +43,15 @@ void updateIdleAnimation();
 void drawAlertScreen(int deviceId, int alertIndex, int rssi);
 bool shouldReturnToIdle();
 
+// Custom Received Message Screen (Scrollable with Wi-Fi button)
+extern bool hasActiveChatMessage;
+extern String currentChatMessage;
+extern int currentChatDeviceId;
+extern int currentChatRssi;
+extern int currentChatScrollOffset;
+void drawCustomMessageScreen(int deviceId, const String& message, int rssi, int scrollOffset = 0);
+void scrollCurrentMessage();
+
 // WiFi Screens
 void drawNoWiFiScreen();
 void drawWiFiConnectingScreen(const String& ssid, int currentIdx, int totalCount);

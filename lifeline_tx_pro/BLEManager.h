@@ -13,6 +13,12 @@ void initBLE();
 void updateBLE();
 bool isBLEConnected();
 
+// Radio Power Control (ON / OFF)
+bool isBLERadioEnabled();
+void setBLERadioEnabled(bool enable);
+void toggleBLERadio();
+String getConnectedClientInfo();
+
 // Outbound notifications to paired smartphone
 void sendBLEString(const String& data);
 void notifyBLEStatus();

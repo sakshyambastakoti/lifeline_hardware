@@ -22,7 +22,7 @@ static String serialInputBuffer = "";
 
 // Forward declarations for Serial Debug Menu
 void printSerialDebugMenu();
-bool checkSerialSimulatedPacket(int& deviceId, int& alertIndex, int& rssi);
+bool checkSerialSimulatedPacket(FullTelemetryData& telemetry);
 
 bool handleIncomingLoRaTelemetry() {
     FullTelemetryData telemetry;
@@ -30,14 +30,7 @@ bool handleIncomingLoRaTelemetry() {
 
     #if SERIAL_DEBUG_ENABLED
     if (!packetReceived) {
-        int devId, alertIdx, rssi;
-        if (checkSerialSimulatedPacket(devId, alertIdx, rssi)) {
-            telemetry.deviceId = devId;
-            telemetry.alertIndex = alertIdx;
-            telemetry.rssi = rssi;
-            telemetry.emergencyCode = (alertIdx == 4) ? 'N' : 'E';
-            telemetry.isFullTelemetry = false;
-            telemetry.isChatMessage = false;
+        if (checkSerialSimulatedPacket(telemetry)) {
             packetReceived = true;
         }
     }
@@ -51,8 +44,14 @@ bool handleIncomingLoRaTelemetry() {
         Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
         notifyBLEChat(telemetry.deviceId, telemetry.chatMessage.c_str(), telemetry.rssi);
         sendDownlinkACK(telemetry.deviceId, 'M', "LOGGED", "Base received chat");
-        currentScreen = SCREEN_ALERT;
-        drawAlertScreen(telemetry.deviceId, 0, telemetry.rssi);
+        hasActiveChatMessage = true;
+        currentChatMessage = telemetry.chatMessage;
+        currentChatDeviceId = telemetry.deviceId;
+        currentChatRssi = telemetry.rssi;
+        currentChatScrollOffset = 0;
+        currentScreen = SCREEN_CUSTOM_MSG;
+        drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+        playAlertTone(0);
         return true;
     }
 
@@ -226,6 +225,20 @@ void loop() {
                 Serial.println(F("[STATE] Auto-returned to IDLE from ALERT (15s timeout)"));
             }
             break;
+
+        case SCREEN_CUSTOM_MSG:
+            checkWiFiPortalButton();
+            
+            handleIncomingLoRaTelemetry();
+            
+            if (shouldReturnToIdle()) {
+                hasActiveChatMessage = false;
+                playReturnIdleTone();
+                currentScreen = SCREEN_IDLE;
+                drawIdleScreen();
+                Serial.println(F("[STATE] Auto-returned to IDLE from CUSTOM_MSG (15s timeout)"));
+            }
+            break;
             
         case SCREEN_WIFI_SPLASH:
         case SCREEN_HISTORY:
@@ -239,7 +252,7 @@ void loop() {
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                          SERIAL DEBUG CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════════════
-bool checkSerialSimulatedPacket(int& deviceId, int& alertIndex, int& rssi) {
+bool checkSerialSimulatedPacket(FullTelemetryData& telemetry) {
     if (!Serial.available()) return false;
     
     while (Serial.available()) {
@@ -264,51 +277,92 @@ bool checkSerialSimulatedPacket(int& deviceId, int& alertIndex, int& rssi) {
         return false;
     }
     
+    // 1. Chat simulation: "CHAT:<message>" or "<devId>,CHAT,<message>"
+    if (input.startsWith("CHAT:") || input.startsWith("chat:")) {
+        telemetry.deviceId = 1;
+        telemetry.emergencyCode = 'M';
+        telemetry.alertIndex = 0;
+        telemetry.isFullTelemetry = false;
+        telemetry.isChatMessage = true;
+        telemetry.chatMessage = input.substring(5);
+        telemetry.chatMessage.trim();
+        telemetry.rssi = -65;
+        Serial.printf("[SERIAL DEBUG] Simulated Chat: Dev=1, Msg='%s'\n", telemetry.chatMessage.c_str());
+        return true;
+    }
+    if (input.indexOf(",CHAT,") != -1 || input.indexOf(",chat,") != -1) {
+        int chatComma = (input.indexOf(",CHAT,") != -1) ? input.indexOf(",CHAT,") : input.indexOf(",chat,");
+        telemetry.deviceId = input.substring(0, chatComma).toInt();
+        telemetry.emergencyCode = 'M';
+        telemetry.alertIndex = 0;
+        telemetry.isFullTelemetry = false;
+        telemetry.isChatMessage = true;
+        telemetry.chatMessage = input.substring(chatComma + 6);
+        telemetry.chatMessage.trim();
+        telemetry.rssi = -65;
+        Serial.printf("[SERIAL DEBUG] Simulated Chat: Dev=%d, Msg='%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
+        return true;
+    }
+
+    // 2. Quick alert by single digit
     if (input.length() == 1 && ((input[0] >= '0' && input[0] <= '9'))) {
-        deviceId = 1;
-        alertIndex = (input[0] == '0') ? 9 : input[0] - '1';
-        rssi = -65;
+        telemetry.deviceId = 1;
+        telemetry.alertIndex = (input[0] == '0') ? 9 : input[0] - '1';
+        telemetry.emergencyCode = (telemetry.alertIndex == 4) ? 'N' : 'E';
+        telemetry.isFullTelemetry = false;
+        telemetry.isChatMessage = false;
+        telemetry.rssi = -65;
         Serial.printf("[SERIAL DEBUG] Quick alert: Device=%d, Alert=%d (%s)\n", 
-                      deviceId, alertIndex, alertNames[alertIndex]);
+                      telemetry.deviceId, telemetry.alertIndex, alertNames[telemetry.alertIndex]);
         return true;
     }
     
+    // 3. Quick alert by single letter
     if (input.length() == 1 && ((input[0] >= 'A' && input[0] <= 'O') || (input[0] >= 'a' && input[0] <= 'o'))) {
-        deviceId = 1;
+        telemetry.deviceId = 1;
         char code = (input[0] >= 'a') ? (input[0] - 'a' + 'A') : input[0];
-        alertIndex = code - 'A';
-        rssi = -65;
+        telemetry.alertIndex = code - 'A';
+        telemetry.emergencyCode = code;
+        telemetry.isFullTelemetry = false;
+        telemetry.isChatMessage = false;
+        telemetry.rssi = -65;
         Serial.printf("[SERIAL DEBUG] Quick alert: Device=%d, Alert=%c (%s)\n", 
-                      deviceId, code, alertNames[alertIndex]);
+                      telemetry.deviceId, code, alertNames[telemetry.alertIndex]);
         return true;
     }
     
+    // 4. Standard format: DEVICE_ID,ALERT_CODE
     int comma = input.indexOf(',');
     if (comma <= 0) {
-        Serial.println("[SERIAL DEBUG] Invalid format. Use: DEVICE_ID,ALERT_CODE (e.g., '3,A')");
+        Serial.println("[SERIAL DEBUG] Invalid format. Use: DEVICE_ID,ALERT_CODE or CHAT:text");
         return false;
     }
     
-    deviceId = input.substring(0, comma).toInt();
+    telemetry.deviceId = input.substring(0, comma).toInt();
     String alertPart = input.substring(comma + 1);
     alertPart.trim();
     
     if (alertPart.length() == 1 && alertPart[0] >= 'A' && alertPart[0] <= 'O') {
-        alertIndex = alertPart[0] - 'A';
+        telemetry.alertIndex = alertPart[0] - 'A';
+        telemetry.emergencyCode = alertPart[0];
     } else if (alertPart.length() == 1 && alertPart[0] >= 'a' && alertPart[0] <= 'o') {
-        alertIndex = alertPart[0] - 'a';
+        telemetry.alertIndex = alertPart[0] - 'a';
+        telemetry.emergencyCode = alertPart[0] - 'a' + 'A';
     } else {
-        alertIndex = alertPart.toInt();
+        telemetry.alertIndex = alertPart.toInt();
+        telemetry.emergencyCode = (telemetry.alertIndex == 4) ? 'N' : 'E';
     }
     
-    if (alertIndex < 0 || alertIndex >= ALERT_COUNT) {
-        Serial.printf("[SERIAL DEBUG] Invalid alert index: %d\n", alertIndex);
+    if (telemetry.alertIndex < 0 || telemetry.alertIndex >= ALERT_COUNT) {
+        Serial.printf("[SERIAL DEBUG] Invalid alert index: %d\n", telemetry.alertIndex);
         return false;
     }
     
-    rssi = -65;
+    telemetry.isFullTelemetry = false;
+    telemetry.isChatMessage = false;
+    telemetry.rssi = -65;
     Serial.printf("[SERIAL DEBUG] Simulated packet: Device=%d, Alert=%d (%s)\n", 
-                  deviceId, alertIndex, alertNames[alertIndex]);
+                  telemetry.deviceId, telemetry.alertIndex, alertNames[telemetry.alertIndex]);
     
     return true;
 }

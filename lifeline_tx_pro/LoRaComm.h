@@ -18,5 +18,6 @@ bool transmitAlert();
 bool transmitAlertWithAck(int alertIdx = -1);
 bool transmitChatMessage(const String& message);
 bool transmitSPUTelemetry(const TelemetryPacket& pkt);
+bool checkIncomingDownlinkLoRa();
 
 #endif // LORA_COMM_H

@@ -215,7 +215,9 @@ enum ScreenState {
     SCREEN_USER_MANUAL,     // 6 - User manual / help screen
     SCREEN_OTA,             // 7 - Wireless OTA Firmware Portal
     SCREEN_SENSOR_LOG,      // 8 - SPU Sensor Telemetry Log Dashboard
-    SCREEN_OTA_SELECT       // 9 - Interactive OTA Mode Selection (Local AP vs Net)
+    SCREEN_OTA_SELECT,      // 9 - Interactive OTA Mode Selection (Local AP vs Net)
+    SCREEN_BLE_PORTAL,      // 10 - Bluetooth Low Energy Tactical Portal (Key 'D')
+    SCREEN_MESSAGE_POPUP    // 11 - Universal Base Downlink Message Popup
 };
 
 extern ScreenState currentScreen;
@@ -238,5 +240,31 @@ extern int successfulTransmissions;
 
 extern bool loraInitialized;
 extern int batteryPercent;
+
+// BLE Portal & Message History
+struct RxMessageItem {
+    String sender;
+    String status;
+    String text;
+    unsigned long timestamp;
+    int rssi;
+};
+
+#define RX_MESSAGE_HISTORY_MAX 5
+extern RxMessageItem rxMessageHistory[RX_MESSAGE_HISTORY_MAX];
+extern int rxMessageCount;
+extern int blePortalScrollIndex;
+
+extern bool bleRadioEnabled;
+
+// Popup Modal State
+extern String popupTitle;
+extern String popupSender;
+extern String popupMessage;
+extern String popupStatus;
+extern int popupRssi;
+extern unsigned long popupStartTime;
+
+void addReceivedMessageToHistory(const String& sender, const String& status, const String& text, int rssi);
 
 #endif // CONFIG_H

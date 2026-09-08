@@ -59,6 +59,11 @@ void loop() {
     handleOTA();
     updateBLE();
     
+    // Continuous background listening for downlink commands/messages from RX Base
+    if (currentScreen != SCREEN_SENDING) {
+        checkIncomingDownlinkLoRa();
+    }
+    
     // Process incoming BLE mobile chat message
     if (hasPendingBLEChatMessage()) {
         String chat = getPendingBLEChatMessage();
@@ -104,6 +109,8 @@ void loop() {
         case SCREEN_USER_MANUAL:
         case SCREEN_OTA:
         case SCREEN_OTA_SELECT:
+        case SCREEN_BLE_PORTAL:
+        case SCREEN_MESSAGE_POPUP:
             {
                 char key = keypad.getKey();
                 #if SERIAL_DEBUG_ENABLED

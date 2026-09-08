@@ -168,7 +168,8 @@ enum ScreenState {
     SCREEN_ALERT,           // 6 - Alert display screen (15s timeout)
     SCREEN_HISTORY,         // 7 - History
     SCREEN_SYSTEM_INFO,     // 8 - System info
-    SCREEN_OTA              // 9 - Remote OTA Firmware Update Screen
+    SCREEN_OTA,             // 9 - Remote OTA Firmware Update Screen
+    SCREEN_CUSTOM_MSG       // 10 - Custom Received Chat/Downlink Message Screen (Wi-Fi button scrollable)
 };
 
 #define SERIAL_DEBUG_ENABLED true

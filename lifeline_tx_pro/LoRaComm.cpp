@@ -1,5 +1,6 @@
 #include "LoRaComm.h"
 #include "BLEManager.h"
+#include "DisplayUI.h"
 
 bool lastAckReceived = false;
 String lastAckStatus = "";
@@ -27,12 +28,124 @@ void initLoRa() {
         LoRa.setSpreadingFactor(LORA_SF);
         LoRa.setSignalBandwidth(LORA_BW);
         LoRa.enableCrc();
+        LoRa.receive(); // Enter continuous receive mode
         loraInitialized = true;
-        Serial.printf("[INIT] LoRa OK @ %.1f MHz, SF%d, BW125kHz, CRC enabled\n", LORA_FREQUENCY / 1E6, LORA_SF);
+        Serial.printf("[INIT] LoRa OK @ %.1f MHz, SF%d, BW125kHz, CRC enabled (Continuous RX)\n", LORA_FREQUENCY / 1E6, LORA_SF);
     } else {
         loraInitialized = false;
         Serial.println(F("[INIT] LoRa FAILED!"));
     }
+}
+
+// Helper: processes a downlink frame (ACK, CMD, or EVAC)
+static bool handleParsedDownlink(const String& ackData, int rssi, int snr, bool showPopup) {
+    if (ackData.startsWith("ACK") || ackData.startsWith("CMD")) {
+        int firstComma = ackData.indexOf(',');
+        if (firstComma > 3) {
+            int targetNode = ackData.substring(3, firstComma).toInt();
+            if (targetNode == DEVICE_ID || targetNode == 0) {
+                String remainder = ackData.substring(firstComma + 1);
+                int secondComma = remainder.indexOf(',');
+
+                if (ackData.startsWith("ACK")) {
+                    // Format: <CODE>,<STATUS>,<BASE_ID>,<NOTE>
+                    if (secondComma > 0) {
+                        String afterCode = remainder.substring(secondComma + 1);
+                        int thirdComma = afterCode.indexOf(',');
+                        if (thirdComma > 0) {
+                            lastAckStatus = afterCode.substring(0, thirdComma);
+                            String afterStatus = afterCode.substring(thirdComma + 1);
+                            int fourthComma = afterStatus.indexOf(',');
+                            if (fourthComma > 0) {
+                                lastAckBaseId = afterStatus.substring(0, fourthComma);
+                                lastAckMessage = afterStatus.substring(fourthComma + 1);
+                            } else {
+                                lastAckBaseId = afterStatus;
+                                lastAckMessage = "Base Confirmed";
+                            }
+                        } else {
+                            lastAckStatus = afterCode;
+                            lastAckBaseId = "BASE-01";
+                            lastAckMessage = "Received";
+                        }
+                    } else {
+                        lastAckStatus = remainder;
+                        lastAckBaseId = "BASE-01";
+                        lastAckMessage = "Acknowledged";
+                    }
+                } else {
+                    // CMD: <ACTION>,<MESSAGE>
+                    if (secondComma > 0) {
+                        lastAckStatus = remainder.substring(0, secondComma);
+                        lastAckMessage = remainder.substring(secondComma + 1);
+                        lastAckBaseId = "COMMAND-BASE";
+                    } else {
+                        lastAckStatus = remainder;
+                        lastAckMessage = "Command Received";
+                        lastAckBaseId = "COMMAND-BASE";
+                    }
+                }
+
+                lastAckReceived = true;
+                lastAckRssi = rssi;
+                lastAckSnr = snr;
+
+                Serial.printf("[LORA DOWNLINK MATCH] Status: %s, Base: %s, Msg: %s\n",
+                              lastAckStatus.c_str(), lastAckBaseId.c_str(), lastAckMessage.c_str());
+
+                // 1. Record into message history
+                addReceivedMessageToHistory(lastAckBaseId, lastAckStatus, lastAckMessage, rssi);
+
+                // 2. Forward to mobile phone via BLE
+                notifyBLEAck(lastAckStatus.c_str(), lastAckBaseId.c_str(), lastAckMessage.c_str(), rssi, snr);
+
+                // 3. Trigger popup if requested
+                if (showPopup) {
+                    triggerMessagePopup("BASE STATION DISPATCH", lastAckBaseId, lastAckMessage, rssi, lastAckStatus);
+                }
+                return true;
+            }
+        }
+    } else if (ackData.startsWith("EVAC")) {
+        lastAckStatus = "EVACUATE";
+        lastAckBaseId = "EMERGENCY_BROADCAST";
+        int comma = ackData.indexOf(',', 5);
+        lastAckMessage = (comma > 0) ? ackData.substring(comma + 1) : "Evacuate to high ground immediately";
+        lastAckReceived = true;
+        lastAckRssi = rssi;
+        lastAckSnr = snr;
+
+        Serial.printf("[LORA EVAC MATCH] %s\n", lastAckMessage.c_str());
+        addReceivedMessageToHistory(lastAckBaseId, lastAckStatus, lastAckMessage, rssi);
+        notifyBLEAck(lastAckStatus.c_str(), lastAckBaseId.c_str(), lastAckMessage.c_str(), rssi, snr);
+
+        if (showPopup) {
+            triggerMessagePopup("EMERGENCY EVACUATION", lastAckBaseId, lastAckMessage, rssi, "EVACUATE");
+        }
+        return true;
+    }
+    return false;
+}
+
+// Background LoRa downlink listener (monitors channel continuously)
+bool checkIncomingDownlinkLoRa() {
+    if (!loraInitialized) return false;
+
+    int packetSize = LoRa.parsePacket();
+    if (packetSize == 0) return false;
+
+    String ackData = "";
+    while (LoRa.available()) {
+        ackData += (char)LoRa.read();
+    }
+    ackData.trim();
+    int rssi = LoRa.packetRssi();
+    int snr = LoRa.packetSnr();
+
+    Serial.printf("[LORA BG RECV] Raw (%d bytes): '%s', RSSI: %d, SNR: %d\n", packetSize, ackData.c_str(), rssi, snr);
+    bool matched = handleParsedDownlink(ackData, rssi, snr, true);
+    LoRa.receive();
+    return matched;
 }
 
 // Internal helper: listens for ACK packet on LoRa for up to timeoutMs
@@ -49,84 +162,12 @@ static bool waitForDownlinkACK(unsigned long timeoutMs) {
                 ackData += (char)LoRa.read();
             }
             ackData.trim();
-            lastAckRssi = LoRa.packetRssi();
-            lastAckSnr = LoRa.packetSnr();
+            int rssi = LoRa.packetRssi();
+            int snr = LoRa.packetSnr();
 
-            Serial.printf("[LORA ACK RECV] Raw (%d bytes): '%s', RSSI: %d, SNR: %d\n",
-                          packetSize, ackData.c_str(), lastAckRssi, lastAckSnr);
-
-            // Check if this is an ACK, CMD, or EVAC frame
-            // Expected formats:
-            // 1) ACK003,A,LOGGED,BASE01,Alert recorded
-            // 2) CMD003,DISPATCHED,Rescue squad dispatched ETA 20m
-            // 3) EVAC,ALL,Flash flood warning evacuate immediately
-            if (ackData.startsWith("ACK") || ackData.startsWith("CMD")) {
-                int firstComma = ackData.indexOf(',');
-                if (firstComma > 3) {
-                    int targetNode = ackData.substring(3, firstComma).toInt();
-                    if (targetNode == DEVICE_ID || targetNode == 0) {
-                        // Extract remaining tokens
-                        String remainder = ackData.substring(firstComma + 1);
-                        int secondComma = remainder.indexOf(',');
-
-                        if (ackData.startsWith("ACK")) {
-                            // Format: <CODE>,<STATUS>,<BASE_ID>,<NOTE>
-                            if (secondComma > 0) {
-                                String code = remainder.substring(0, secondComma);
-                                String afterCode = remainder.substring(secondComma + 1);
-                                int thirdComma = afterCode.indexOf(',');
-                                if (thirdComma > 0) {
-                                    lastAckStatus = afterCode.substring(0, thirdComma);
-                                    String afterStatus = afterCode.substring(thirdComma + 1);
-                                    int fourthComma = afterStatus.indexOf(',');
-                                    if (fourthComma > 0) {
-                                        lastAckBaseId = afterStatus.substring(0, fourthComma);
-                                        lastAckMessage = afterStatus.substring(fourthComma + 1);
-                                    } else {
-                                        lastAckBaseId = afterStatus;
-                                        lastAckMessage = "Base Confirmed";
-                                    }
-                                } else {
-                                    lastAckStatus = afterCode;
-                                    lastAckBaseId = "BASE";
-                                    lastAckMessage = "Received";
-                                }
-                            } else {
-                                lastAckStatus = remainder;
-                                lastAckBaseId = "BASE";
-                                lastAckMessage = "Acknowledged";
-                            }
-                        } else {
-                            // CMD: <ACTION>,<MESSAGE>
-                            if (secondComma > 0) {
-                                lastAckStatus = remainder.substring(0, secondComma);
-                                lastAckMessage = remainder.substring(secondComma + 1);
-                                lastAckBaseId = "COMMAND";
-                            } else {
-                                lastAckStatus = remainder;
-                                lastAckMessage = "Command Received";
-                                lastAckBaseId = "COMMAND";
-                            }
-                        }
-
-                        lastAckReceived = true;
-                        Serial.printf("[LORA ACK MATCH] Status: %s, Base: %s, Msg: %s\n",
-                                      lastAckStatus.c_str(), lastAckBaseId.c_str(), lastAckMessage.c_str());
-
-                        // Forward to connected phone via BLE
-                        notifyBLEAck(lastAckStatus.c_str(), lastAckBaseId.c_str(), lastAckMessage.c_str(), lastAckRssi, lastAckSnr);
-                        return true;
-                    }
-                }
-            } else if (ackData.startsWith("EVAC")) {
-                lastAckStatus = "EVACUATE";
-                lastAckBaseId = "EMERGENCY_BROADCAST";
-                int comma = ackData.indexOf(',', 5);
-                lastAckMessage = (comma > 0) ? ackData.substring(comma + 1) : "Move to high ground";
-                lastAckReceived = true;
-                notifyBLEAck(lastAckStatus.c_str(), lastAckBaseId.c_str(), lastAckMessage.c_str(), lastAckRssi, lastAckSnr);
-                return true;
-            }
+            Serial.printf("[LORA ACK RECV] Raw (%d bytes): '%s', RSSI: %d, SNR: %d\n", packetSize, ackData.c_str(), rssi, snr);
+            bool matched = handleParsedDownlink(ackData, rssi, snr, false);
+            if (matched) return true;
         }
         delay(10);
     }

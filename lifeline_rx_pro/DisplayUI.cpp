@@ -24,6 +24,12 @@ int historyCount = 0;
 int historyScrollOffset = 0;
 int totalAlertsReceived = 0;
 
+bool hasActiveChatMessage = false;
+String currentChatMessage = "";
+int currentChatDeviceId = 0;
+int currentChatRssi = 0;
+int currentChatScrollOffset = 0;
+
 void initDisplay() {
     Wire.begin(LCD_SDA, LCD_SCL);
     lcd.init();
@@ -225,8 +231,49 @@ void drawAlertScreen(int deviceId, int alertIndex, int rssi) {
 }
 
 bool shouldReturnToIdle() {
-    if (currentScreen != SCREEN_ALERT) return false;
+    if (currentScreen != SCREEN_ALERT && currentScreen != SCREEN_CUSTOM_MSG) return false;
     return (millis() - alertReceivedTime >= ALERT_DISPLAY_TIME);
+}
+
+void drawCustomMessageScreen(int deviceId, const String& message, int rssi, int scrollOffset) {
+    // Row 0: M#001 -65dBm [W]  ([W] indicates Wi-Fi button scrolls message)
+    char row0[17];
+    snprintf(row0, sizeof(row0), "M#%03d %4ddBm [W]", deviceId % 1000, rssi);
+    printLCDLine(0, row0);
+
+    // Row 1: 16 chars from scrollOffset
+    char row1[17];
+    memset(row1, ' ', 16);
+    row1[16] = '\0';
+
+    int msgLen = message.length();
+    if (scrollOffset < msgLen) {
+        int copyLen = msgLen - scrollOffset;
+        if (copyLen > 16) copyLen = 16;
+        memcpy(row1, message.c_str() + scrollOffset, copyLen);
+    }
+    printLCDLine(1, row1);
+
+    lastDeviceId = deviceId;
+    lastRssi = rssi;
+    alertReceivedTime = millis();
+    Serial.printf("[SCREEN] Custom Message displayed: Dev=%d, Offset=%d, Text='%s'\n",
+                  deviceId, scrollOffset, message.c_str());
+}
+
+void scrollCurrentMessage() {
+    if (!hasActiveChatMessage || currentChatMessage.length() == 0) return;
+    int msgLen = currentChatMessage.length();
+
+    // Advance by 12 characters (giving 4-character overlap for continuous reading)
+    if (currentChatScrollOffset + 16 < msgLen) {
+        currentChatScrollOffset += 12;
+    } else {
+        // Wrap back to beginning
+        currentChatScrollOffset = 0;
+    }
+    playSkipConfirmTone();
+    drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
 }
 
 void drawWiFiConnectingScreen(const String& ssid, int currentIdx, int totalCount) {

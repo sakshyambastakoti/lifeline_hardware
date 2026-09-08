@@ -2381,4 +2381,183 @@ void drawSensorLogScreen() {
     Serial.println(F("[SCREEN] Standalone Manual SOS Info displayed"));
 }
 
+void drawBLEPortalScreen() {
+    tft.fillScreen(COLOR_BG_PRIMARY);
+    drawHeader("BLUETOOTH PORTAL");
+
+    int card1Y = CONTENT_START_Y + 2;
+    int cardW = SCREEN_WIDTH - MARGIN * 2;
+    int card1H = 46;
+
+    // Card 1: BLE Radio Power & Service
+    bool bleOn = isBLERadioEnabled();
+    drawSharpCard(MARGIN, card1Y, cardW, card1H, COLOR_BG_CARD, bleOn ? COLOR_CYAN : RGB565(50, 60, 80), bleOn ? COLOR_CYAN : COLOR_RED);
+    
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(MARGIN + 12, card1Y + 8);
+    tft.print(F("BLE RADIO POWER: "));
+    tft.setTextColor(bleOn ? COLOR_GREEN_BRIGHT : COLOR_RED_BRIGHT);
+    tft.print(bleOn ? F("ENABLED [ON]") : F("DISABLED [OFF]"));
+
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(MARGIN + 12, card1Y + 24);
+    char nameBuf[40];
+    snprintf(nameBuf, sizeof(nameBuf), "NAME: LifeLine-TX-%03d  [KEY 1: TOGGLE]", DEVICE_ID);
+    tft.print(nameBuf);
+
+    // Card 2: Connected Device
+    int card2Y = card1Y + card1H + 6;
+    int card2H = 44;
+    bool connected = isBLEConnected();
+    drawSharpCard(MARGIN, card2Y, cardW, card2H, COLOR_BG_CARD, connected ? COLOR_GREEN : RGB565(40, 50, 70), connected ? COLOR_GREEN : COLOR_CYAN);
+    
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(MARGIN + 12, card2Y + 8);
+    tft.print(F("MOBILE COMPANION: "));
+    tft.setTextColor(connected ? COLOR_GREEN_BRIGHT : (bleOn ? COLOR_AMBER_BRIGHT : COLOR_TEXT_MUTED));
+    tft.print(connected ? F("CONNECTED (ACTIVE)") : (bleOn ? F("ADVERTISING (WAITING)") : F("RADIO OFF")));
+
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(MARGIN + 12, card2Y + 24);
+    char clientBuf[48];
+    snprintf(clientBuf, sizeof(clientBuf), "DEVICE: %s", getConnectedClientInfo().c_str());
+    tft.print(clientBuf);
+
+    // Card 3: Received Base Station Messages
+    int card3Y = card2Y + card2H + 6;
+    int card3H = 68;
+    drawSharpCard(MARGIN, card3Y, cardW, card3H, COLOR_BG_CARD, RGB565(25, 45, 65), COLOR_CYAN);
+
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
+    tft.setCursor(MARGIN + 12, card3Y + 7);
+    if (rxMessageCount > 0) {
+        char msgHdr[48];
+        snprintf(msgHdr, sizeof(msgHdr), "BASE MSG [%d/%d]  FROM: %s (%d dBm)",
+                 blePortalScrollIndex + 1, rxMessageCount,
+                 rxMessageHistory[blePortalScrollIndex].sender.c_str(),
+                 rxMessageHistory[blePortalScrollIndex].rssi);
+        tft.print(msgHdr);
+
+        // Status badge line
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.setCursor(MARGIN + 12, card3Y + 22);
+        char stBuf[32];
+        snprintf(stBuf, sizeof(stBuf), "STATUS: %s", rxMessageHistory[blePortalScrollIndex].status.c_str());
+        tft.print(stBuf);
+
+        // Message body
+        tft.setTextSize(TEXT_MEDIUM);
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(MARGIN + 12, card3Y + 38);
+        String msgText = rxMessageHistory[blePortalScrollIndex].text;
+        if (msgText.length() > 24) msgText = msgText.substring(0, 24) + "...";
+        tft.print(msgText);
+    } else {
+        tft.print(F("BASE STATION DOWNLINK FEED"));
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(MARGIN + 12, card3Y + 26);
+        tft.print(F("No messages received from Base Station yet."));
+        tft.setCursor(MARGIN + 12, card3Y + 44);
+        tft.print(F("Incoming commands and dispatch will appear here."));
+    }
+
+    drawFooter("[1] TOGGLE BLE   [B] NEXT MSG   [#] BACK");
+    Serial.println(F("[SCREEN] BLE Portal screen displayed"));
+}
+
+void drawMessagePopupScreen() {
+    // Semi-modal blackout with cyan emergency border
+    tft.fillScreen(RGB565(12, 14, 20));
+    
+    // Outer border
+    tft.drawRect(4, 4, SCREEN_WIDTH - 8, SCREEN_HEIGHT - 8, COLOR_CYAN);
+    tft.drawRect(6, 6, SCREEN_WIDTH - 12, SCREEN_HEIGHT - 12, COLOR_WHITE);
+    
+    // Header Banner
+    int bannerH = 34;
+    tft.fillRect(8, 8, SCREEN_WIDTH - 16, bannerH, RGB565(15, 35, 55));
+    tft.drawFastHLine(8, 8 + bannerH, SCREEN_WIDTH - 16, COLOR_CYAN_BRIGHT);
+    
+    tft.setTextSize(TEXT_MEDIUM);
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
+    tft.setCursor(20, 16);
+    tft.print(F("BASE STATION INSTRUCTION"));
+    
+    // Status & Source Strip
+    int stripY = 8 + bannerH + 8;
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(20, stripY);
+    tft.print(F("SOURCE: "));
+    tft.setTextColor(COLOR_WHITE);
+    tft.print(popupSender.length() > 0 ? popupSender : "BASE STATION #01");
+    tft.print(F("  |  RSSI: "));
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
+    char rBuf[16];
+    snprintf(rBuf, sizeof(rBuf), "%d dBm", popupRssi);
+    tft.print(rBuf);
+    
+    // Status Badge
+    int badgeY = stripY + 18;
+    tft.fillRect(20, badgeY, 130, 20, RGB565(10, 45, 30));
+    tft.drawRect(20, badgeY, 130, 20, COLOR_GREEN_BRIGHT);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(26, badgeY + 6);
+    tft.print(popupStatus.length() > 0 ? popupStatus : "DISPATCHED");
+    
+    // Message Body Card
+    int msgCardY = badgeY + 28;
+    int msgCardH = 75;
+    tft.fillRect(16, msgCardY, SCREEN_WIDTH - 32, msgCardH, RGB565(20, 24, 34));
+    tft.drawRect(16, msgCardY, SCREEN_WIDTH - 32, msgCardH, COLOR_BORDER);
+    
+    tft.setTextSize(TEXT_MEDIUM);
+    tft.setTextColor(COLOR_WHITE);
+    
+    String msg = popupMessage;
+    if (msg.length() <= 24) {
+        tft.setCursor(26, msgCardY + 24);
+        tft.print(msg);
+    } else {
+        String l1 = msg.substring(0, 24);
+        String l2 = msg.substring(24);
+        if (l2.length() > 24) l2 = l2.substring(0, 22) + "..";
+        tft.setCursor(26, msgCardY + 16);
+        tft.print(l1);
+        tft.setCursor(26, msgCardY + 40);
+        tft.print(l2);
+    }
+    
+    // Dismiss action prompt
+    int footerY = SCREEN_HEIGHT - 32;
+    tft.fillRect(16, footerY, SCREEN_WIDTH - 32, 24, RGB565(10, 30, 45));
+    tft.drawRect(16, footerY, SCREEN_WIDTH - 32, 24, COLOR_CYAN);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
+    tft.setCursor(32, footerY + 8);
+    tft.print(F("PRESS ANY KEY [*] OR [#] TO DISMISS"));
+    
+    Serial.println(F("[SCREEN] Emergency Message Popup displayed"));
+}
+
+void triggerMessagePopup(const String& title, const String& sender, const String& message, int rssi, const String& status) {
+    popupTitle = title;
+    popupSender = sender;
+    popupMessage = message;
+    popupStatus = status;
+    popupRssi = rssi;
+    popupStartTime = millis();
+
+    // Audible alarm alert
+    playConfirmTone();
+    delay(100);
+    playConfirmTone();
+
+    previousScreen = currentScreen;
+    currentScreen = SCREEN_MESSAGE_POPUP;
+    drawMessagePopupScreen();
+}
+
 

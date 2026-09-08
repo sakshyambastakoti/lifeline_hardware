@@ -45,5 +45,8 @@ void drawOTAScreen();
 void drawOTASelectScreen();
 void updateOTAProgressBar(int progress, const char* status = nullptr);
 void drawSensorLogScreen();
+void drawBLEPortalScreen();
+void drawMessagePopupScreen();
+void triggerMessagePopup(const String& title, const String& sender, const String& message, int rssi, const String& status = "DISPATCH");
 
 #endif // DISPLAY_UI_H

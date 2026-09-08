@@ -153,6 +153,62 @@ If using a standard utility like **Serial Bluetooth Terminal** by Kai Morich:
 
 ---
 
+## 🎛️ 4. On-Device Hardware Controls & Display Portals
+
+In addition to phone companion apps, both LifeLine devices feature dedicated hardware UI workflows for field operators without needing any phone attached:
+
+### 4.1 LifeLine TX Pro: Dedicated Bluetooth Portal (Keypad `'D'`)
+
+On the LifeLine TX Pro 4×4 tactile matrix keypad:
+* **Opening Portal**: Press key **`'D'`** from the Main Menu. The ST7789 IPS display opens the high-tech tactical **BLE Manager Portal**.
+* **Portal Features**:
+  1. **Radio Power Toggle (`'1'`)**: Toggles the ESP32 2.4 GHz Bluetooth Low Energy radio instantly **ON or OFF**. When disabled, all RF advertising and background listening cease immediately, maximizing battery runtime in cold alpine environments.
+  2. **Connected Client Status**: Displays real-time device connection state (`CONNECTED` / `STANDBY / ADV`), connected client name (e.g. `iPhone 15 Pro`), Bluetooth MAC address, and RSSI link strength.
+  3. **Base Station Message Log (`'B'`)**: Displays recent downlink instructions, ACKs, and commands received from the Base Station. Press `'B'` to cycle through previous messages.
+  4. **Exit Portal (`'#'` or `'D'`)**: Returns immediately to the Main Menu.
+
+```text
+┌────────────────────────────────────────┐
+│  LIFELINE TX PRO - BLUETOOTH PORTAL   │
+│  [1] BLE Power : [ ENABLED / ACTIVE ]  │
+│  Client        : iPhone 15 Pro         │
+│  Client MAC    : E2:1B:4F:92:80:C1     │
+│  Link Signal   : -64 dBm (GOOD)        │
+│────────────────────────────────────────│
+│  LAST DOWNLINK FROM BASE:              │
+│  [#1] "Rescue team en route via ridge" │
+│────────────────────────────────────────│
+│ [1]=Toggle Radio  [B]=History  [#]=Back│
+└────────────────────────────────────────┘
+```
+
+#### Universal Downlink Emergency Popup on TX Pro
+Whenever a dispatch command (`CMD`), acknowledgement (`ACK`), or emergency evacuation broadcast (`EVAC`) arrives from the Base Station over LoRa:
+* A high-visibility emergency popup banner **interrupts any active screen** (Home Screen, Alert Menu, BLE Portal, or Sensor Log).
+* The dual piezo sirens buzz and the screen displays the base sender ID, signal RSSI, and the complete text message.
+* Pressing **any key** safely dismisses the popup and returns to the previous workflow.
+
+---
+
+### 4.2 LifeLine RX Pro: 16×2 LCD Custom Message Scrolling (Wi-Fi Button)
+
+On the LifeLine RX Pro Base Station:
+* When custom mobile chat reports or emergency downlink messages arrive from field units over LoRa:
+  - **Row 0** displays the sender ID and signal strength: `M#001 -65dBm [W]`
+  - **Row 1** displays the 16-character window of the message body.
+  - The `[W]` indicator informs the operator that the physical **Wi-Fi button** (GPIO 14) controls scrolling.
+* **Message Scrolling Interaction**:
+  - Tapping the physical Wi-Fi button (short press $< 1\text{ s}$) scrolls through the message horizontally by **12 characters at a time** (maintaining a 4-character visual overlap so words remain readable).
+  - When the end of the message is reached, pressing the button wraps back to the beginning (`Offset 0`).
+  - An affirmative confirmation tick tone (`playSkipConfirmTone()`) sounds on every button press.
+  - The 15-second screen timeout resets with each button tap so the operator can take as long as needed to read long situation reports.
+* **Zero Feature Conflict**:
+  - Triple-clicking within 1.5 seconds still reliably triggers **Local Web OTA Mode**.
+  - Holding for 3 seconds still opens the **Wi-Fi Captive Configuration Portal**.
+  - A short tap specifically handles scrolling without disturbing Wi-Fi settings.
+
+---
+
 ## 🔄 5. End-to-End Two-Way Communication Flow
 
 ```mermaid
@@ -212,10 +268,10 @@ lib_deps =
 
 | Partition | Allocated Size | Current TX Pro Flash | Current RX Pro Flash |
 | :--- | :--- | :--- | :--- |
-| **`app0` (Application A)** | **1,966,080 bytes (1.96 MB)** | **1,353,152 bytes (68.8%)** | **1,497,164 bytes (76.1%)** |
+| **`app0` (Application A)** | **1,966,080 bytes (1.96 MB)** | **1,359,488 bytes (69.1%)** | **1,498,892 bytes (76.2%)** |
 | **`app1` (OTA Fallback B)** | **1,966,080 bytes (1.96 MB)** | Available for OTA | Available for OTA |
 | **`spiffs` (File System)** | **196,608 bytes (192 KB)** | Reserved for offline assets | Reserved for offline assets |
-| **RAM (Dynamic Heap)** | **327,680 bytes (320 KB)** | **61,456 bytes (18.8%)** | **64,036 bytes (19.5%)** |
+| **RAM (Dynamic Heap)** | **327,680 bytes (320 KB)** | **61,840 bytes (18.9%)** | **64,068 bytes (19.6%)** |
 
 > [!NOTE]
 > Both units have over **460 KB to 600 KB of Flash headroom** and over **260 KB of free RAM**, ensuring rock-solid stability in high-stress disaster scenarios.
