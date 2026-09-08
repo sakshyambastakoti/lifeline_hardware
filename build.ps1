@@ -23,7 +23,8 @@ param(
     [string]$Target = "all",
     [switch]$Upload,
     [switch]$Monitor,
-    [switch]$OTA
+    [switch]$OTA,
+    [string]$Port
 )
 
 $ErrorActionPreference = "Stop"
@@ -80,6 +81,9 @@ foreach ($t in $buildTargets) {
     }
     if ($Upload) {
         $cmdArgs += @("-t", "upload")
+        if ($Port) {
+            $cmdArgs += @("--upload-port", $Port)
+        }
     }
 
     $startTime = Get-Date

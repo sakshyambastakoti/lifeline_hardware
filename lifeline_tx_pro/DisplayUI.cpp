@@ -1337,7 +1337,7 @@ void drawUserManualScreen() {
 
 void drawOTASelectScreen() {
     tft.fillScreen(COLOR_BG_PRIMARY);
-    drawHeader("OTA FIRMWARE // SELECT MODE");
+    drawHeader("OTA FIRMWARE");
     
     int cardW = SCREEN_WIDTH - MARGIN * 2; // 300px
     
@@ -1385,23 +1385,23 @@ void drawOTASelectScreen() {
     tft.setTextSize(TEXT_MEDIUM);
     tft.setTextColor(COLOR_TEXT_PRIMARY);
     tft.setCursor(MARGIN + 10, card2Y + 20);
-    tft.print(F("PRESS [ 2 ] -> NET (sakshyam)"));
+    tft.print(F("PRESS [ 2 ] -> NET"));
     
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_RED_BRIGHT);
     tft.setCursor(MARGIN + 10, card2Y + 40);
-    tft.print(F("Connects to Wi-Fi: sakshyam"));
+    tft.print(F("Connects to Wi-Fi Network"));
     tft.setTextColor(COLOR_TEXT_MUTED);
     tft.setCursor(MARGIN + 10, card2Y + 54);
     tft.print(F("Auto-fallback to Local AP if offline"));
     
-    drawFooter("1:Local AP   2:Net (sakshyam)   #:Cancel");
+    drawFooter("1:Local AP   2:Net   #:Cancel");
     Serial.println(F("[SCREEN] OTA Selection Screen displayed"));
 }
 
 void drawOTAScreen() {
     tft.fillScreen(COLOR_BG_PRIMARY);
-    drawHeader("WIRELESS OTA FIRMWARE PORTAL");
+    drawHeader("OTA FIRMWARE PORTAL");
     
     int cardY = CONTENT_START_Y + 2; // 48
     int cardW = SCREEN_WIDTH - MARGIN * 2; // 300
