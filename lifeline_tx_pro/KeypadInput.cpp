@@ -38,6 +38,13 @@ void keypadEventListener(KeypadEvent key) {
 }
 
 void initKeypad() {
+    for (byte r = 0; r < KEYPAD_ROWS; r++) {
+        pinMode(rowPins[r], INPUT_PULLUP);
+    }
+    for (byte c = 0; c < KEYPAD_COLS; c++) {
+        pinMode(colPins[c], OUTPUT);
+        digitalWrite(colPins[c], HIGH);
+    }
     keypad.setHoldTime(3000);  // 3000 ms = 3 seconds hold time
     keypad.addEventListener(keypadEventListener);
 }
@@ -73,6 +80,29 @@ void handleKeyPress(char key) {
     if (key == '\0') return;
     
     Serial.printf("[INPUT] Key: %c, Screen: %d\n", key, currentScreen);
+    
+    // Global Key 'D' shortcut: opens BLE Portal from any screen (or toggles back if already open)
+    if (key == 'D') {
+        if (currentScreen == SCREEN_BLE_PORTAL) {
+            playClickTone();
+            currentScreen = (previousScreen != SCREEN_BLE_PORTAL) ? previousScreen : SCREEN_MENU;
+            if (currentScreen == SCREEN_MENU) drawMenuScreen();
+            else if (currentScreen == SCREEN_SYSTEM_INFO) drawSystemInfoScreen();
+            else if (currentScreen == SCREEN_USER_MANUAL) drawUserManualScreen();
+            else if (currentScreen == SCREEN_SENSOR_LOG) drawSensorLogScreen();
+            else drawMenuScreen();
+            lastKeyPressTime = millis();
+            return;
+        } else if (currentScreen != SCREEN_OTA && currentScreen != SCREEN_SENDING) {
+            Serial.println(F("\n[KEYPAD] Key 'D' pressed -> Opening Tactical Bluetooth Portal!"));
+            playConfirmTone();
+            previousScreen = currentScreen;
+            currentScreen = SCREEN_BLE_PORTAL;
+            drawBLEPortalScreen();
+            lastKeyPressTime = millis();
+            return;
+        }
+    }
     
     switch (currentScreen) {
         case SCREEN_MENU:
