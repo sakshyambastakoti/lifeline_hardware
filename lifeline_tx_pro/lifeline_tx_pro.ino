@@ -14,6 +14,7 @@
 #include "LoRaComm.h"
 #include "KeypadInput.h"
 #include "OTAManager.h"
+#include "BLEManager.h"
 
 void setup() {
     Serial.begin(SERIAL_BAUD_RATE);
@@ -34,11 +35,12 @@ void setup() {
     // 2. Initialize shared SPI bus with custom pins (SCK: 5, MISO: 17, MOSI: 27)
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     
-    // 3. Initialize Subsystems (Buzzer/LED, Keypad, TFT Display, LoRa)
+    // 3. Initialize Subsystems (Buzzer/LED, Keypad, TFT Display, LoRa, BLE)
     initBuzzerLED();
     initKeypad();
     initDisplay();
     initLoRa();
+    initBLE();
     
     // Boot Screen
     currentScreen = SCREEN_BOOT;
@@ -50,11 +52,42 @@ void setup() {
     clearAllLEDs();
     
     Serial.println(F("[INIT] Ready"));
-    Serial.printf("[INIT] Device: TX #%03d (Manual SOS Mode)\n", DEVICE_ID);
+    Serial.printf("[INIT] Device: TX #%03d (Manual SOS + BLE Companion Mode)\n", DEVICE_ID);
 }
 
 void loop() {
     handleOTA();
+    updateBLE();
+    
+    // Process incoming BLE mobile chat message
+    if (hasPendingBLEChatMessage()) {
+        String chat = getPendingBLEChatMessage();
+        Serial.printf("[BLE CHAT TRIGGER] Transmitting: '%s'\n", chat.c_str());
+        currentScreen = SCREEN_SENDING;
+        drawSendingScreen();
+        lastTransmitSuccess = transmitChatMessage(chat);
+        currentScreen = SCREEN_RESULT;
+        drawResultScreen();
+    }
+    
+    // Process incoming BLE mobile alert trigger
+    if (hasPendingBLEAlert()) {
+        char code = getPendingBLEAlert();
+        Serial.printf("[BLE ALERT TRIGGER] Code: '%c'\n", code);
+        int targetIdx = 0;
+        for (int i = 0; i < ALERT_COUNT; i++) {
+            if (getAlertCode(i) == code) {
+                targetIdx = i;
+                break;
+            }
+        }
+        selectedAlertIndex = targetIdx;
+        currentScreen = SCREEN_SENDING;
+        drawSendingScreen();
+        lastTransmitSuccess = transmitAlertWithAck(selectedAlertIndex);
+        currentScreen = SCREEN_RESULT;
+        drawResultScreen();
+    }
     
     switch (currentScreen) {
         case SCREEN_BOOT:

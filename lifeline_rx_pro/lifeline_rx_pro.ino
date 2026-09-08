@@ -15,6 +15,7 @@
 #include "WiFiPortal.h"
 #include "APIClient.h"
 #include "OTAManager.h"
+#include "BLEManager.h"
 
 // Static serial debugger variables
 static String serialInputBuffer = "";
@@ -36,6 +37,7 @@ bool handleIncomingLoRaTelemetry() {
             telemetry.rssi = rssi;
             telemetry.emergencyCode = (alertIdx == 4) ? 'N' : 'E';
             telemetry.isFullTelemetry = false;
+            telemetry.isChatMessage = false;
             packetReceived = true;
         }
     }
@@ -45,18 +47,33 @@ bool handleIncomingLoRaTelemetry() {
 
     triggerRxBlink();
 
+    if (telemetry.isChatMessage) {
+        Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
+        notifyBLEChat(telemetry.deviceId, telemetry.chatMessage.c_str(), telemetry.rssi);
+        sendDownlinkACK(telemetry.deviceId, 'M', "LOGGED", "Base received chat");
+        currentScreen = SCREEN_ALERT;
+        drawAlertScreen(telemetry.deviceId, 0, telemetry.rssi);
+        return true;
+    }
+
     if (telemetry.emergencyCode == 'N') {
         // Normal 1-Hour Periodic Telemetry Heartbeat Log (Silent, NO Siren)
         Serial.printf("[RX NORMAL LOG] Device=%d, Temp=%.1f, Lat=%.6f, Lon=%.6f\n",
                       telemetry.deviceId, telemetry.temperature, telemetry.latitude, telemetry.longitude);
+        notifyBLETelemetry(telemetry.deviceId, telemetry.temperature, telemetry.humidity,
+                           telemetry.latitude, telemetry.longitude, telemetry.rssi);
         pushFullTelemetryToAPI(telemetry);
+        sendDownlinkACK(telemetry.deviceId, 'N', "LOGGED", "Heartbeat OK");
     } else {
         // Active Emergency Alert (Fire, Landslide, Earthquake, Manual SOS, etc.)
         Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%d\n",
                       telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
+        notifyBLEAlert(telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
         currentScreen = SCREEN_ALERT;
         drawAlertScreen(telemetry.deviceId, telemetry.alertIndex, telemetry.rssi); // LCD update & loud siren
         pushFullTelemetryToAPI(telemetry);
+        // Automatic Two-Way Downlink ACK over LoRa
+        sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
     }
 
     return true;
@@ -96,8 +113,9 @@ void setup() {
     Serial.println(F("[OK] Boot screen displayed"));
     
     initLoRa();
+    initBLE();
     
-    Serial.println(F("=== Ready to receive emergency alerts ===\n"));
+    Serial.println(F("=== Ready to receive emergency alerts & BLE Commander ===\n"));
     
     #if SERIAL_DEBUG_ENABLED
     printSerialDebugMenu();
@@ -106,7 +124,24 @@ void setup() {
 
 void loop() {
     updateLEDs();
+    updateBLE();
     handleLocalOTA();
+    
+    // Process Commander BLE dispatch commands
+    if (hasPendingBLEReply()) {
+        int devId;
+        String action, msg;
+        getPendingBLEReply(devId, action, msg);
+        Serial.printf("[BASE COMMAND] Sending Downlink CMD to #%d: %s (%s)\n", devId, action.c_str(), msg.c_str());
+        sendDownlinkCommand(devId, action.c_str(), msg.c_str());
+    }
+    
+    // Process Commander BLE evacuation broadcast
+    if (hasPendingBLEEvac()) {
+        String evacMsg = getPendingBLEEvacMessage();
+        Serial.printf("[BASE EVAC] Broadcasting Evacuation: '%s'\n", evacMsg.c_str());
+        sendBroadcastEvacuation(evacMsg.c_str());
+    }
     
     if (isLocalOTAModeActive()) {
         checkWiFiPortalButton();

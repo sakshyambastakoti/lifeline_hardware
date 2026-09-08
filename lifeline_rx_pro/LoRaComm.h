@@ -19,10 +19,17 @@ struct FullTelemetryData {
     int riskScore;
     int rssi;
     bool isFullTelemetry;
+    bool isChatMessage;
+    String chatMessage;
 };
 
 bool initLoRa();
 bool parseLoRaPacket(int& deviceId, int& alertIndex, int& rssi);
 bool parseLoRaPacketExtended(FullTelemetryData& telemetry);
+
+// Two-way LoRa transmission routines
+bool sendDownlinkACK(int targetDeviceId, char emergencyCode, const char* status, const char* message);
+bool sendDownlinkCommand(int targetDeviceId, const char* action, const char* message);
+bool sendBroadcastEvacuation(const char* message);
 
 #endif // LORA_COMM_H

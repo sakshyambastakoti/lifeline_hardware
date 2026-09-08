@@ -24,6 +24,26 @@ bool initLoRa() {
     return true;
 }
 
+static int mapEmergencyCodeToAlertIndex(char code) {
+    switch (code) {
+        case 'N': return 4;  // STATUS OK
+        case 'F': return 0;  // EMERGENCY (Fire)
+        case 'L': return 11; // LANDSLIDE
+        case 'Q': return 0;  // EMERGENCY (Earthquake)
+        case 'S': return 0;  // EMERGENCY (Manual SOS)
+        case 'M': return 1;  // MEDICAL
+        case 'H': return 8;  // WEATHER ALERT
+        case 'C': return 12; // SNOW STORM
+        case 'W': return 8;  // WEATHER ALERT
+        case 'G': return 0;  // EMERGENCY (Gas)
+        case 'B': return 13; // EQUIPMENT FAILURE
+        default:
+            if (code >= 'A' && code <= 'O') return code - 'A';
+            if (code >= 'a' && code <= 'o') return code - 'a';
+            return 14; // OTHER
+    }
+}
+
 bool parseLoRaPacket(int& deviceId, int& alertIndex, int& rssi) {
     int packetSize = LoRa.parsePacket();
     if (packetSize == 0) return false;
@@ -68,28 +88,7 @@ bool parseLoRaPacket(int& deviceId, int& alertIndex, int& rssi) {
     Serial.printf("[RX] Parsed: Device=%d, Alert=%d (%s)\n", deviceId, alertIndex, alertNames[alertIndex]);
     
     LoRa.receive();
-    
     return true;
-}
-
-static int mapEmergencyCodeToAlertIndex(char code) {
-    switch (code) {
-        case 'N': return 4;  // STATUS OK
-        case 'F': return 0;  // EMERGENCY (Fire)
-        case 'L': return 11; // LANDSLIDE
-        case 'Q': return 0;  // EMERGENCY (Earthquake)
-        case 'S': return 0;  // EMERGENCY (Manual SOS)
-        case 'M': return 1;  // MEDICAL
-        case 'H': return 8;  // WEATHER ALERT
-        case 'C': return 12; // SNOW STORM
-        case 'W': return 8;  // WEATHER ALERT
-        case 'G': return 0;  // EMERGENCY (Gas)
-        case 'B': return 13; // EQUIPMENT FAILURE
-        default:
-            if (code >= 'A' && code <= 'O') return code - 'A';
-            if (code >= 'a' && code <= 'o') return code - 'a';
-            return 14; // OTHER
-    }
 }
 
 bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
@@ -103,11 +102,28 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
     data.trim();
 
     telemetry.rssi = LoRa.packetRssi();
+    telemetry.isChatMessage = false;
+    telemetry.chatMessage = "";
 
     Serial.printf("[RX EX] Raw packet (%d bytes): '%s', RSSI: %d\n", packetSize, data.c_str(), telemetry.rssi);
 
     if (data.startsWith("TX")) {
         data = data.substring(2);
+    }
+
+    // Check for freeform Mobile Chat format: <ID>,CHAT,<text>
+    if (data.indexOf(",CHAT,") != -1) {
+        int chatComma = data.indexOf(",CHAT,");
+        telemetry.deviceId = data.substring(0, chatComma).toInt();
+        telemetry.emergencyCode = 'M';
+        telemetry.alertIndex = 0; // Highlight as emergency attention
+        telemetry.isFullTelemetry = false;
+        telemetry.isChatMessage = true;
+        telemetry.chatMessage = data.substring(chatComma + 6);
+        telemetry.chatMessage.trim();
+        Serial.printf("[RX CHAT] Device #%d Chat: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
+        LoRa.receive();
+        return true;
     }
 
     // Split payload by commas
@@ -186,4 +202,69 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
 
     LoRa.receive();
     return true;
+}
+
+bool sendDownlinkACK(int targetDeviceId, char emergencyCode, const char* status, const char* message) {
+    if (!loraInitialized) {
+        Serial.println(F("[DOWNLINK] LoRa not initialized"));
+        return false;
+    }
+
+    // 120ms turnaround delay to let field unit transition to receive mode
+    delay(120);
+
+    char packet[96];
+    snprintf(packet, sizeof(packet), "ACK%03d,%c,%s,BASE%02d,%s",
+             targetDeviceId, emergencyCode, status, DEVICE_ID, message);
+
+    Serial.printf("[LORA DOWNLINK ACK] '%s'\n", packet);
+
+    LoRa.idle();
+    delay(5);
+    LoRa.beginPacket();
+    LoRa.print(packet);
+    bool ok = LoRa.endPacket();
+
+    LoRa.receive();
+    Serial.printf("[LORA DOWNLINK ACK] Result: %s\n", ok ? "OK" : "FAILED");
+    return ok;
+}
+
+bool sendDownlinkCommand(int targetDeviceId, const char* action, const char* message) {
+    if (!loraInitialized) return false;
+
+    delay(120);
+    char packet[96];
+    snprintf(packet, sizeof(packet), "CMD%03d,%s,%s",
+             targetDeviceId, action, message);
+
+    Serial.printf("[LORA DOWNLINK CMD] '%s'\n", packet);
+
+    LoRa.idle();
+    delay(5);
+    LoRa.beginPacket();
+    LoRa.print(packet);
+    bool ok = LoRa.endPacket();
+
+    LoRa.receive();
+    return ok;
+}
+
+bool sendBroadcastEvacuation(const char* message) {
+    if (!loraInitialized) return false;
+
+    delay(120);
+    char packet[96];
+    snprintf(packet, sizeof(packet), "EVAC,ALL,%s", message);
+
+    Serial.printf("[LORA EVAC BROADCAST] '%s'\n", packet);
+
+    LoRa.idle();
+    delay(5);
+    LoRa.beginPacket();
+    LoRa.print(packet);
+    bool ok = LoRa.endPacket();
+
+    LoRa.receive();
+    return ok;
 }

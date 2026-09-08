@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LifeLine — Two-Way BLE & LoRa Field Companion</title>
+  <meta name="description" content="Offline Web Bluetooth companion app for LifeLine TX Pro and RX Pro emergency disaster communication devices." />
+  <style>
+    :root {
+      --bg-dark: #090c10;
+      --bg-card: #131920;
+      --bg-card-alt: #1a222c;
+      --border-subtle: #222e3d;
+      --border-glow: #00d4ff;
+      --cyan: #00d4ff;
+      --cyan-glow: rgba(0, 212, 255, 0.25);
+      --green: #00ff87;
+      --green-glow: rgba(0, 255, 135, 0.25);
+      --red: #ff3b3b;
+      --red-glow: rgba(255, 59, 59, 0.3);
+      --amber: #ffb800;
+      --amber-glow: rgba(255, 184, 0, 0.25);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #586069;
+      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: linear-gradient(180deg, #101620 0%, #0c1017 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--cyan) 0%, #0066cc 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .brand-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .brand-title span {
+      color: var(--cyan);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-connect {
+      background: var(--bg-card);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .btn-connect:hover {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    .btn-connect.connected {
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: 0 0 8px var(--green-glow);
+    }
+
+    .btn-connect.connected:hover {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+      box-shadow: 0 0 8px var(--red-glow);
+    }
+
+    /* Connection Status Bar */
+    .status-strip {
+      background: #0d1219;
+      border-bottom: 1px solid #1c2635;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .dot.live {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .dot.warn {
+      background: var(--amber);
+    }
+
+    /* Mode Navigation Tabs */
+    .mode-nav {
+      display: flex;
+      background: #0f151e;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 4px 16px 0;
+      gap: 8px;
+    }
+
+    .mode-tab {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-tab.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+    }
+
+    /* Main Content Container */
+    main {
+      flex: 1;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      background: var(--bg-card-alt);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    /* Tactical SOS Grid */
+    .sos-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .sos-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .sos-btn {
+      background: #18202b;
+      border: 1px solid #28374a;
+      border-radius: 6px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      color: var(--text-primary);
+    }
+
+    .sos-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .sos-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .sos-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .sos-btn.sos-critical {
+      border-color: rgba(255, 59, 59, 0.4);
+      background: linear-gradient(180deg, #241418 0%, #170d10 100%);
+    }
+
+    .sos-btn.sos-critical:hover:not(:disabled) {
+      border-color: var(--red);
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+
+    .sos-btn .icon {
+      font-size: 22px;
+    }
+
+    .sos-btn .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sos-btn .nepali {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Chat / Situation Report Composer */
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #0b0f14;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, var(--cyan) 0%, #0088cc 100%);
+      color: #000;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      padding: 0 18px;
+      cursor: pointer;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      box-shadow: 0 0 12px var(--cyan);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Handshake Timeline / Feed */
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .feed-item {
+      background: #101620;
+      border-left: 3px solid var(--cyan);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 12px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .feed-item.alert-item {
+      border-left-color: var(--red);
+      background: #191014;
+    }
+
+    .feed-item.ack-item {
+      border-left-color: var(--green);
+      background: #0e1b14;
+    }
+
+    .feed-item-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    .feed-item-content {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-cyan { background: rgba(0, 212, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+    .badge-green { background: rgba(0, 255, 135, 0.15); color: var(--green); border: 1px solid var(--green); }
+    .badge-red { background: rgba(255, 59, 59, 0.15); color: var(--red); border: 1px solid var(--red); }
+    .badge-amber { background: rgba(255, 184, 0, 0.15); color: var(--amber); border: 1px solid var(--amber); }
+
+    /* Base Dispatch Command Actions */
+    .dispatch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .dispatch-btn {
+      background: #141c26;
+      border: 1px solid #233142;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .dispatch-btn:hover:not(:disabled) {
+      border-color: var(--green);
+      box-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .dispatch-btn.evac-btn:hover:not(:disabled) {
+      border-color: var(--red);
+      box-shadow: 0 0 12px var(--red-glow);
+    }
+
+    .dispatch-btn .d-title {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .dispatch-btn .d-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Diagnostic Raw Console */
+    .raw-console {
+      background: #06090e;
+      border: 1px solid #161f2c;
+      border-radius: 6px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #79c0ff;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">Life<span>Line</span> Companion</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btnConnect" class="btn-connect" onclick="toggleBLEConnection()">
+        <span id="bleIcon">⚡</span>
+        <span id="btnConnectText">Connect BLE</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Status Strip -->
+  <div class="status-strip">
+    <div class="status-item">
+      <div id="statusDot" class="dot"></div>
+      <span id="deviceLabel">OFFLINE (Disconnected)</span>
+    </div>
+    <div class="status-item">
+      <span>LoRa: <strong id="loraStatus" style="color:var(--cyan)">--</strong></span>
+      <span style="margin-left:8px;">BAT: <strong id="batStatus">--</strong></span>
+    </div>
+  </div>
+
+  <!-- Mode Tabs -->
+  <div class="mode-nav">
+    <button id="tabTx" class="mode-tab active" onclick="switchMode('tx')">Field Unit (TX Pro)</button>
+    <button id="tabRx" class="mode-tab" onclick="switchMode('rx')">Base Command (RX Pro)</button>
+  </div>
+
+  <main>
+    <!-- MODE 1: FIELD TRANSMITTER COMPANION (TX PRO) -->
+    <section id="secTx" style="display: flex; flex-direction: column; gap: 16px;">
+      
+      <!-- Instant Emergency Triggers -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🚨 One-Touch Emergency SOS (433 MHz LoRa)</div>
+          <span class="badge badge-red">Field Direct</span>
+        </div>
+        <div class="card-body">
+          <div class="sos-grid">
+            <button class="sos-btn sos-critical" onclick="triggerAlert('A', 'EMERGENCY')">
+              <span class="icon">🆘</span>
+              <span class="label">SOS Alert</span>
+              <span class="nepali">आपतकालीन</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('M', 'MEDICAL')">
+              <span class="icon">🩺</span>
+              <span class="label">Medical</span>
+              <span class="nepali">उपचार / बिरामी</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('L', 'LANDSLIDE')">
+              <span class="icon">⛰️</span>
+              <span class="label">Landslide</span>
+              <span class="nepali">पहिरो</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('Q', 'EARTHQUAKE')">
+              <span class="icon">🏚️</span>
+              <span class="label">Earthquake</span>
+              <span class="nepali">भूकम्प</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('F', 'FIRE')">
+              <span class="icon">🔥</span>
+              <span class="label">Fire</span>
+              <span class="nepali">आगो</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('W', 'FLOOD')">
+              <span class="icon">🌊</span>
+              <span class="label">Flash Flood</span>
+              <span class="nepali">बाढी</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Freeform Situation Report Composer -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">💬 Live Situation Report (Freeform Text Chat)</div>
+          <span class="badge badge-cyan">Two-Way LoRa</span>
+        </div>
+        <div class="card-body">
+          <div class="chat-box">
+            <div class="chat-input-row">
+              <input id="chatInput" type="text" class="chat-input" placeholder="e.g. 3 trapped in school, need stretcher..." maxlength="48" />
+              <button id="btnSendChat" class="btn-send" onclick="sendCustomChat()">Transmit</button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              Packaged into 433 MHz LoRa frame and transmitted to Base Station. Listens for 2-way ACK.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Way Handshake Feed -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📡 Two-Way Handshake & Base Confirmation Feed</div>
+          <span id="ackBadge" class="badge badge-amber">Awaiting Handshake</span>
+        </div>
+        <div class="card-body">
+          <div id="txFeed" class="feed">
+            <div class="feed-item">
+              <div class="feed-item-header">
+                <span>SYSTEM</span>
+                <span>STANDBY</span>
+              </div>
+              <div class="feed-item-content">Connect your smartphone via Bluetooth to begin two-way communication.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- MODE 2: INCIDENT COMMANDER (RX PRO BASE STATION) -->
+    <section id="secRx" style="display: none; flex-direction: column; gap: 16px;">
+      
+      <!-- Live Incident Stream -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📥 Incoming Disaster Alerts & Field Chat</div>
+          <span class="badge badge-green">Live Base Receiver</span>
+        </div>
+        <div class="card-body">
+          <div id="rxFeed" class="feed">
+            <div class="feed-item">
+              <div class="feed-item-header">
+                <span>BASE HUB</span>
+                <span>LISTENING</span>
+              </div>
+              <div class="feed-item-content">Monitoring 433 MHz LoRa channel for field distress packets.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reverse Commander Dispatch Responses -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚡ Quick Commander Dispatch (Downlink to Field)</div>
+          <span class="badge badge-cyan">LoRa Downlink</span>
+        </div>
+        <div class="card-body">
+          <div class="dispatch-grid">
+            <button class="dispatch-btn" onclick="sendReply('DISPATCHED', 'APF Rescue squad dispatched ETA 20m')">
+              <span class="d-title">🚁 Rescue Dispatched</span>
+              <span class="d-desc">APF squad airborne, ETA 20 min</span>
+            </button>
+            <button class="dispatch-btn" onclick="sendReply('STANDBY', 'Hold position and stay warm')">
+              <span class="d-title">✋ Hold Position</span>
+              <span class="d-desc">Do not move, rescuers en route</span>
+            </button>
+            <button class="dispatch-btn evac-btn" onclick="sendReply('EVACUATE', 'Urgent evacuate to high ground')">
+              <span class="d-title" style="color:var(--red)">⚠️ Evacuate High Ground</span>
+              <span class="d-desc">Imminent dam breach / flood</span>
+            </button>
+            <button class="dispatch-btn" onclick="sendReply('MEDICAL', 'Keep injured warm apply pressure')">
+              <span class="d-title">🩺 Medical Guidance</span>
+              <span class="d-desc">Apply pressure, medics coming</span>
+            </button>
+          </div>
+          
+          <div style="margin-top: 14px; display: flex; gap: 8px;">
+            <input id="customReplyInput" type="text" class="chat-input" placeholder="Custom response to field unit..." maxlength="48" />
+            <button class="btn-send" onclick="sendCustomReply()">Dispatch</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Raw BLE Log Console -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📟 Live BLE Raw Stream Log</div>
+        <button onclick="document.getElementById('rawLog').innerText = ''" style="background:none;border:none;color:var(--cyan);font-size:11px;cursor:pointer;">Clear</button>
+      </div>
+      <div class="card-body" style="padding: 8px;">
+        <div id="rawLog" class="raw-console">Waiting for BLE connection...</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    LifeLine v4.0 Disaster Communication Network &bull; Nepal Terrain Resilience &bull; Web Bluetooth NUS
+  </footer>
+
+  <script>
+    // Nordic UART Service UUIDs
+    const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Phone -> Device (Write)
+    const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // Device -> Phone (Notify)
+
+    let bleDevice = null;
+    let gattServer = null;
+    let rxCharacteristic = null;
+    let txCharacteristic = null;
+    let isConnected = false;
+    let activeMode = 'tx'; // 'tx' or 'rx'
+
+    // Web Audio Synthesizer for tactical sounds
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playChime(freq1, freq2, duration) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq1, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq2, audioCtx.currentTime + duration);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playSuccessChime() {
+      playChime(600, 1200, 0.25);
+    }
+
+    function playAlertSiren() {
+      playChime(1400, 700, 0.4);
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    }
+
+    function logRaw(msg) {
+      const el = document.getElementById('rawLog');
+      const time = new Date().toLocaleTimeString();
+      el.innerText += `[${time}] ${msg}\n`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function switchMode(mode) {
+      activeMode = mode;
+      document.getElementById('tabTx').classList.toggle('active', mode === 'tx');
+      document.getElementById('tabRx').classList.toggle('active', mode === 'rx');
+      document.getElementById('secTx').style.display = mode === 'tx' ? 'flex' : 'none';
+      document.getElementById('secRx').style.display = mode === 'rx' ? 'flex' : 'none';
+    }
+
+    async function toggleBLEConnection() {
+      if (isConnected) {
+        disconnectBLE();
+      } else {
+        connectBLE();
+      }
+    }
+
+    async function connectBLE() {
+      if (!navigator.bluetooth) {
+        alert('Web Bluetooth is not supported on this browser.\nPlease use Google Chrome on Android/Windows or Bluefy on iOS.');
+        return;
+      }
+
+      try {
+        logRaw('Scanning for LifeLine Bluetooth devices...');
+        bleDevice = await navigator.bluetooth.requestDevice({
+          filters: [
+            { namePrefix: 'LifeLine' },
+            { services: [NUS_SERVICE_UUID] }
+          ],
+          optionalServices: [NUS_SERVICE_UUID]
+        });
+
+        logRaw(`Pairing to ${bleDevice.name}...`);
+        bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+        gattServer = await bleDevice.gatt.connect();
+        logRaw('GATT server connected. Accessing Nordic UART Service...');
+
+        const service = await gattServer.getPrimaryService(NUS_SERVICE_UUID);
+        rxCharacteristic = await service.getCharacteristic(NUS_RX_CHAR_UUID);
+        txCharacteristic = await service.getCharacteristic(NUS_TX_CHAR_UUID);
+
+        await txCharacteristic.startNotifications();
+        txCharacteristic.addEventListener('characteristicvaluechanged', handleIncomingNotification);
+
+        isConnected = true;
+        updateUIConnected(true, bleDevice.name);
+        playSuccessChime();
+
+        // Auto-switch mode based on device name
+        if (bleDevice.name.includes('RX')) {
+          switchMode('rx');
+        } else {
+          switchMode('tx');
+        }
+
+        // Query status
+        await sendBLECommand('STATUS');
+
+      } catch (error) {
+        logRaw(`Connection error: ${error}`);
+        updateUIConnected(false);
+      }
+    }
+
+    function onDisconnected() {
+      logRaw('Device disconnected.');
+      updateUIConnected(false);
+    }
+
+    function disconnectBLE() {
+      if (bleDevice && bleDevice.gatt.connected) {
+        bleDevice.gatt.disconnect();
+      }
+      updateUIConnected(false);
+    }
+
+    function updateUIConnected(connected, devName = '') {
+      isConnected = connected;
+      const btn = document.getElementById('btnConnect');
+      const text = document.getElementById('btnConnectText');
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('deviceLabel');
+
+      if (connected) {
+        btn.classList.add('connected');
+        text.innerText = 'Disconnect';
+        dot.className = 'dot live';
+        label.innerText = `CONNECTED: ${devName}`;
+        document.getElementById('loraStatus').innerText = 'READY';
+      } else {
+        btn.classList.remove('connected');
+        text.innerText = 'Connect BLE';
+        dot.className = 'dot';
+        label.innerText = 'OFFLINE (Disconnected)';
+        document.getElementById('loraStatus').innerText = '--';
+        document.getElementById('batStatus').innerText = '--';
+      }
+    }
+
+    async function sendBLECommand(cmd) {
+      if (!rxCharacteristic) {
+        logRaw('Cannot send: Not connected to device');
+        return false;
+      }
+      try {
+        const encoder = new TextEncoder();
+        await rxCharacteristic.writeValueWithoutResponse(encoder.encode(cmd));
+        logRaw(`[OUT] ${cmd}`);
+        return true;
+      } catch (err) {
+        logRaw(`Send failed: ${err}`);
+        return false;
+      }
+    }
+
+    function handleIncomingNotification(event) {
+      const decoder = new TextDecoder('utf-8');
+      const data = decoder.decode(event.target.value).trim();
+      logRaw(`[IN] ${data}`);
+
+      const time = new Date().toLocaleTimeString();
+
+      // Parse notifications
+      if (data.startsWith('STATUS:')) {
+        // STATUS:DEV=003,BAT=95,LORA=OK,VER=v3.1.0 PRO
+        const batMatch = data.match(/BAT=(\d+)/);
+        if (batMatch) document.getElementById('batStatus').innerText = `${batMatch[1]}%`;
+        const loraMatch = data.match(/LORA=([^,]+)/);
+        if (loraMatch) document.getElementById('loraStatus').innerText = loraMatch[1];
+      }
+      else if (data.startsWith('ALERT_SENT:')) {
+        // ALERT_SENT:CODE=A,NAME=EMERGENCY,TIME=...
+        const nameMatch = data.match(/NAME=([^,]+)/);
+        const alertName = nameMatch ? nameMatch[1] : 'ALERT';
+        addTxFeedItem('UPLINK SENT', `Transmitted: ${alertName} over 433MHz LoRa. Waiting for base ACK...`, 'alert-item');
+        document.getElementById('ackBadge').innerText = 'Awaiting ACK...';
+        document.getElementById('ackBadge').className = 'badge badge-amber';
+      }
+      else if (data.startsWith('ACK_RECV:')) {
+        // ACK_RECV:STATUS=LOGGED,BASE=BASE01,NOTE=Alert recorded,RSSI=-65,SNR=9
+        playSuccessChime();
+        const statusMatch = data.match(/STATUS=([^,]+)/);
+        const baseMatch = data.match(/BASE=([^,]+)/);
+        const noteMatch = data.match(/NOTE=([^,]+)/);
+        const rssiMatch = data.match(/RSSI=([^,]+)/);
+        const snrMatch = data.match(/SNR=([^,]+)/);
+
+        const st = statusMatch ? statusMatch[1] : 'CONFIRMED';
+        const base = baseMatch ? baseMatch[1] : 'BASE';
+        const note = noteMatch ? noteMatch[1] : '';
+        const rssi = rssiMatch ? rssiMatch[1] : '--';
+        const snr = snrMatch ? snrMatch[1] : '--';
+
+        addTxFeedItem('BASE ACK CONFIRMED', `[${base}] Status: ${st} &bull; "${note}" (RSSI: ${rssi} dBm, SNR: ${snr} dB)`, 'ack-item');
+        document.getElementById('ackBadge').innerText = 'Base Confirmed';
+        document.getElementById('ackBadge').className = 'badge badge-green';
+      }
+      else if (data.startsWith('ACK_TIMEOUT:')) {
+        addTxFeedItem('ACK TIMEOUT', 'No confirmation received from Base Station. Auto-retry in progress.', 'alert-item');
+        document.getElementById('ackBadge').innerText = 'Timeout / Unconfirmed';
+        document.getElementById('ackBadge').className = 'badge badge-red';
+      }
+      else if (data.startsWith('ALERT:')) {
+        // Base Station notification: ALERT:DEV=003,CODE=A,NAME=EMERGENCY,RSSI=-62
+        playAlertSiren();
+        const devMatch = data.match(/DEV=(\d+)/);
+        const nameMatch = data.match(/NAME=([^,]+)/);
+        const rssiMatch = data.match(/RSSI=([^,]+)/);
+        const devId = devMatch ? devMatch[1] : '0';
+        const name = nameMatch ? nameMatch[1] : 'SOS';
+        const rssi = rssiMatch ? rssiMatch[1] : '--';
+        addRxFeedItem(`INCOMING ALERT [DEV #${devId}]`, `${name} (Signal: ${rssi} dBm)`, 'alert-item');
+      }
+      else if (data.startsWith('CHAT:')) {
+        // CHAT:DEV=003,TEXT=...,RSSI=-62
+        playAlertSiren();
+        const devMatch = data.match(/DEV=(\d+)/);
+        const textMatch = data.match(/TEXT=([^,]+)/);
+        const rssiMatch = data.match(/RSSI=([^,]+)/);
+        const devId = devMatch ? devMatch[1] : '0';
+        const txt = textMatch ? textMatch[1] : '';
+        const rssi = rssiMatch ? rssiMatch[1] : '--';
+        addRxFeedItem(`FIELD CHAT [DEV #${devId}]`, `"${txt}" (Signal: ${rssi} dBm)`, 'feed-item');
+      }
+    }
+
+    function addTxFeedItem(tag, content, cls = 'feed-item') {
+      const feed = document.getElementById('txFeed');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = `feed-item ${cls}`;
+      div.innerHTML = `
+        <div class="feed-item-header">
+          <span>${tag}</span>
+          <span>${time}</span>
+        </div>
+        <div class="feed-item-content">${content}</div>
+      `;
+      feed.prepend(div);
+    }
+
+    function addRxFeedItem(tag, content, cls = 'feed-item') {
+      const feed = document.getElementById('rxFeed');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = `feed-item ${cls}`;
+      div.innerHTML = `
+        <div class="feed-item-header">
+          <span>${tag}</span>
+          <span>${time}</span>
+        </div>
+        <div class="feed-item-content">${content}</div>
+      `;
+      feed.prepend(div);
+    }
+
+    // User Actions
+    async function triggerAlert(code, name) {
+      const ok = await sendBLECommand(`ALERT:${code}`);
+      if (ok) {
+        addTxFeedItem('EMERGENCY TRIGGER', `Initiated ${name} (${code}) from mobile app...`, 'alert-item');
+      }
+    }
+
+    async function sendCustomChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const ok = await sendBLECommand(`MSG:${text}`);
+      if (ok) {
+        addTxFeedItem('MESSAGE QUEUED', `"${text}" transmitting over LoRa...`, 'feed-item');
+        input.value = '';
+      }
+    }
+
+    async function sendReply(action, msg) {
+      // Default to Device #3 (or any pending)
+      const cmd = `REPLY:3,${action},${msg}`;
+      const ok = await sendBLECommand(cmd);
+      if (ok) {
+        addRxFeedItem('DISPATCH TRANSMITTED', `Downlink -> #003: [${action}] "${msg}"`, 'ack-item');
+      }
+    }
+
+    async function sendCustomReply() {
+      const input = document.getElementById('customReplyInput');
+      const text = input.value.trim();
+      if (!text) return;
+      await sendReply('CUSTOM', text);
+      input.value = '';
+    }
+  </script>
+</body>
+</html>

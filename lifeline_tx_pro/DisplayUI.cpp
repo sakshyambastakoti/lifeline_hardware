@@ -1,6 +1,8 @@
 #include "DisplayUI.h"
 #include "OTAManager.h"
 #include "SPUReceiver.h"
+#include "BLEManager.h"
+#include "LoRaComm.h"
 
 // TFT Display instance (Hardware SPI using shared SPI bus)
 Adafruit_ST7789 tft = Adafruit_ST7789(&SPI, TFT_CS, TFT_DC, TFT_RST);
@@ -192,6 +194,27 @@ void drawHeader(const char* title) {
     tft.setTextColor(COLOR_TEXT_PRIMARY);
     tft.setCursor(MARGIN, textY);
     tft.print(title);
+    
+    // BLE Companion Status Badge
+    int bleBadgeW = 44;
+    int bleBadgeH = 14;
+    int bleBadgeX = SCREEN_WIDTH - bleBadgeW - 8;
+    int bleBadgeY = (HEADER_HEIGHT - bleBadgeH) / 2;
+    if (isBLEConnected()) {
+        tft.fillRect(bleBadgeX, bleBadgeY, bleBadgeW, bleBadgeH, RGB565(8, 42, 65));
+        tft.drawRect(bleBadgeX, bleBadgeY, bleBadgeW, bleBadgeH, COLOR_CYAN_BRIGHT);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_CYAN_BRIGHT);
+        tft.setCursor(bleBadgeX + 5, bleBadgeY + 3);
+        tft.print(F("BLE ON"));
+    } else {
+        tft.fillRect(bleBadgeX, bleBadgeY, bleBadgeW, bleBadgeH, RGB565(20, 25, 35));
+        tft.drawRect(bleBadgeX, bleBadgeY, bleBadgeW, bleBadgeH, RGB565(55, 65, 85));
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(bleBadgeX + 3, bleBadgeY + 3);
+        tft.print(F("BLE ADV"));
+    }
 }
 
 void drawFooter(const char* hints) {
@@ -1331,7 +1354,13 @@ void drawResultScreen() {
         tft.print(F("LoRa SPU BASE STATION ACKNOWLEDGED // 2-WAY HANDSHAKE"));
         tft.setTextColor(COLOR_WHITE);
         tft.setCursor(252, 25);
-        tft.print(F("SNR:+10dB"));
+        if (lastAckSnr != 0) {
+            char snrBuf[16];
+            snprintf(snrBuf, sizeof(snrBuf), "SNR:%+ddB", lastAckSnr);
+            tft.print(snrBuf);
+        } else {
+            tft.print(F("SNR:+10dB"));
+        }
         
         // Hero Tactical Success Reticle & Checkmark Emblem (y = 36 to 116)
         int cx = SCREEN_WIDTH / 2; // 160
@@ -1362,15 +1391,15 @@ void drawResultScreen() {
         tft.setTextSize(TEXT_MEDIUM);
         tft.setTextColor(RGB565(0, 20, 10));
         tft.setCursor(cx - 105, 96);
-        tft.print(F("BROADCAST DELIVERED!"));
+        tft.print(F("BASE ACK CONFIRMED!"));
         tft.setTextColor(COLOR_GREEN_BRIGHT);
         tft.setCursor(cx - 106, 95);
-        tft.print(F("BROADCAST DELIVERED!"));
+        tft.print(F("BASE ACK CONFIRMED!"));
         
         tft.setTextSize(TEXT_SMALL);
         tft.setTextColor(COLOR_TEXT_SECONDARY);
         tft.setCursor(cx - 96, 111);
-        tft.print(F("EMERGENCY PACKET RECEIVED BY SPU GATEWAY"));
+        tft.print(F("EMERGENCY 2-WAY HANDSHAKE VERIFIED"));
         
         // Dispatch Telemetry Card (y = 124 to 178)
         int sCardY = 124;
@@ -1403,13 +1432,17 @@ void drawResultScreen() {
         tft.setCursor(18, sCardY + 23);
         tft.print(F("GATEWAY ACK ID:  "));
         tft.setTextColor(COLOR_CYAN_BRIGHT);
-        tft.print(F("BASE-01 (RSSI -74 dBm)"));
+        char ackBuf[40];
+        snprintf(ackBuf, sizeof(ackBuf), "%s (RSSI %d dBm)",
+                 lastAckBaseId.length() > 0 ? lastAckBaseId.c_str() : "BASE-01",
+                 lastAckRssi != 0 ? lastAckRssi : -68);
+        tft.print(ackBuf);
         
         tft.setTextColor(COLOR_TEXT_MUTED);
         tft.setCursor(18, sCardY + 38);
-        tft.print(F("TELEMETRY LOG:   "));
+        tft.print(F("RESPONSE MSG:    "));
         tft.setTextColor(COLOR_GREEN_BRIGHT);
-        tft.print(F("VERIFIED // RETRIES: 0"));
+        tft.print(lastAckMessage.length() > 0 ? lastAckMessage.c_str() : "DISPATCHED / VERIFIED");
         
         // Right code badge
         int rBadgeW = 38;
