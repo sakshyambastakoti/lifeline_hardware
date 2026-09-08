@@ -104,24 +104,32 @@ Both devices implement the industry-standard **Nordic UART Service (NUS)**. This
 
 ## 🌐 4. Mobile Client Connection Guide
 
-### Option 1: Universal Web Bluetooth Companion App (Recommended)
+### Option 1: Dedicated Web Companion Applications (Recommended)
 
-LifeLine includes a self-contained, offline **Progressive Web App (PWA)** located at:
-📁 [`docs/companion_app/index.html`](file:///d:/lifeline_hardware/docs/companion_app/index.html)
+LifeLine includes dedicated, offline **Progressive Web Apps (PWAs)** located in `docs/companion_app/`:
+* 📁 **Tactical Mission Hub & Auto-Detector**: [`docs/companion_app/index.html`](file:///d:/lifeline_hardware/docs/companion_app/index.html)
+* 📡 **LifeLine TX Pro (Field Communicator)**: [`docs/companion_app/tx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/tx_companion.html)
+* 🛡️ **LifeLine RX Pro (Base Incident Commander)**: [`docs/companion_app/rx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/rx_companion.html)
 
 #### How to Launch:
-1. **No Internet Required**: Double-click `index.html` on your PC, or open it in Chrome from your phone's storage / local Wi-Fi share.
+1. **No Internet Required**: Double-click `index.html` (or `tx_companion.html` / `rx_companion.html`) on your PC, or open them in Chrome from your phone's storage / local Wi-Fi share.
 2. **Supported Browsers**:
    - **Android / Windows / macOS / Linux**: Google Chrome, Microsoft Edge, Brave, Opera.
    - **iOS (iPhone / iPad)**: Bluefy Browser or WebBLE (available free on App Store; Apple Safari does not expose Web Bluetooth).
 
-#### Features:
-* **Auto Mode Switching**: Connecting to `LifeLine-TX-XXX` opens the **Field Communicator** interface; connecting to `LifeLine-RX-Base` opens the **Incident Commander** interface.
-* **One-Touch SOS Grid**: Quick emergency buttons with Nepali translations (`आपतकालीन`, `पहिरो`, `बाढी`, `भूकम्प`, `आगो`).
-* **Live Situation Report Composer**: Type full text messages up to 48 characters and transmit directly over 433 MHz LoRa.
-* **Two-Way Handshake Feed**: Displays uplink status and shows base station confirmation with RSSI, SNR, and base operator notes.
-* **Acoustic Feedback**: Generates synthesized emergency sirens and confirmation sweeps using the Web Audio API without needing audio files.
-* **Commander 1-Click Dispatch**: Fast response buttons (`🚁 Rescue Dispatched`, `✋ Hold Position`, `⚠️ Evacuate`, `🩺 Medical Guidance`).
+#### Key Application Capabilities:
+* **LifeLine TX Pro (`tx_companion.html`)**:
+  - **15 Emergency Presets**: Full parity with on-device firmware (Codes A-O) with English and Nepali labels and safety slide-to-confirm modal.
+  - **Freeform Chat Uplink**: 48-character LoRa text report composer with field chips ("3 trapped near school", "Road blocked by landslide").
+  - **Closed-Loop Handshake HUD**: Live 2,500ms base station ACK listener countdown with Base Station ID, RSSI, SNR, and confirmation notes.
+  - **Web Serial (USB 115200)** + **Demo Simulator**: Direct USB debugging and offline simulation mode.
+* **LifeLine RX Pro (`rx_companion.html`)**:
+  - **Live Incident Triage Feed**: Categorized disaster distress packets with severity badges (Critical, High, Medium, Nominal).
+  - **Acoustic High-dB Siren**: Synthesized emergency siren and alert klaxon using Web Audio API with mute toggle.
+  - **Active Field Units Radar**: Real-time signal strength meter, estimated distance calculation, and last seen timer.
+  - **Reverse Commander Downlink**: 1-click tactical dispatch orders (`🚁 Rescue Dispatched`, `✋ Hold Position`, `🩺 Medical Guidance`) and custom downlink frames.
+  - **Mass Evacuation Broadcast**: Two-step safety locked `EVAC:ALL` broadcast over 433 MHz LoRa.
+  - **Incident Audit Export**: Export timestamped incident records as CSV for government debrief.
 
 ---
 

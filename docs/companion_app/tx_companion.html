@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LifeLine TX Pro — Tactical Field Communicator</title>
+  <meta name="description" content="Offline Web Bluetooth and Web Serial field companion application for LifeLine TX Pro emergency LoRa communicator." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #06090e;
+      --bg-surface: #0d131a;
+      --bg-card: #121a24;
+      --bg-card-hover: #172230;
+      --border-subtle: #1e2c3d;
+      --border-focus: #00d4ff;
+      
+      --cyan: #00d4ff;
+      --cyan-dim: rgba(0, 212, 255, 0.15);
+      --cyan-glow: rgba(0, 212, 255, 0.35);
+      --green: #00ff88;
+      --green-dim: rgba(0, 255, 136, 0.15);
+      --green-glow: rgba(0, 255, 136, 0.35);
+      --red: #ff334b;
+      --red-dim: rgba(255, 51, 75, 0.15);
+      --red-glow: rgba(255, 51, 75, 0.4);
+      --amber: #ffaa00;
+      --amber-dim: rgba(255, 170, 0, 0.15);
+      --amber-glow: rgba(255, 170, 0, 0.35);
+
+      --text-main: #f0f6fc;
+      --text-muted: #8b9bb0;
+      --text-faint: #48566a;
+
+      --font-display: 'Outfit', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: radial-gradient(circle at 50% 0%, #101c2c 0%, transparent 60%);
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(13, 19, 26, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #ff334b, #ff7b00);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+
+    .brand-info h1 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-info h1 span.highlight {
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .brand-info p {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyan);
+    }
+
+    .btn-cyan {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-dim);
+    }
+
+    .btn-cyan:hover {
+      background: var(--cyan);
+      color: #000;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .btn-connected {
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: 0 0 12px var(--green-dim);
+    }
+
+    .btn-connected:hover {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+      box-shadow: 0 0 14px var(--red-glow);
+    }
+
+    .btn-hub {
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    /* Sub-header telemetry strip */
+    .telemetry-strip {
+      background: #090e15;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      gap: 12px;
+    }
+
+    .strip-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #48566a;
+      transition: background 0.3s ease;
+    }
+
+    .dot.live {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulseDot 2s infinite;
+    }
+
+    .dot.sim {
+      background: var(--amber);
+      box-shadow: 0 0 8px var(--amber);
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    .sim-toggle-btn {
+      background: transparent;
+      border: 1px dashed var(--amber);
+      color: var(--amber);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    /* Layout Main */
+    main {
+      flex: 1;
+      max-width: 1020px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Card Panels */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(0, 212, 255, 0.25);
+    }
+
+    .card-header {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+    .badge-cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid var(--cyan); }
+    .badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+    .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+
+    .card-body {
+      padding: 16px;
+    }
+
+    /* ACK / Handshake HUD Banner */
+    .handshake-hud {
+      background: linear-gradient(135deg, #0f1824 0%, #151f2e 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hud-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hud-stage {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ack-progress-bar {
+      height: 6px;
+      background: #192330;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ack-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--cyan);
+      transition: width 0.1s linear;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    .ack-details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .ack-cell {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+
+    .ack-cell-label {
+      color: var(--text-faint);
+      font-size: 9px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .ack-cell-val {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* SOS Alert Grid */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .filter-btn {
+      background: #111720;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--cyan-dim);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .sos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 10px;
+    }
+
+    .sos-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sos-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      border-color: var(--border-focus);
+    }
+
+    .sos-card:active {
+      transform: scale(0.98);
+    }
+
+    .sos-card.critical {
+      border-color: rgba(255, 51, 75, 0.4);
+    }
+    .sos-card.critical:hover {
+      border-color: var(--red);
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+
+    .sos-card.high {
+      border-color: rgba(255, 170, 0, 0.3);
+    }
+    .sos-card.high:hover {
+      border-color: var(--amber);
+      box-shadow: 0 0 14px var(--amber-glow);
+    }
+
+    .sos-card.nominal {
+      border-color: rgba(0, 255, 136, 0.3);
+    }
+    .sos-card.nominal:hover {
+      border-color: var(--green);
+      box-shadow: 0 0 14px var(--green-glow);
+    }
+
+    .card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sos-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .sos-code-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .sos-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .sos-nepali {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    .sos-priority-tag {
+      margin-top: 4px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Quick Chat Composer */
+    .chat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      background: #121c27;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .chip:hover {
+      background: var(--cyan-dim);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .composer-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .text-input {
+      flex: 1;
+      background: #090e15;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .text-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-dim);
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, #0099ff, #00d4ff);
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-send:hover {
+      box-shadow: 0 0 16px var(--cyan-glow);
+      transform: translateY(-1px);
+    }
+
+    .char-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Live Feed */
+    .feed-container {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feed-item {
+      background: #090e15;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .feed-content {
+      font-family: var(--font-body);
+      color: var(--text-main);
+    }
+
+    .feed-item.alert-sent {
+      border-left: 3px solid var(--amber);
+    }
+    .feed-item.ack-confirmed {
+      border-left: 3px solid var(--green);
+      background: rgba(0, 255, 136, 0.04);
+    }
+    .feed-item.downlink-cmd {
+      border-left: 3px solid var(--cyan);
+      background: rgba(0, 212, 255, 0.05);
+    }
+    .feed-item.ack-timeout {
+      border-left: 3px solid var(--red);
+      background: rgba(255, 51, 75, 0.05);
+    }
+
+    /* Modal for SOS Confirmation */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #111822;
+      border: 2px solid var(--red);
+      box-shadow: 0 0 30px var(--red-glow);
+      border-radius: 14px;
+      max-width: 440px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+      font-size: 44px;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .modal-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .modal-code-badge {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-modal-cancel {
+      flex: 1;
+      background: #1a2533;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-modal-confirm {
+      flex: 1.5;
+      background: linear-gradient(135deg, #ff1a35, #ff5500);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-family: var(--font-display);
+      cursor: pointer;
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+
+    /* Terminal Console */
+    .raw-console {
+      background: #040609;
+      color: #79c0ff;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 10px;
+      border-radius: 8px;
+      height: 110px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      border: 1px solid var(--border-subtle);
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 14px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-faint);
+      font-family: var(--font-mono);
+      margin-top: auto;
+    }
+
+    @media (max-width: 600px) {
+      .sos-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .telemetry-strip {
+        font-size: 10px;
+        padding: 6px 12px;
+      }
+      .brand-info h1 {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header>
+    <a href="index.html" class="brand-wrap">
+      <div class="brand-badge">📡</div>
+      <div class="brand-info">
+        <h1>LIFELINE <span class="highlight">TX PRO</span></h1>
+        <p>Field Tactical Communicator</p>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <a href="index.html" class="btn btn-hub" title="Switch Mission App">⇄ Switch Role</a>
+      <button id="btnSerial" class="btn" onclick="toggleWebSerial()" title="Direct USB Serial Connection">
+        <span>🔌 USB</span>
+      </button>
+      <button id="btnBle" class="btn btn-cyan" onclick="toggleBLE()">
+        <span>⚡ Connect BLE</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Realtime Telemetry Strip -->
+  <div class="telemetry-strip">
+    <div class="strip-group">
+      <div class="pill">
+        <div id="connDot" class="dot"></div>
+        <span id="connLabel">OFFLINE (Disconnected)</span>
+      </div>
+      <div class="pill">
+        <span>BAT:</span>
+        <strong id="batValue" style="color: var(--cyan);">--%</strong>
+      </div>
+      <div class="pill">
+        <span>DEV ID:</span>
+        <strong id="devIdValue">TX-003</strong>
+      </div>
+    </div>
+
+    <div class="strip-group">
+      <div class="pill">
+        <span>LoRa RF:</span>
+        <strong id="loraValue" style="color: var(--green);">433 MHz OK</strong>
+      </div>
+      <div class="pill">
+        <button id="btnSim" class="sim-toggle-btn" onclick="toggleSimulationMode()">
+          Demo Simulator: OFF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Field UI -->
+  <main>
+
+    <!-- Two-Way Closed Loop Handshake Banner -->
+    <section class="handshake-hud">
+      <div class="hud-top">
+        <div class="hud-stage">
+          <span>🔄 Two-Way LoRa Status:</span>
+          <strong id="handshakeStatus" style="color: var(--text-main);">STANDBY / READY</strong>
+        </div>
+        <span id="handshakeBadge" class="badge badge-cyan">Listening</span>
+      </div>
+
+      <div class="ack-progress-bar">
+        <div id="ackProgressFill" class="ack-progress-fill"></div>
+      </div>
+
+      <div class="ack-details-grid">
+        <div class="ack-cell">
+          <div class="ack-cell-label">Base Station</div>
+          <div id="ackBaseVal" class="ack-cell-val">None</div>
+        </div>
+        <div class="ack-cell">
+          <div class="ack-cell-label">Confirmation</div>
+          <div id="ackConfirmVal" class="ack-cell-val">Awaiting Uplink</div>
+        </div>
+        <div class="ack-cell">
+          <div class="ack-cell-label">Link Signal</div>
+          <div id="ackRssiVal" class="ack-cell-val">-- dBm</div>
+        </div>
+        <div class="ack-cell">
+          <div class="ack-cell-label">Signal-Noise</div>
+          <div id="ackSnrVal" class="ack-cell-val">-- dB</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15-Preset LoRa Emergency SOS Grid -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🚨 One-Touch Emergency SOS (433 MHz LoRa)</span>
+        </div>
+        <span class="badge badge-red">15 Field Presets</span>
+      </div>
+      <div class="card-body">
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filterAlerts('all')">All (15)</button>
+          <button class="filter-btn" onclick="filterAlerts('critical')">Critical (5)</button>
+          <button class="filter-btn" onclick="filterAlerts('high')">High (4)</button>
+          <button class="filter-btn" onclick="filterAlerts('medium')">Medium (5)</button>
+          <button class="filter-btn" onclick="filterAlerts('nominal')">Nominal (1)</button>
+        </div>
+
+        <div id="sosGrid" class="sos-grid">
+          <!-- Dynamically populated from JS alert registry -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Freeform Situation Report Composer -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>💬 Field Situation Report (Two-Way LoRa Chat)</span>
+        </div>
+        <span class="badge badge-cyan">48-Char Uplink</span>
+      </div>
+      <div class="card-body">
+        
+        <!-- Tactical Chips -->
+        <div class="chat-chips">
+          <span class="chip" onclick="applyChip('3 trapped near school, need stretcher')">🚑 3 trapped near school</span>
+          <span class="chip" onclick="applyChip('Main road blocked by landslide debris')">⛰️ Road landslide</span>
+          <span class="chip" onclick="applyChip('River water rising rapid, need boat')">🌊 Flash flood danger</span>
+          <span class="chip" onclick="applyChip('Elderly hypothermia, need warm blankets')">❄️ Extreme cold</span>
+          <span class="chip" onclick="applyChip('All safe at ridge shelter, food low')">✅ Ridge camp safe</span>
+        </div>
+
+        <div class="composer-input-row">
+          <input id="chatInput" type="text" class="text-input" placeholder="Type tactical message or select a chip above..." maxlength="48" oninput="updateCharCount()" />
+          <button class="btn-send" onclick="sendCustomChat()">
+            <span>TRANSMIT</span>
+            <span>➤</span>
+          </button>
+        </div>
+
+        <div class="char-count">
+          <span>Packaged into LoRa payload & triggers 2.5s base station handshake window</span>
+          <span id="charCountLabel">0 / 48 chars</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Live Uplink & Downlink Handshake Feed -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📡 Tactical Uplink & Downlink Feed</span>
+        </div>
+        <button onclick="clearFeed()" style="background:none;border:none;color:var(--cyan);font-size:11px;cursor:pointer;">Clear Feed</button>
+      </div>
+      <div class="card-body">
+        <div id="txFeed" class="feed-container">
+          <div class="feed-item">
+            <div class="feed-header">
+              <span>SYSTEM INIT</span>
+              <span>STANDBY</span>
+            </div>
+            <div class="feed-content">
+              Connect LifeLine TX Pro via Bluetooth LE or USB cable to transmit emergency LoRa packets.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Diagnostic Stream Log -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📟 Diagnostic Stream Console</span>
+        </div>
+        <button onclick="document.getElementById('rawLog').innerText = ''" style="background:none;border:none;color:var(--cyan);font-size:11px;cursor:pointer;">Clear Log</button>
+      </div>
+      <div class="card-body" style="padding: 10px;">
+        <div id="rawLog" class="raw-console">Waiting for connection... Click 'Demo Simulator' anytime to test offline.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Emergency Confirmation Modal -->
+  <div id="confirmModal" class="modal-backdrop">
+    <div class="modal-box">
+      <div id="modalIcon" class="modal-icon">🆘</div>
+      <div id="modalTitle" class="modal-title">CONFIRM CRITICAL SOS</div>
+      <div class="modal-code-badge" id="modalCode">CODE: A &bull; 433 MHz LORA</div>
+      <div class="modal-subtitle" id="modalSubtitle">
+        Are you sure you want to broadcast this emergency signal to the Base Station? Rescuers will be mobilized immediately.
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-modal-confirm" onclick="confirmAlertDispatch()">BROADCAST SOS</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    LifeLine TX Pro v3.1.0 PRO &bull; 433 MHz LoRa Field Communicator &bull; Web Bluetooth NUS & Serial
+  </footer>
+
+  <script>
+    // ==========================================
+    // LifeLine 15-Preset Alert Registry (Config.cpp parity)
+    // ==========================================
+    const ALERT_REGISTRY = [
+      { code: 'A', name: 'CRITICAL SOS', nepali: 'आपतकालीन उद्धार', icon: '🆘', priority: 'critical', prioVal: 0 },
+      { code: 'B', name: 'DELIVERY / LABOR', nepali: 'सुत्केरी / प्रसूति', icon: '👶', priority: 'critical', prioVal: 0 },
+      { code: 'C', name: 'HELI RESCUE NEEDED', nepali: 'हेलिकप्टर उद्धार', icon: '🚁', priority: 'critical', prioVal: 0 },
+      { code: 'D', name: 'MEDICINE SHORTAGE', nepali: 'औषधि अभाव', icon: '💊', priority: 'medium', prioVal: 2 },
+      { code: 'E', name: 'OXYGEN SHORTAGE', nepali: 'अक्सिजन अभाव', icon: '🫁', priority: 'critical', prioVal: 0 },
+      { code: 'F', name: 'SEVERE INJURY', nepali: 'गम्भीर चोटपटक', icon: '🩹', priority: 'high', prioVal: 1 },
+      { code: 'G', name: 'BLOOD NEEDED', nepali: 'रगत आवश्यक', icon: '🩸', priority: 'critical', prioVal: 0 },
+      { code: 'H', name: 'ALTITUDE SICKNESS', nepali: 'लेक लाग्ने (AMS)', icon: '⛰️', priority: 'high', prioVal: 1 },
+      { code: 'I', name: 'FOOD SHORTAGE', nepali: 'खाद्यान्न अभाव', icon: '🍞', priority: 'medium', prioVal: 2 },
+      { code: 'J', name: 'WATER SHORTAGE', nepali: 'खानेपानी अभाव', icon: '💧', priority: 'medium', prioVal: 2 },
+      { code: 'K', name: 'DISEASE OUTBREAK', nepali: 'महामारी फैलिएको', icon: '☣️', priority: 'high', prioVal: 1 },
+      { code: 'L', name: 'FREEZING / SHELTER', nepali: 'चिसो / ओत अभाव', icon: '🥶', priority: 'medium', prioVal: 2 },
+      { code: 'M', name: 'LANDSLIDE / HAZARD', nepali: 'पहिरो / जोखिम', icon: '⚠️', priority: 'high', prioVal: 1 },
+      { code: 'N', name: 'DOCTOR / NURSE NEED', nepali: 'स्वास्थ्यकर्मी माग', icon: '🩺', priority: 'medium', prioVal: 2 },
+      { code: 'O', name: 'STATUS OK / ALL SAFE', nepali: 'सबै सुरक्षित', icon: '✅', priority: 'nominal', prioVal: 3 }
+    ];
+
+    // ==========================================
+    // Nordic UART Service (NUS) UUIDs
+    // ==========================================
+    const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Mobile -> Device (Write)
+    const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // Device -> Mobile (Notify)
+
+    let bleDevice = null;
+    let gattServer = null;
+    let rxCharacteristic = null;
+    let txCharacteristic = null;
+    let isConnected = false;
+
+    // Web Serial
+    let serialPort = null;
+    let serialReader = null;
+    let serialWriter = null;
+    let isSerialConnected = false;
+
+    // Simulation
+    let isSimulationMode = false;
+    let simAckTimer = null;
+    let pendingAlertToConfirm = null;
+
+    // Web Audio Synthesizer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freqStart, freqEnd, duration, type = 'sine') {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
+      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function soundUplinkBeep() { playTone(800, 1400, 0.15); }
+    function soundAckSuccess() {
+      playTone(520, 1040, 0.2);
+      setTimeout(() => playTone(1040, 1560, 0.25), 180);
+      if ('vibrate' in navigator) navigator.vibrate([100, 50, 150]);
+    }
+    function soundAlertChime() {
+      playTone(1500, 750, 0.35, 'sawtooth');
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    }
+
+    // Logger
+    function logRaw(msg) {
+      const el = document.getElementById('rawLog');
+      const time = new Date().toLocaleTimeString();
+      el.innerText += `[${time}] ${msg}\n`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // ==========================================
+    // Render SOS Alert Grid
+    // ==========================================
+    function renderAlertGrid(filter = 'all') {
+      const container = document.getElementById('sosGrid');
+      container.innerHTML = '';
+
+      const filtered = ALERT_REGISTRY.filter(item => {
+        if (filter === 'all') return true;
+        return item.priority === filter;
+      });
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `sos-card ${item.priority}`;
+        card.onclick = () => requestAlertTrigger(item);
+
+        card.innerHTML = `
+          <div class="card-top-row">
+            <span class="sos-icon">${item.icon}</span>
+            <span class="sos-code-tag">[${item.code}]</span>
+          </div>
+          <div class="sos-title">${item.name}</div>
+          <div class="sos-nepali">${item.nepali}</div>
+          <div class="sos-priority-tag" style="color: ${getPriorityColor(item.priority)}">
+            ${item.priority.toUpperCase()}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function getPriorityColor(prio) {
+      switch (prio) {
+        case 'critical': return 'var(--red)';
+        case 'high': return 'var(--amber)';
+        case 'medium': return 'var(--cyan)';
+        case 'nominal': return 'var(--green)';
+        default: return 'var(--text-muted)';
+      }
+    }
+
+    function filterAlerts(category) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.toLowerCase().includes(category));
+      });
+      renderAlertGrid(category);
+    }
+
+    // ==========================================
+    // Confirmation Modal
+    // ==========================================
+    function requestAlertTrigger(alertItem) {
+      // For nominal safe check-in, trigger without scary modal
+      if (alertItem.priority === 'nominal') {
+        executeAlertDispatch(alertItem.code, alertItem.name);
+        return;
+      }
+
+      pendingAlertToConfirm = alertItem;
+      document.getElementById('modalIcon').innerText = alertItem.icon;
+      document.getElementById('modalTitle').innerText = alertItem.name;
+      document.getElementById('modalCode').innerText = `CODE: ${alertItem.code} • 433 MHz LORA • ${alertItem.nepali}`;
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmModal').classList.remove('active');
+      pendingAlertToConfirm = null;
+    }
+
+    function confirmAlertDispatch() {
+      if (pendingAlertToConfirm) {
+        const item = pendingAlertToConfirm;
+        closeModal();
+        executeAlertDispatch(item.code, item.name);
+      }
+    }
+
+    // ==========================================
+    // Dispatch Logic
+    // ==========================================
+    async function executeAlertDispatch(code, name) {
+      soundUplinkBeep();
+      logRaw(`Initiating LoRa Uplink Alert: [${code}] ${name}`);
+      startHandshakeProgress();
+
+      addFeedItem(`UPLINK ALERT [${code}]`, `Broadcasting "${name}" over 433 MHz LoRa. Opening 2,500ms ACK window...`, 'alert-sent');
+
+      if (isSimulationMode) {
+        simulateUplinkResponse(code, name);
+        return;
+      }
+
+      const cmd = `ALERT:${code}`;
+      await transmitData(cmd);
+    }
+
+    async function sendCustomChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      soundUplinkBeep();
+      logRaw(`Transmitting custom chat: "${text}"`);
+      startHandshakeProgress();
+
+      addFeedItem('UPLINK CHAT', `"${text}" transmitting over LoRa. Listening for base confirmation...`, 'alert-sent');
+
+      if (isSimulationMode) {
+        simulateUplinkResponse('MSG', text);
+        input.value = '';
+        updateCharCount();
+        return;
+      }
+
+      const cmd = `MSG:${text}`;
+      const ok = await transmitData(cmd);
+      if (ok) {
+        input.value = '';
+        updateCharCount();
+      }
+    }
+
+    function applyChip(text) {
+      const input = document.getElementById('chatInput');
+      input.value = text;
+      updateCharCount();
+      input.focus();
+    }
+
+    function updateCharCount() {
+      const input = document.getElementById('chatInput');
+      const count = input.value.length;
+      document.getElementById('charCountLabel').innerText = `${count} / 48 chars`;
+    }
+
+    // Handshake animation & state
+    let progressTimer = null;
+    function startHandshakeProgress() {
+      clearInterval(progressTimer);
+      const fill = document.getElementById('ackProgressFill');
+      const statusLabel = document.getElementById('handshakeStatus');
+      const badge = document.getElementById('handshakeBadge');
+
+      fill.style.transition = 'none';
+      fill.style.width = '0%';
+      statusLabel.innerText = 'UPLINK BROADCASTING (2.5s WINDOW)';
+      statusLabel.style.color = 'var(--cyan)';
+      badge.className = 'badge badge-amber';
+      badge.innerText = 'Awaiting Base';
+
+      document.getElementById('ackConfirmVal').innerText = 'Transmitting...';
+
+      let elapsed = 0;
+      const total = 2500;
+      const step = 50;
+
+      progressTimer = setInterval(() => {
+        elapsed += step;
+        const pct = Math.min((elapsed / total) * 100, 100);
+        fill.style.width = `${pct}%`;
+
+        if (elapsed >= total) {
+          clearInterval(progressTimer);
+          if (badge.innerText === 'Awaiting Base') {
+            onAckTimeout();
+          }
+        }
+      }, step);
+    }
+
+    function onAckSuccess(baseId, note, rssi, snr) {
+      clearInterval(progressTimer);
+      soundAckSuccess();
+      const fill = document.getElementById('ackProgressFill');
+      fill.style.width = '100%';
+      fill.style.background = 'var(--green)';
+
+      document.getElementById('handshakeStatus').innerText = 'BASE CONFIRMED (CLOSED-LOOP)';
+      document.getElementById('handshakeStatus').style.color = 'var(--green)';
+      
+      const badge = document.getElementById('handshakeBadge');
+      badge.className = 'badge badge-green';
+      badge.innerText = 'Confirmed';
+
+      document.getElementById('ackBaseVal').innerText = baseId;
+      document.getElementById('ackConfirmVal').innerText = note || 'Alert Logged';
+      document.getElementById('ackRssiVal').innerText = `${rssi} dBm`;
+      document.getElementById('ackSnrVal').innerText = `${snr} dB`;
+
+      addFeedItem(`BASE CONFIRMED [${baseId}]`, `Status: CONFIRMED &bull; "${note}" (Signal: ${rssi} dBm, SNR: ${snr} dB)`, 'ack-confirmed');
+    }
+
+    function onAckTimeout() {
+      const statusLabel = document.getElementById('handshakeStatus');
+      statusLabel.innerText = 'NO BASE ACK (RETRYING)';
+      statusLabel.style.color = 'var(--red)';
+
+      const badge = document.getElementById('handshakeBadge');
+      badge.className = 'badge badge-red';
+      badge.innerText = 'Timeout';
+
+      document.getElementById('ackConfirmVal').innerText = 'No ACK received';
+      addFeedItem('ACK TIMEOUT', 'Base Station out of line-of-sight or blocked. Unit will retry uplink automatically.', 'ack-timeout');
+    }
+
+    // ==========================================
+    // Inbound Notification Parser
+    // ==========================================
+    function parseIncomingFrame(data) {
+      logRaw(`[RX] ${data}`);
+
+      if (data.startsWith('STATUS:')) {
+        // e.g. STATUS:DEV=003,BAT=92,LORA=OK,VER=v3.1.0 PRO
+        const devMatch = data.match(/DEV=(\w+)/);
+        if (devMatch) document.getElementById('devIdValue').innerText = `TX-${devMatch[1]}`;
+        const batMatch = data.match(/BAT=(\d+)/);
+        if (batMatch) document.getElementById('batValue').innerText = `${batMatch[1]}%`;
+        const loraMatch = data.match(/LORA=([^,]+)/);
+        if (loraMatch) document.getElementById('loraValue').innerText = `LoRa: ${loraMatch[1]}`;
+      }
+      else if (data.startsWith('ALERT_SENT:')) {
+        // ALERT_SENT:CODE=A,NAME=CRITICAL SOS,TIME=...
+        const nameMatch = data.match(/NAME=([^,]+)/);
+        const name = nameMatch ? nameMatch[1] : 'SOS';
+        startHandshakeProgress();
+      }
+      else if (data.startsWith('ACK_RECV:')) {
+        // ACK_RECV:STATUS=LOGGED,BASE=BASE01,NOTE=Alert recorded,RSSI=-65,SNR=9
+        const baseMatch = data.match(/BASE=([^,]+)/);
+        const noteMatch = data.match(/NOTE=([^,]+)/);
+        const rssiMatch = data.match(/RSSI=([^,]+)/);
+        const snrMatch = data.match(/SNR=([^,]+)/);
+
+        const baseId = baseMatch ? baseMatch[1] : 'BASE01';
+        const note = noteMatch ? noteMatch[1] : 'Recorded by Commander';
+        const rssi = rssiMatch ? rssiMatch[1] : '-68';
+        const snr = snrMatch ? snrMatch[1] : '8';
+
+        onAckSuccess(baseId, note, rssi, snr);
+      }
+      else if (data.startsWith('ACK_TIMEOUT:')) {
+        onAckTimeout();
+      }
+      else if (data.startsWith('CMD:') || data.startsWith('REPLY:')) {
+        // Downlink dispatch from commander
+        soundAlertChime();
+        addFeedItem('DOWNLINK COMMAND', data, 'downlink-cmd');
+      }
+    }
+
+    // ==========================================
+    // Feed Management
+    // ==========================================
+    function addFeedItem(tag, content, cls = '') {
+      const feed = document.getElementById('txFeed');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = `feed-item ${cls}`;
+      div.innerHTML = `
+        <div class="feed-header">
+          <span>${tag}</span>
+          <span>${time}</span>
+        </div>
+        <div class="feed-content">${content}</div>
+      `;
+      feed.prepend(div);
+    }
+
+    function clearFeed() {
+      document.getElementById('txFeed').innerHTML = `
+        <div class="feed-item">
+          <div class="feed-header"><span>FEED CLEARED</span><span>${new Date().toLocaleTimeString()}</span></div>
+          <div class="feed-content">History wiped by operator.</div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // Web Bluetooth NUS Client
+    // ==========================================
+    async function toggleBLE() {
+      if (isConnected) {
+        disconnectBLE();
+      } else {
+        await connectBLE();
+      }
+    }
+
+    async function connectBLE() {
+      if (!navigator.bluetooth) {
+        alert('Web Bluetooth is not supported on this browser.\nPlease use Google Chrome on Android/Windows or Bluefy on iOS.');
+        return;
+      }
+
+      try {
+        logRaw('Scanning for LifeLine TX Bluetooth devices...');
+        bleDevice = await navigator.bluetooth.requestDevice({
+          filters: [
+            { namePrefix: 'LifeLine-TX' },
+            { namePrefix: 'LifeLine' },
+            { services: [NUS_SERVICE_UUID] }
+          ],
+          optionalServices: [NUS_SERVICE_UUID]
+        });
+
+        logRaw(`Connecting to GATT: ${bleDevice.name}...`);
+        bleDevice.addEventListener('gattserverdisconnected', onBLEDisconnected);
+
+        gattServer = await bleDevice.gatt.connect();
+        const service = await gattServer.getPrimaryService(NUS_SERVICE_UUID);
+        rxCharacteristic = await service.getCharacteristic(NUS_RX_CHAR_UUID);
+        txCharacteristic = await service.getCharacteristic(NUS_TX_CHAR_UUID);
+
+        await txCharacteristic.startNotifications();
+        txCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
+          const dec = new TextDecoder('utf-8');
+          parseIncomingFrame(dec.decode(e.target.value).trim());
+        });
+
+        isConnected = true;
+        updateUIConnected('BLE', bleDevice.name);
+        soundAckSuccess();
+        logRaw('Connected to LifeLine TX Pro via BLE Nordic UART.');
+
+        // Query status
+        await transmitData('STATUS');
+
+      } catch (err) {
+        logRaw(`BLE Connection error: ${err}`);
+        updateUIConnected(false);
+      }
+    }
+
+    function onBLEDisconnected() {
+      logRaw('BLE device disconnected.');
+      updateUIConnected(false);
+    }
+
+    function disconnectBLE() {
+      if (bleDevice && bleDevice.gatt.connected) {
+        bleDevice.gatt.disconnect();
+      }
+      updateUIConnected(false);
+    }
+
+    // ==========================================
+    // Web Serial (USB)
+    // ==========================================
+    async function toggleWebSerial() {
+      if (isSerialConnected) {
+        disconnectSerial();
+      } else {
+        await connectSerial();
+      }
+    }
+
+    async function connectSerial() {
+      if (!('serial' in navigator)) {
+        alert('Web Serial is not supported on this browser. Use Google Chrome / Edge on desktop.');
+        return;
+      }
+
+      try {
+        serialPort = await navigator.serial.requestPort();
+        await serialPort.open({ baudRate: 115200 });
+        isSerialConnected = true;
+        updateUIConnected('SERIAL', 'ESP32 USB (115200)');
+        logRaw('Connected to LifeLine TX Pro via USB Web Serial.');
+
+        readSerialLoop();
+      } catch (err) {
+        logRaw(`Serial error: ${err}`);
+        updateUIConnected(false);
+      }
+    }
+
+    async function readSerialLoop() {
+      const textDecoder = new TextDecoderStream();
+      const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
+      const reader = textDecoder.readable.getReader();
+      serialReader = reader;
+
+      let buffer = '';
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            buffer += value;
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep last incomplete line
+            for (const line of lines) {
+              const clean = line.trim();
+              if (clean) parseIncomingFrame(clean);
+            }
+          }
+        }
+      } catch (err) {
+        logRaw(`Serial read loop exit: ${err}`);
+      }
+    }
+
+    async function disconnectSerial() {
+      if (serialReader) {
+        await serialReader.cancel();
+      }
+      if (serialPort) {
+        await serialPort.close();
+      }
+      isSerialConnected = false;
+      updateUIConnected(false);
+    }
+
+    // Transmit router (BLE or Serial)
+    async function transmitData(str) {
+      logRaw(`[TX] ${str}`);
+      if (isConnected && rxCharacteristic) {
+        try {
+          const enc = new TextEncoder();
+          await rxCharacteristic.writeValueWithoutResponse(enc.encode(str));
+          return true;
+        } catch (err) {
+          logRaw(`BLE transmit failed: ${err}`);
+          return false;
+        }
+      } else if (isSerialConnected && serialPort && serialPort.writable) {
+        try {
+          const writer = serialPort.writable.getWriter();
+          const enc = new TextEncoder();
+          await writer.write(enc.encode(str + '\n'));
+          writer.releaseLock();
+          return true;
+        } catch (err) {
+          logRaw(`Serial transmit failed: ${err}`);
+          return false;
+        }
+      } else {
+        logRaw('Cannot transmit: Not connected (Click "Demo Simulator" to test offline).');
+        return false;
+      }
+    }
+
+    function updateUIConnected(type, devName = '') {
+      const bleBtn = document.getElementById('btnBle');
+      const serialBtn = document.getElementById('btnSerial');
+      const dot = document.getElementById('connDot');
+      const label = document.getElementById('connLabel');
+
+      if (type) {
+        dot.className = 'dot live';
+        label.innerText = `CONNECTED (${type}): ${devName}`;
+        if (type === 'BLE') {
+          bleBtn.classList.add('btn-connected');
+          bleBtn.innerHTML = '<span>⚡ Disconnect BLE</span>';
+        } else {
+          serialBtn.classList.add('btn-connected');
+          serialBtn.innerHTML = '<span>🔌 Disconnect USB</span>';
+        }
+      } else {
+        dot.className = isSimulationMode ? 'dot sim' : 'dot';
+        label.innerText = isSimulationMode ? 'DEMO SIMULATOR (Offline Test)' : 'OFFLINE (Disconnected)';
+        bleBtn.classList.remove('btn-connected');
+        bleBtn.innerHTML = '<span>⚡ Connect BLE</span>';
+        serialBtn.classList.remove('btn-connected');
+        serialBtn.innerHTML = '<span>🔌 USB</span>';
+      }
+    }
+
+    // ==========================================
+    // Simulation / Demo Mode
+    // ==========================================
+    function toggleSimulationMode() {
+      isSimulationMode = !isSimulationMode;
+      const btn = document.getElementById('btnSim');
+      btn.innerText = `Demo Simulator: ${isSimulationMode ? 'ON' : 'OFF'}`;
+      btn.style.background = isSimulationMode ? 'var(--amber-dim)' : 'transparent';
+      
+      const dot = document.getElementById('connDot');
+      const label = document.getElementById('connLabel');
+
+      if (isSimulationMode) {
+        dot.className = 'dot sim';
+        label.innerText = 'DEMO SIMULATOR (Offline Test)';
+        document.getElementById('batValue').innerText = '94%';
+        document.getElementById('devIdValue').innerText = 'TX-003';
+        logRaw('Simulator activated. Trigger any alert or send a chat message to see realistic LoRa uplink and Base Station ACK confirmation.');
+      } else {
+        dot.className = 'dot';
+        label.innerText = 'OFFLINE (Disconnected)';
+        document.getElementById('batValue').innerText = '--%';
+        logRaw('Simulator deactivated.');
+      }
+    }
+
+    function simulateUplinkResponse(code, name) {
+      clearTimeout(simAckTimer);
+      // Simulate realistic LoRa airtime and base station turnaround (800ms - 1500ms)
+      const delay = Math.floor(Math.random() * 600) + 800;
+
+      simAckTimer = setTimeout(() => {
+        const rssi = -65 - Math.floor(Math.random() * 12);
+        const snr = 8 + Math.floor(Math.random() * 4);
+        const baseReplies = [
+          'APF Rescue squad airborne ETA 20m',
+          'Hold position, rescue team en route',
+          'Medical team deployed with stretcher',
+          'Message received, logged in base log'
+        ];
+        const note = baseReplies[Math.floor(Math.random() * baseReplies.length)];
+        onAckSuccess('BASE01', note, rssi, snr);
+      }, delay);
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAlertGrid('all');
+      logRaw('LifeLine TX Pro Companion initialized. Ready for operation.');
+    });
+  </script>
+</body>
+</html>
