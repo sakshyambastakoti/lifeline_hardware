@@ -291,6 +291,7 @@ All in-depth documentation is organized inside the [`docs/`](file:///d:/lifeline
 | **API** | [SPU Telemetry REST API](file:///d:/lifeline_hardware/docs/api/spu_telemetry_api.md) | Direct Cloud upload JSON schemas and HTTP endpoints |
 | **Guides** | [Local Wireless OTA Flashing](file:///d:/lifeline_hardware/docs/guides/local_ota_guide.md) | How to flash TX and RX wirelessly over SoftAP |
 | **Guides** | [VPS Remote HTTPS OTA](file:///d:/lifeline_hardware/docs/guides/vps_ota_guide.md) | How to configure VPS cloud auto-updates for Base Stations |
+| **Guides** | [Bluetooth BLE & Mobile Companion](file:///d:/lifeline_hardware/docs/guides/bluetooth_ble_integration_guide.md) | Dual-unit BLE GATT Nordic UART, mobile chat & offline Web Bluetooth PWA guide |
 | **Roadmap** | [Master Feature Matrix](file:///d:/lifeline_hardware/docs/roadmap/features_matrix.md) | Comprehensive feature comparison across all units |
 | **Roadmap** | [Upgrade Roadmap](file:///d:/lifeline_hardware/docs/roadmap/upgrade_roadmap.md) | Roadmap for 1-hour sensor logging & dual-mode transmission |
 
