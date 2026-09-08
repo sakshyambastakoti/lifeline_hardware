@@ -313,7 +313,7 @@ bool checkSerialSimulatedPacket(FullTelemetryData& telemetry) {
     if (input.length() == 1 && ((input[0] >= '0' && input[0] <= '9'))) {
         telemetry.deviceId = 1;
         telemetry.alertIndex = (input[0] == '0') ? 9 : input[0] - '1';
-        telemetry.emergencyCode = (telemetry.alertIndex == 4) ? 'N' : 'E';
+        telemetry.emergencyCode = (telemetry.alertIndex == 14) ? 'N' : 'E';
         telemetry.isFullTelemetry = false;
         telemetry.isChatMessage = false;
         telemetry.rssi = -65;
@@ -355,7 +355,7 @@ bool checkSerialSimulatedPacket(FullTelemetryData& telemetry) {
         telemetry.emergencyCode = alertPart[0] - 'a' + 'A';
     } else {
         telemetry.alertIndex = alertPart.toInt();
-        telemetry.emergencyCode = (telemetry.alertIndex == 4) ? 'N' : 'E';
+        telemetry.emergencyCode = (telemetry.alertIndex == 14) ? 'N' : 'E';
     }
     
     if (telemetry.alertIndex < 0 || telemetry.alertIndex >= ALERT_COUNT) {

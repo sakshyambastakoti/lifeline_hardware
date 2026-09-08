@@ -31,21 +31,21 @@ bool initLoRa() {
 
 static int mapEmergencyCodeToAlertIndex(char code) {
     switch (code) {
-        case 'N': return 4;  // STATUS OK
-        case 'F': return 0;  // EMERGENCY (Fire)
-        case 'L': return 11; // LANDSLIDE
-        case 'Q': return 0;  // EMERGENCY (Earthquake)
+        case 'N': return 14; // STATUS OK / ALL SAFE
+        case 'F': return 0;  // EMERGENCY (Critical SOS)
+        case 'L': return 12; // LANDSLIDE / HAZARD
+        case 'Q': return 0;  // EMERGENCY (Seismic / Structural)
         case 'S': return 0;  // EMERGENCY (Manual SOS)
-        case 'M': return 1;  // MEDICAL
-        case 'H': return 8;  // WEATHER ALERT
-        case 'C': return 12; // SNOW STORM
-        case 'W': return 8;  // WEATHER ALERT
-        case 'G': return 0;  // EMERGENCY (Gas)
-        case 'B': return 13; // EQUIPMENT FAILURE
+        case 'M': return 5;  // SEVERE INJURY / MEDICAL
+        case 'H': return 7;  // ALTITUDE SICKNESS (AMS)
+        case 'C': return 11; // FREEZING / SHELTER
+        case 'W': return 9;  // WATER SHORTAGE
+        case 'G': return 0;  // HAZARD / SOS
+        case 'B': return 3;  // MEDICINE SHORTAGE
         default:
             if (code >= 'A' && code <= 'O') return code - 'A';
             if (code >= 'a' && code <= 'o') return code - 'a';
-            return 14; // OTHER
+            return 14; // STATUS OK
     }
 }
 

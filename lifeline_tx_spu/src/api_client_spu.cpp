@@ -3,14 +3,14 @@
 
 static int mapEmergencyToMessageCode(char code) {
     switch (code) {
-        case EMERGENCY_SOS:         return 0;  // EMERGENCY / SOS
-        case EMERGENCY_MEDICAL:     return 1;  // MEDICAL EMERGENCY
-        case EMERGENCY_FIRE:        return 0;  // FIRE / HIGH TEMP
-        case EMERGENCY_LANDSLIDE:   return 11; // LANDSLIDE
-        case EMERGENCY_GAS:         return 0;  // HIGH GAS LEAK
-        case EMERGENCY_EARTHQUAKE:  return 0;  // FALL / VIBRATION
-        case EMERGENCY_BATTERY:     return 13; // LOW BATTERY / EQUIPMENT FAIL
-        default:                    return 4;  // STATUS OK / NOMINAL
+        case EMERGENCY_SOS:         return 0;  // CRITICAL SOS
+        case EMERGENCY_MEDICAL:     return 5;  // SEVERE INJURY / MEDICAL
+        case EMERGENCY_FIRE:        return 0;  // FIRE / CRITICAL SOS
+        case EMERGENCY_LANDSLIDE:   return 12; // LANDSLIDE / HAZARD
+        case EMERGENCY_GAS:         return 0;  // GAS / HAZARD
+        case EMERGENCY_EARTHQUAKE:  return 0;  // SEISMIC VIBRATION / SOS
+        case EMERGENCY_BATTERY:     return 3;  // LOW BATTERY / SUPPLY
+        default:                    return 14; // STATUS OK / ALL SAFE
     }
 }
 

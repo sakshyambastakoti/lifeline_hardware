@@ -532,35 +532,50 @@
         </div>
         <div class="card-body">
           <div class="sos-grid">
-            <button class="sos-btn sos-critical" onclick="triggerAlert('A', 'EMERGENCY')">
+            <button class="sos-btn sos-critical" onclick="triggerAlert('A', 'CRITICAL SOS')">
               <span class="icon">🆘</span>
               <span class="label">SOS Alert</span>
               <span class="nepali">आपतकालीन</span>
             </button>
-            <button class="sos-btn" onclick="triggerAlert('M', 'MEDICAL')">
-              <span class="icon">🩺</span>
-              <span class="label">Medical</span>
-              <span class="nepali">उपचार / बिरामी</span>
+            <button class="sos-btn sos-critical" onclick="triggerAlert('B', 'DELIVERY / LABOR')">
+              <span class="icon">👶</span>
+              <span class="label">Delivery SOS</span>
+              <span class="nepali">सुत्केरी / प्रसूति</span>
             </button>
-            <button class="sos-btn" onclick="triggerAlert('L', 'LANDSLIDE')">
+            <button class="sos-btn sos-critical" onclick="triggerAlert('C', 'HELI RESCUE')">
+              <span class="icon">🚁</span>
+              <span class="label">Heli Rescue</span>
+              <span class="nepali">हेलिकप्टर उद्धार</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('D', 'MED SHORTAGE')">
+              <span class="icon">💊</span>
+              <span class="label">Med Shortage</span>
+              <span class="nepali">औषधि अभाव</span>
+            </button>
+            <button class="sos-btn sos-critical" onclick="triggerAlert('E', 'OXYGEN SHORT')">
+              <span class="icon">🫁</span>
+              <span class="label">Oxygen Short</span>
+              <span class="nepali">अक्सिजन अभाव</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('F', 'SEVERE INJURY')">
+              <span class="icon">🩹</span>
+              <span class="label">Severe Injury</span>
+              <span class="nepali">गम्भीर चोटपटक</span>
+            </button>
+            <button class="sos-btn sos-critical" onclick="triggerAlert('G', 'BLOOD NEEDED')">
+              <span class="icon">🩸</span>
+              <span class="label">Blood Needed</span>
+              <span class="nepali">रगत आवश्यक</span>
+            </button>
+            <button class="sos-btn" onclick="triggerAlert('M', 'LANDSLIDE')">
               <span class="icon">⛰️</span>
               <span class="label">Landslide</span>
               <span class="nepali">पहिरो</span>
             </button>
-            <button class="sos-btn" onclick="triggerAlert('Q', 'EARTHQUAKE')">
-              <span class="icon">🏚️</span>
-              <span class="label">Earthquake</span>
-              <span class="nepali">भूकम्प</span>
-            </button>
-            <button class="sos-btn" onclick="triggerAlert('F', 'FIRE')">
-              <span class="icon">🔥</span>
-              <span class="label">Fire</span>
-              <span class="nepali">आगो</span>
-            </button>
-            <button class="sos-btn" onclick="triggerAlert('W', 'FLOOD')">
-              <span class="icon">🌊</span>
-              <span class="label">Flash Flood</span>
-              <span class="nepali">बाढी</span>
+            <button class="sos-btn" onclick="triggerAlert('O', 'STATUS OK')">
+              <span class="icon">✅</span>
+              <span class="label">Status OK</span>
+              <span class="nepali">सबै सुरक्षित</span>
             </button>
           </div>
         </div>

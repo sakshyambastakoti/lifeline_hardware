@@ -2,45 +2,45 @@
 
 // Alert messages - MUST match receiver configuration
 const char* alertNames[ALERT_COUNT] = {
-    "EMERGENCY",            // 0  - A - CRITICAL
-    "MEDICAL EMERGENCY",    // 1  - B - CRITICAL
-    "MEDICINE SHORTAGE",    // 2  - C - MEDIUM
-    "EVACUATION NEEDED",    // 3  - D - CRITICAL
-    "STATUS OK",            // 4  - E - OK
-    "INJURY REPORTED",      // 5  - F - HIGH
-    "FOOD SHORTAGE",        // 6  - G - MEDIUM
-    "WATER SHORTAGE",       // 7  - H - MEDIUM
-    "WEATHER ALERT",        // 8  - I - MEDIUM
-    "LOST PERSON",          // 9  - J - HIGH
-    "ANIMAL ATTACK",        // 10 - K - HIGH
-    "LANDSLIDE",            // 11 - L - HIGH
-    "SNOW STORM",           // 12 - M - HIGH
-    "EQUIPMENT FAILURE",    // 13 - N - MEDIUM
-    "OTHER EMERGENCY"       // 14 - O - NEUTRAL
+    "CRITICAL SOS",         // 0  - A - CRITICAL
+    "DELIVERY / LABOR",     // 1  - B - CRITICAL (Maternal Childbirth Emergency)
+    "HELI RESCUE NEEDED",   // 2  - C - CRITICAL (Medical Air Evacuation)
+    "MEDICINE SHORTAGE",    // 3  - D - MEDIUM   (Essential Drugs / Antibiotics / IV)
+    "OXYGEN SHORTAGE",      // 4  - E - CRITICAL (Cylinders Depleted)
+    "SEVERE INJURY",        // 5  - F - HIGH     (Trauma / Fracture / Bleeding)
+    "BLOOD NEEDED",         // 6  - G - CRITICAL (Urgent Transfusion)
+    "ALTITUDE SICKNESS",    // 7  - H - HIGH     (Severe AMS / HAPE / HACE)
+    "FOOD SHORTAGE",        // 8  - I - MEDIUM   (Rations Depleted)
+    "WATER SHORTAGE",       // 9  - J - MEDIUM   (Drinking Water Crisis)
+    "DISEASE OUTBREAK",     // 10 - K - HIGH     (Epidemic / Infection Cluster)
+    "FREEZING / SHELTER",   // 11 - L - MEDIUM   (Extreme Cold / Blankets Needed)
+    "LANDSLIDE / HAZARD",   // 12 - M - HIGH     (Slope / Trail Collapsed)
+    "DOCTOR / NURSE NEED",  // 13 - N - MEDIUM   (Medical Personnel Required)
+    "STATUS OK / ALL SAFE"  // 14 - O - OK       (Routine Nominal Check-in)
 };
 
-// Shorter names for compact display
+// Shorter names for compact display (all <= 12 characters for 16x2 LCD)
 const char* alertNamesShort[ALERT_COUNT] = {
-    "EMERGENCY",
-    "MEDICAL EMERG",
+    "CRITICAL SOS",
+    "DELIVERY SOS",
+    "HELI RESCUE",
     "MED SHORTAGE",
-    "EVACUATION",
-    "STATUS OK",
-    "INJURY",
+    "OXYGEN SHORT",
+    "SEVERE INJUR",
+    "BLOOD NEEDED",
+    "ALTITUDE AMS",
     "FOOD SHORT",
     "WATER SHORT",
-    "WEATHER",
-    "LOST PERSON",
-    "ANIMAL ATTK",
+    "OUTBREAK",
+    "COLD SHELTER",
     "LANDSLIDE",
-    "SNOW STORM",
-    "EQUIP FAIL",
-    "OTHER"
+    "DOCTOR REQ",
+    "STATUS OK"
 };
 
 // Priority levels: 0=CRITICAL, 1=HIGH, 2=MEDIUM, 3=OK, 4=NEUTRAL
 const uint8_t alertPriority[ALERT_COUNT] = {
-    0, 0, 2, 0, 3, 1, 2, 2, 2, 1, 1, 1, 1, 2, 4
+    0, 0, 0, 2, 0, 1, 0, 1, 2, 2, 1, 2, 1, 2, 3
 };
 
 // Alert codes for LoRa transmission (A-O)

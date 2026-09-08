@@ -168,7 +168,8 @@ lifeline_hardware/
 * **RF Transceiver**: SX1278 LoRa @ 433 MHz (+18 dBm boosted output)
 * **Key Features**:
   - High-contrast graphical dark theme designed for sunlight anti-glare readability.
-  - 15 pre-configured emergency categories with confirmation screens to avoid false alarms.
+  - 15 pre-configured emergency categories tailored for Himalayan health, maternal delivery, and relief supplies (`CRITICAL SOS`, `DELIVERY / LABOR`, `HELI RESCUE`, `MEDICINE SHORTAGE`, `OXYGEN SHORTAGE`, `SEVERE INJURY`, `BLOOD NEEDED`, `ALTITUDE SICKNESS`, `FOOD SHORTAGE`, `WATER SHORTAGE`, `DISEASE OUTBREAK`, `FREEZING / SHELTER`, `LANDSLIDE`, `DOCTOR / NURSE NEED`, `STATUS OK`).
+  - Hotkey mapping on 4x4 keypad (Keys 1–9 and 0 for top 10 time-critical alerts) with double confirmation screen to prevent false dispatches.
   - Live RF transmission status screen with animated signal indicator.
   - Wireless SoftAP OTA update mode triggered by holding Key `0` for 3 seconds.
 
