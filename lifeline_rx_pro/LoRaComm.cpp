@@ -1,4 +1,5 @@
 #include "LoRaComm.h"
+#include "DisplayUI.h"
 #include <SPI.h>
 #include <LoRa.h>
 
@@ -107,6 +108,8 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
     data.trim();
 
     telemetry.rssi = LoRa.packetRssi();
+    telemetry.snr = LoRa.packetSnr();
+    telemetry.distanceKm = 0.0f;
     telemetry.isChatMessage = false;
     telemetry.chatMessage = "";
 
@@ -202,9 +205,11 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
         telemetry.riskScore = 0;
     }
 
-    Serial.printf("[RX EX] Parsed: Device=%d, Code=%c, FullData=%s, Temp=%.1f, Lat=%.6f, Lon=%.6f\n",
+    telemetry.distanceKm = calculateDistanceKm(telemetry.rssi, telemetry.latitude, telemetry.longitude);
+
+    Serial.printf("[RX EX] Parsed: Device=%d, Code=%c, FullData=%s, RSSI=%ddB, SNR=%.1fdB, Dist=%.2fkm\n",
                   telemetry.deviceId, telemetry.emergencyCode, telemetry.isFullTelemetry ? "YES" : "NO",
-                  telemetry.temperature, telemetry.latitude, telemetry.longitude);
+                  telemetry.rssi, telemetry.snr, telemetry.distanceKm);
 
     LoRa.receive();
     return true;

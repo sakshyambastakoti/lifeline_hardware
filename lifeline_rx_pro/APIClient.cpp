@@ -6,10 +6,10 @@ extern bool wifiConnected;
 extern String customApiKey;
 extern String customApiEndpoint;
 
-void pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
+bool pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
     if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
         Serial.println(F("[API] WiFi not connected, skipping API push"));
-        return;
+        return false;
     }
     
     String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
@@ -33,6 +33,7 @@ void pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
     Serial.printf("[API] Sending to %s: %s\n", endpoint.c_str(), jsonPayload.c_str());
     
     int httpResponseCode = http.POST(jsonPayload);
+    bool success = (httpResponseCode >= 200 && httpResponseCode < 300);
     
     if (httpResponseCode > 0) {
         String response = http.getString();
@@ -42,12 +43,13 @@ void pushAlertToAPI(int deviceId, int alertIndex, int rssi) {
     }
     
     http.end();
+    return success;
 }
 
-void pushFullTelemetryToAPI(const FullTelemetryData& data) {
+bool pushFullTelemetryToAPI(const FullTelemetryData& data) {
     if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
         Serial.println(F("[API] WiFi not connected, skipping full telemetry push"));
-        return;
+        return false;
     }
 
     String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
@@ -81,6 +83,7 @@ void pushFullTelemetryToAPI(const FullTelemetryData& data) {
     Serial.printf("[API EX] Sending rich telemetry JSON: %s\n", jsonPayload.c_str());
 
     int httpResponseCode = http.POST(jsonPayload);
+    bool success = (httpResponseCode >= 200 && httpResponseCode < 300);
 
     if (httpResponseCode > 0) {
         String response = http.getString();
@@ -90,4 +93,5 @@ void pushFullTelemetryToAPI(const FullTelemetryData& data) {
     }
 
     http.end();
+    return success;
 }

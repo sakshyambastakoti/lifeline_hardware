@@ -18,6 +18,8 @@ struct FullTelemetryData {
     int healthScore;
     int riskScore;
     int rssi;
+    float snr;             // Packet SNR in dB
+    float distanceKm;      // Calculated/estimated distance in kilometers
     bool isFullTelemetry;
     bool isChatMessage;
     String chatMessage;

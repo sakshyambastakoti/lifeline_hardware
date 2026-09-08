@@ -20,6 +20,9 @@ extern uint8_t bootDotState;
 extern int lastDeviceId;
 extern int lastAlertIndex;
 extern int lastRssi;
+extern float lastSnr;
+extern float lastDistanceKm;
+extern bool lastSentToWeb;
 
 extern AlertRecord alertHistory[HISTORY_MAX_ITEMS];
 extern int historyCount;
@@ -40,8 +43,15 @@ void drawIdleScreen();
 void updateIdleAnimation();
 
 // Alert Screen
+void drawAlertScreen(int alertIndex, int rssi, float snr = 0.0f, float distanceKm = 0.0f, bool sentToWeb = false);
 void drawAlertScreen(int deviceId, int alertIndex, int rssi);
+void updateAlertWebStatus(bool sentToWeb);
 bool shouldReturnToIdle();
+
+// Distance & SNR formatting helpers
+float calculateDistanceKm(int rssi, double lat = 0.0, double lon = 0.0);
+void formatDistance(float distKm, char* buffer, size_t maxLen);
+void formatSNR(float snr, char* buffer, size_t maxLen);
 
 // Custom Received Message Screen (Scrollable with Wi-Fi button)
 extern bool hasActiveChatMessage;

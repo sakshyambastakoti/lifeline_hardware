@@ -18,6 +18,9 @@ uint8_t bootDotState = 0;
 int lastDeviceId = 0;
 int lastAlertIndex = 0;
 int lastRssi = 0;
+float lastSnr = 0.0f;
+float lastDistanceKm = 0.0f;
+bool lastSentToWeb = false;
 
 AlertRecord alertHistory[HISTORY_MAX_ITEMS];
 int historyCount = 0;
@@ -35,12 +38,14 @@ void initDisplay() {
     lcd.init();
     lcd.backlight();
     
-    // Register custom glyphs (0 to 4)
+    // Register custom glyphs (0 to 6)
     lcd.createChar(0, (uint8_t*)glyphRadar);  // CGRAM 0: Radar
     lcd.createChar(1, (uint8_t*)glyphBell);   // CGRAM 1: Bell
     lcd.createChar(2, (uint8_t*)glyphCheck);  // CGRAM 2: Checkmark
     lcd.createChar(3, (uint8_t*)glyphSignal); // CGRAM 3: Signal bars
     lcd.createChar(4, (uint8_t*)glyphWarn);   // CGRAM 4: Warning
+    lcd.createChar(5, (uint8_t*)glyphWiFi);   // CGRAM 5: WiFi / Web Sent OK
+    lcd.createChar(6, (uint8_t*)glyphNoWiFi); // CGRAM 6: No WiFi / Web Failed
     
     Serial.printf("[OK] 16x2 I2C LCD initialized (SDA: GPIO %d, SCL: GPIO %d, Addr: 0x%02X)\n", 
                   LCD_SDA, LCD_SCL, LCD_ADDR);
@@ -146,12 +151,58 @@ void drawNoWiFiScreen() {
     Serial.println(F("[SCREEN] Displayed No Internet screen"));
 }
 
+// Distance & SNR Calculation & Formatting Helpers
+float calculateDistanceKm(int rssi, double lat, double lon) {
+    if (fabs(lat) > 0.001 && fabs(lon) > 0.001) {
+        double lat1 = DEFAULT_BASE_LAT * DEG_TO_RAD;
+        double lon1 = DEFAULT_BASE_LON * DEG_TO_RAD;
+        double lat2 = lat * DEG_TO_RAD;
+        double lon2 = lon * DEG_TO_RAD;
+        double dlat = lat2 - lat1;
+        double dlon = lon2 - lon1;
+        double a = sin(dlat / 2.0) * sin(dlat / 2.0) +
+                   cos(lat1) * cos(lat2) * sin(dlon / 2.0) * sin(dlon / 2.0);
+        double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
+        return (float)(6371.0 * c);
+    }
+    
+    // Log-Distance Path Loss model for 433 MHz LoRa in Himalayan mountain terrain
+    // RSSI = -(10 * n * log10(d) + A) -> d = 10^((-A - RSSI) / (10 * n))
+    // A = 42 dBm reference RSSI @ 1m, n = 2.4 path loss exponent
+    float exponent = (-42.0f - (float)rssi) / 24.0f;
+    if (exponent < 0.0f) exponent = 0.0f;
+    float distMeters = pow(10.0f, exponent);
+    return distMeters / 1000.0f;
+}
+
+void formatDistance(float distKm, char* buffer, size_t maxLen) {
+    if (distKm < 1.0f) {
+        int meters = (int)(distKm * 1000.0f);
+        if (meters < 10) meters = 10;
+        snprintf(buffer, maxLen, "%dm", meters);
+    } else if (distKm < 10.0f) {
+        snprintf(buffer, maxLen, "%.1fkm", distKm);
+    } else {
+        snprintf(buffer, maxLen, "%dkm", (int)distKm);
+    }
+}
+
+void formatSNR(float snr, char* buffer, size_t maxLen) {
+    int s = (int)round(snr);
+    if (s >= 0) {
+        snprintf(buffer, maxLen, "S:+%d", s);
+    } else {
+        snprintf(buffer, maxLen, "S:%d", s);
+    }
+}
+
 void drawIdleScreen() {
-    if (WiFi.status() == WL_CONNECTED || wifiConnected) {
+    bool wifiOk = (WiFi.status() == WL_CONNECTED || wifiConnected);
+    if (wifiOk) {
         char timeBuf[12];
         if (getFormattedTimeStr(timeBuf, sizeof(timeBuf))) {
             char row0[17];
-            snprintf(row0, sizeof(row0), "Time: %-10s", timeBuf);
+            snprintf(row0, sizeof(row0), "Time: %-8s   ", timeBuf);
             printLCDLine(0, row0);
         } else {
             printLCDLine(0, "Time: Syncing.. ");
@@ -159,6 +210,10 @@ void drawIdleScreen() {
     } else {
         printLCDLine(0, "Offline Mode    ");
     }
+    
+    // Column 15 Wi-Fi status symbol (CGRAM 5: WiFi OK, CGRAM 6: Offline)
+    lcd.setCursor(15, 0);
+    lcd.write(wifiOk ? 5 : 6);
     
     printLCDLine(1, "Waiting for TX..");
     
@@ -174,12 +229,12 @@ void updateIdleAnimation() {
         lastPulseTime = currentTime;
         pulseState = (pulseState + 1) % 4;
         
-        // Row 0: Time or Offline Mode
-        if (WiFi.status() == WL_CONNECTED || wifiConnected) {
+        bool wifiOk = (WiFi.status() == WL_CONNECTED || wifiConnected);
+        if (wifiOk) {
             char timeBuf[12];
             if (getFormattedTimeStr(timeBuf, sizeof(timeBuf))) {
                 char row0[17];
-                snprintf(row0, sizeof(row0), "Time: %-10s", timeBuf);
+                snprintf(row0, sizeof(row0), "Time: %-8s   ", timeBuf);
                 printLCDLine(0, row0);
             } else {
                 printLCDLine(0, "Time: Syncing.. ");
@@ -187,6 +242,9 @@ void updateIdleAnimation() {
         } else {
             printLCDLine(0, "Offline Mode    ");
         }
+        
+        lcd.setCursor(15, 0);
+        lcd.write(wifiOk ? 5 : 6);
         
         // Row 1: Waiting for TX data animated dots
         switch (pulseState) {
@@ -198,36 +256,66 @@ void updateIdleAnimation() {
     }
 }
 
-void drawAlertScreen(int deviceId, int alertIndex, int rssi) {
+void drawAlertScreen(int alertIndex, int rssi, float snr, float distanceKm, bool sentToWeb) {
+    if (alertIndex < 0 || alertIndex >= ALERT_COUNT) {
+        alertIndex = ALERT_COUNT - 1;
+    }
+    
     uint8_t priority = alertPriority[alertIndex];
-    char code = getAlertCode(alertIndex);
     const char* nameShort = alertNamesShort[alertIndex];
     
-    // Row 0: [!] A EMERGENCY
+    // Row 0: [!] DELIVERY SOS [WiFi]
     lcd.setCursor(0, 0);
-    lcd.write(4); // Warning icon glyph (CGRAM 4)
+    lcd.write(4); // CGRAM 4: Warning glyph
+    lcd.print(" ");
     
-    char row0[17];
-    snprintf(row0, sizeof(row0), " %c %-12s", code, nameShort);
-    lcd.print(row0);
+    char nameBuf[13];
+    snprintf(nameBuf, sizeof(nameBuf), "%-12s", nameShort);
+    lcd.print(nameBuf);
     
-    // Row 1: TX#001 -65dBm CR
-    const char* priCode = (priority < 5) ? priorityLabelsShort[priority] : "IN";
+    lcd.setCursor(15, 0);
+    lcd.write(sentToWeb ? 5 : 6); // CGRAM 5: WiFi connected, CGRAM 6: Offline
+    
+    // Row 1: RSSI, SNR, Distance (e.g. "-65dB S:+9 1.2km") - No "TX#003"
+    char rssiStr[8];
+    snprintf(rssiStr, sizeof(rssiStr), "%ddB", rssi);
+    
+    char snrStr[8];
+    formatSNR(snr, snrStr, sizeof(snrStr));
+    
+    char distStr[8];
+    formatDistance(distanceKm, distStr, sizeof(distStr));
     
     char row1[17];
-    snprintf(row1, sizeof(row1), "TX#%03d %4ddBm %s", deviceId % 1000, rssi, priCode);
+    snprintf(row1, sizeof(row1), "%-5s %-4s %5s", rssiStr, snrStr, distStr);
     printLCDLine(1, row1);
     
-    lastDeviceId = deviceId;
     lastAlertIndex = alertIndex;
     lastRssi = rssi;
+    lastSnr = snr;
+    lastDistanceKm = distanceKm;
+    lastSentToWeb = sentToWeb;
     alertReceivedTime = millis();
     
-    addToHistory(deviceId, alertIndex, rssi);
+    addToHistory(lastDeviceId, alertIndex, rssi);
     playAlertTone(priority);
     
-    Serial.printf("[SCREEN] Alert displayed on LCD: Device %d, Alert %d (%s)\n", 
-                  deviceId, alertIndex, alertNames[alertIndex]);
+    Serial.printf("[SCREEN] Alert on LCD: Alert %d (%s), RSSI: %s, SNR: %s, Dist: %s, Web: %s\n", 
+                  alertIndex, alertNames[alertIndex], rssiStr, snrStr, distStr, sentToWeb ? "YES" : "NO");
+}
+
+void drawAlertScreen(int deviceId, int alertIndex, int rssi) {
+    lastDeviceId = deviceId;
+    float dist = calculateDistanceKm(rssi, 0.0, 0.0);
+    drawAlertScreen(alertIndex, rssi, lastSnr, dist, lastSentToWeb);
+}
+
+void updateAlertWebStatus(bool sentToWeb) {
+    lastSentToWeb = sentToWeb;
+    if (currentScreen == SCREEN_ALERT) {
+        lcd.setCursor(15, 0);
+        lcd.write(sentToWeb ? 5 : 6);
+    }
 }
 
 bool shouldReturnToIdle() {

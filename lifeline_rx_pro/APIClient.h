@@ -4,7 +4,7 @@
 #include "Config.h"
 #include "LoRaComm.h"
 
-void pushAlertToAPI(int deviceId, int alertIndex, int rssi);
-void pushFullTelemetryToAPI(const FullTelemetryData& data);
+bool pushAlertToAPI(int deviceId, int alertIndex, int rssi);
+bool pushFullTelemetryToAPI(const FullTelemetryData& data);
 
 #endif // API_CLIENT_H

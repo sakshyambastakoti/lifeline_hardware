@@ -65,17 +65,24 @@ bool handleIncomingLoRaTelemetry() {
         sendDownlinkACK(telemetry.deviceId, 'N', "LOGGED", "Heartbeat OK");
         pushFullTelemetryToAPI(telemetry);
     } else {
-        // Active Emergency Alert (Fire, Landslide, Earthquake, Manual SOS, etc.)
-        Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%d\n",
-                      telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
+        // Active Emergency Alert (Delivery, Medical Shortage, Oxygen, Landslide, SOS, etc.)
+        Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%ddB, SNR=%.1fdB, Dist=%.2fkm\n",
+                      telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], 
+                      telemetry.rssi, telemetry.snr, telemetry.distanceKm);
         notifyBLEAlert(telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
 
-        // Immediate Two-Way Downlink ACK over LoRa BEFORE blocking LCD UI rendering, buzzer alarms, and cloud HTTP push!
+        // Immediate Two-Way Downlink ACK over LoRa BEFORE blocking cloud HTTP push!
         sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
 
+        // Immediately update LCD UI with alarm & show offline/pending Wi-Fi symbol
         currentScreen = SCREEN_ALERT;
-        drawAlertScreen(telemetry.deviceId, telemetry.alertIndex, telemetry.rssi); // LCD update & loud siren
-        pushFullTelemetryToAPI(telemetry);
+        drawAlertScreen(telemetry.alertIndex, telemetry.rssi, telemetry.snr, telemetry.distanceKm, false);
+
+        // Upload to Cloud Web API
+        bool sentToWeb = pushFullTelemetryToAPI(telemetry);
+
+        // Dynamically update Wi-Fi icon on LCD to reflect real cloud push status
+        updateAlertWebStatus(sentToWeb);
     }
 
     return true;
@@ -366,6 +373,8 @@ bool checkSerialSimulatedPacket(FullTelemetryData& telemetry) {
     telemetry.isFullTelemetry = false;
     telemetry.isChatMessage = false;
     telemetry.rssi = -65;
+    telemetry.snr = 8.5f;
+    telemetry.distanceKm = calculateDistanceKm(telemetry.rssi, 0.0, 0.0);
     Serial.printf("[SERIAL DEBUG] Simulated packet: Device=%d, Alert=%d (%s)\n", 
                   telemetry.deviceId, telemetry.alertIndex, alertNames[telemetry.alertIndex]);
     

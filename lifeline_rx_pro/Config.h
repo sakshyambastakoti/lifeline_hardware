@@ -107,6 +107,20 @@ const uint8_t glyphWarn[8] = {
     0b00100, 0b01110, 0b11111, 0b11011, 0b11011, 0b11111, 0b00100, 0b00000
 };
 
+// CGRAM 5: WiFi connected / Uploaded to Web
+const uint8_t glyphWiFi[8] = {
+    0b00000, 0b11111, 0b00000, 0b01110, 0b00000, 0b00100, 0b00000, 0b00000
+};
+
+// CGRAM 6: WiFi disconnected / Not sent to Web (Offline)
+const uint8_t glyphNoWiFi[8] = {
+    0b10001, 0b01010, 0b00100, 0b01010, 0b10001, 0b00000, 0b00100, 0b00000
+};
+
+// Default Base Station GPS Reference (used for distance calculation)
+#define DEFAULT_BASE_LAT        27.7172
+#define DEFAULT_BASE_LON        85.3240
+
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              ALERT DEFINITIONS
 // ═══════════════════════════════════════════════════════════════════════════════════
