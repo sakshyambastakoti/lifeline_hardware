@@ -3,40 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>LifeLine — Tactical Web Companion Suite</title>
-  <meta name="description" content="Dedicated Web Bluetooth and Web Serial companion applications for LifeLine TX Pro field communicator and LifeLine RX Pro incident base station." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <title>LifeLine — Mesh Companion Portal</title>
+  <meta name="description" content="BitChat-inspired minimalist portal for LifeLine TX and RX disaster companion apps." />
   <style>
     :root {
-      --bg-base: #06090f;
-      --bg-surface: #0c121d;
-      --bg-card: #111927;
-      --bg-card-hover: #172235;
-      --border-subtle: #1c2a3f;
-      
-      --cyan: #00d4ff;
-      --cyan-dim: rgba(0, 212, 255, 0.12);
-      --cyan-glow: rgba(0, 212, 255, 0.35);
+      --bg: #0c0e12;
+      --bg-panel: #12161f;
+      --bg-active: #181f2c;
+      --border: #222a38;
+      --border-bright: #323e52;
 
-      --green: #00ff9d;
-      --green-dim: rgba(0, 255, 157, 0.12);
-      --green-glow: rgba(0, 255, 157, 0.35);
+      --text: #e6edf3;
+      --text-muted: #8090a2;
+      --text-dim: #4d5b6d;
 
-      --red: #ff334b;
-      --red-dim: rgba(255, 51, 75, 0.12);
-      --red-glow: rgba(255, 51, 75, 0.35);
+      --green: #00e676;
+      --green-bg: rgba(0, 230, 118, 0.12);
+      --cyan: #00b0ff;
+      --cyan-bg: rgba(0, 176, 255, 0.12);
+      --red: #ff3d00;
+      --amber: #ffab00;
 
-      --amber: #ffaa00;
-
-      --text-main: #f0f6fc;
-      --text-muted: #8b9db5;
-      --text-faint: #4c5d75;
-
-      --font-display: 'Outfit', -apple-system, sans-serif;
-      --font-body: 'Inter', -apple-system, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     }
 
     * {
@@ -47,558 +35,206 @@
     }
 
     body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background-image: 
-        radial-gradient(circle at 20% 10%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 90%, rgba(0, 255, 157, 0.06) 0%, transparent 50%);
-    }
-
-    /* Top Nav */
-    header {
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border-subtle);
-      background: rgba(12, 18, 29, 0.7);
-      backdrop-filter: blur(14px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, #ff334b 0%, #00d4ff 100%);
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
+      padding: 20px;
+      max-width: 760px;
+      margin: 0 auto;
       justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 0 16px rgba(0, 212, 255, 0.3);
     }
 
-    .brand-text h1 {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      line-height: 1.1;
-    }
-
-    .brand-text h1 span {
-      color: var(--cyan);
-    }
-
-    .brand-text p {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .btn-detect {
-      background: linear-gradient(135deg, var(--bg-card), #18253a);
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      box-shadow: 0 0 10px var(--cyan-dim);
-    }
-
-    .btn-detect:hover {
-      background: var(--cyan);
-      color: #000;
-      box-shadow: 0 0 18px var(--cyan-glow);
-      transform: translateY(-1px);
-    }
-
-    /* Hero Section */
-    .hero {
-      text-align: center;
-      padding: 48px 20px 32px 20px;
-      max-width: 860px;
-      margin: 0 auto;
-    }
-
-    .hero-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.25);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--cyan);
-      margin-bottom: 18px;
-    }
-
-    .hero h2 {
-      font-family: var(--font-display);
-      font-size: clamp(28px, 5vw, 44px);
-      font-weight: 900;
-      line-height: 1.15;
-      letter-spacing: -0.5px;
-      margin-bottom: 14px;
-    }
-
-    .hero h2 span.highlight-tx {
-      background: linear-gradient(135deg, #ff334b, #ffaa00);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero h2 span.highlight-rx {
-      background: linear-gradient(135deg, #00ff9d, #00d4ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-
-    /* Dual App Launcher Cards */
-    .launcher-container {
-      max-width: 1040px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 0 20px 40px 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 24px;
-    }
-
-    .app-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .app-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-    }
-
-    .app-card.tx-card {
-      border-top: 4px solid #ff334b;
-    }
-    .app-card.tx-card:hover {
-      border-color: rgba(255, 51, 75, 0.4);
-    }
-
-    .app-card.rx-card {
-      border-top: 4px solid #00ff9d;
-    }
-    .app-card.rx-card:hover {
-      border-color: rgba(0, 255, 157, 0.4);
-    }
-
-    .app-card-badge {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      padding: 4px 10px;
+    .terminal-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
       border-radius: 6px;
-      display: inline-block;
-      width: fit-content;
-      margin-bottom: 14px;
-    }
-
-    .badge-tx {
-      background: var(--red-dim);
-      color: var(--red);
-      border: 1px solid rgba(255, 51, 75, 0.3);
-    }
-
-    .badge-rx {
-      background: var(--green-dim);
-      color: var(--green);
-      border: 1px solid rgba(0, 255, 157, 0.3);
-    }
-
-    .app-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 12px;
-    }
-
-    .app-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-    }
-
-    .icon-tx {
-      background: linear-gradient(135deg, rgba(255, 51, 75, 0.2), rgba(255, 170, 0, 0.2));
-      border: 1px solid rgba(255, 51, 75, 0.4);
-    }
-
-    .icon-rx {
-      background: linear-gradient(135deg, rgba(0, 255, 157, 0.2), rgba(0, 212, 255, 0.2));
-      border: 1px solid rgba(0, 255, 157, 0.4);
-    }
-
-    .app-title-group h3 {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .app-title-group p {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .app-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
-    .feature-list {
-      list-style: none;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 24px;
-      font-size: 12px;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
     }
 
-    .feature-list li {
+    .term-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      color: var(--text-main);
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
     }
 
-    .feature-list li span.bullet {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 800;
-    }
-
-    .tx-card .feature-list li span.bullet {
-      background: var(--red-dim);
-      color: var(--red);
-    }
-
-    .rx-card .feature-list li span.bullet {
-      background: var(--green-dim);
+    .term-title {
       color: var(--green);
-    }
-
-    .btn-launch {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 14px;
-      border-radius: 10px;
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      text-decoration: none;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .btn-launch-tx {
-      background: linear-gradient(135deg, #ff1a35, #ff6600);
-      color: #fff;
-      box-shadow: 0 4px 20px var(--red-glow);
-    }
-
-    .btn-launch-tx:hover {
-      box-shadow: 0 6px 28px var(--red-glow);
-      transform: translateY(-2px);
-    }
-
-    .btn-launch-rx {
-      background: linear-gradient(135deg, #00ff9d, #00b4ff);
-      color: #000;
-      box-shadow: 0 4px 20px var(--green-glow);
-    }
-
-    .btn-launch-rx:hover {
-      box-shadow: 0 6px 28px var(--green-glow);
-      transform: translateY(-2px);
-    }
-
-    /* Specs Banner */
-    .specs-grid {
-      max-width: 1040px;
-      width: 100%;
-      margin: 0 auto 40px auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-    }
-
-    .spec-item {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .spec-title {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-faint);
-      text-transform: uppercase;
-    }
-
-    .spec-value {
-      font-family: var(--font-display);
-      font-size: 15px;
       font-weight: 700;
-      color: var(--cyan);
+      letter-spacing: 0.5px;
     }
 
-    .spec-desc {
+    .term-status {
       font-size: 11px;
       color: var(--text-muted);
-      line-height: 1.4;
+    }
+
+    .banner {
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      font-size: 12px;
+      border-left: 2px solid var(--border-bright);
+      padding-left: 10px;
+    }
+
+    .node-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .node-link {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+    .node-link:hover {
+      background: var(--bg-active);
+      border-color: var(--border-bright);
+    }
+
+    .node-link.tx-link:hover {
+      border-color: var(--cyan);
+    }
+    .node-link.rx-link:hover {
+      border-color: var(--green);
+    }
+
+    .node-left {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .node-title {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .tx-link .node-title { color: var(--cyan); }
+    .rx-link .node-title { color: var(--green); }
+
+    .node-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .node-arrow {
+      font-weight: 700;
+      color: var(--text-dim);
+      font-size: 16px;
+    }
+    .node-link:hover .node-arrow {
+      color: var(--text);
+    }
+
+    .auto-btn {
+      background: var(--bg);
+      border: 1px dashed var(--amber);
+      color: var(--amber);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      text-align: center;
+    }
+    .auto-btn:hover {
+      background: var(--amber-bg);
+    }
+
+    .specs-line {
+      font-size: 11px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
     }
 
     footer {
-      border-top: 1px solid var(--border-subtle);
-      padding: 20px;
       text-align: center;
+      margin-top: 20px;
       font-size: 11px;
-      color: var(--text-faint);
-      font-family: var(--font-mono);
-      margin-top: auto;
-    }
-
-    footer a {
-      color: var(--cyan);
-      text-decoration: none;
-    }
-    footer a:hover {
-      text-decoration: underline;
+      color: var(--text-dim);
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header>
-    <div class="brand">
-      <div class="brand-icon">⚡</div>
-      <div class="brand-text">
-        <h1>LIFELINE <span>MISSION HUB</span></h1>
-        <p>Tactical Companion Portal</p>
-      </div>
+  <div class="terminal-box">
+    
+    <div class="term-header">
+      <span class="term-title">[LIFELINE // COMPANION PORTAL]</span>
+      <span class="term-status">v3.1.0 PRO &bull; BitChat-Style IRC Client</span>
     </div>
 
-    <button class="btn-detect" onclick="detectAndLaunchDevice()">
-      <span>🔍 Auto-Detect BLE</span>
+    <div class="banner">Select your node operating role:
+• TX: Field unit for distress signaling &amp; 2-way chat with base.
+• RX: Base hub console for incoming triage, unit radar &amp; dispatch.</div>
+
+    <div class="node-options">
+      <!-- TX Link -->
+      <a href="tx_companion.html" class="node-link tx-link">
+        <div class="node-left">
+          <div class="node-title">[1] FIELD COMMUNICATOR (TX PRO)</div>
+          <div class="node-desc">15 SOS presets (Nepali/Eng) &bull; Freeform LoRa chat &bull; Closed-loop 2.5s ACK</div>
+        </div>
+        <span class="node-arrow">→</span>
+      </a>
+
+      <!-- RX Link -->
+      <a href="rx_companion.html" class="node-link rx-link">
+        <div class="node-left">
+          <div class="node-title">[2] BASE INCIDENT COMMAND (RX PRO)</div>
+          <div class="node-desc">Live distress stream &bull; Active peer radar &bull; 1-click dispatch &bull; Evac order</div>
+        </div>
+        <span class="node-arrow">→</span>
+      </a>
+    </div>
+
+    <button class="auto-btn" onclick="detectDevice()">
+      🔍 SCAN &amp; AUTO-DETECT NEARBY LIFELINE BLE DEVICE
     </button>
-  </header>
 
-  <!-- Hero Header -->
-  <section class="hero">
-    <div class="hero-pill">
-      <span>📡 433 MHz LoRa + BLE Nordic UART (NUS)</span>
-    </div>
-    <h2>
-      Select Mission Portal for <br/>
-      <span class="highlight-tx">Field Unit (TX)</span> or <span class="highlight-rx">Base Hub (RX)</span>
-    </h2>
-    <p>
-      LifeLine operates dedicated web companion applications tailored for field victims/rescuers and emergency incident commanders. Zero app store installation required — runs directly inside Chrome or Bluefy.
-    </p>
-  </section>
-
-  <!-- Dedicated App Launcher Grid -->
-  <section class="launcher-container">
-
-    <!-- Card 1: TX Pro Field Companion -->
-    <div class="app-card tx-card">
-      <div>
-        <span class="app-card-badge badge-tx">Field Communicator</span>
-        <div class="app-header">
-          <div class="app-icon icon-tx">📡</div>
-          <div class="app-title-group">
-            <h3>LifeLine TX Pro</h3>
-            <p>Tactical Field Communicator</p>
-          </div>
-        </div>
-        <p class="app-desc">
-          Designed for mountain expeditions, disaster victims, and search-and-rescue teams operating outside cellular coverage.
-        </p>
-        <ul class="feature-list">
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>15 Emergency Presets</strong>: Critical SOS, Delivery, Heli, Landslide (Nepali & English)</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Freeform Chat</strong>: 48-character LoRa text report composer with field chips</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Closed-Loop Confirmation</strong>: Live 2.5s base station handshake listener with RSSI</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Acoustic & Vibration</strong>: Synthesized mountain sirens and feedback cues</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Demo Simulator</strong>: Full offline test capability without hardware attached</span>
-          </li>
-        </ul>
-      </div>
-
-      <a href="tx_companion.html" class="btn-launch btn-launch-tx">
-        <span>LAUNCH TX COMPANION</span>
-        <span>➤</span>
-      </a>
+    <div class="specs-line">
+      <span>LoRa: 433.0 MHz (SX1278)</span>
+      <span>Profile: Nordic UART (NUS)</span>
+      <span>Browser: Chrome / Bluefy</span>
     </div>
 
-    <!-- Card 2: RX Pro Base Companion -->
-    <div class="app-card rx-card">
-      <div>
-        <span class="app-card-badge badge-rx">Incident Command Center</span>
-        <div class="app-header">
-          <div class="app-icon icon-rx">🛡️</div>
-          <div class="app-title-group">
-            <h3>LifeLine RX Pro</h3>
-            <p>Base Station Triage Console</p>
-          </div>
-        </div>
-        <p class="app-desc">
-          Designed for incident commanders, LDMC coordination hubs, and Armed Police Force (APF) base operators.
-        </p>
-        <ul class="feature-list">
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Live Incident Triage</strong>: Incoming SOS packets stream with severity prioritization</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Active Field Units Radar</strong>: Real-time signal strength, distance estimator & tracking</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Reverse Downlink Dispatch</strong>: 1-click rescue orders & custom tactical downlink</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Mass Evacuation Broadcast</strong>: High-priority EVAC alert to all field communicators</span>
-          </li>
-          <li>
-            <span class="bullet">✓</span>
-            <span><strong>Audit Log Export</strong>: Download timestamped incident records as CSV for debrief</span>
-          </li>
-        </ul>
-      </div>
-
-      <a href="rx_companion.html" class="btn-launch btn-launch-rx">
-        <span>LAUNCH RX CONSOLE</span>
-        <span>➤</span>
-      </a>
-    </div>
-
-  </section>
-
-  <!-- Operational Specs & Hardware Topology -->
-  <section class="specs-grid">
-    <div class="spec-item">
-      <div class="spec-title">RF Transport</div>
-      <div class="spec-value">433.0 MHz LoRa</div>
-      <div class="spec-desc">SX1278 transceiver with CRC, SF7, BW125kHz, CR4/5. 15km mountain range.</div>
-    </div>
-    <div class="spec-item">
-      <div class="spec-title">BLE GATT Profile</div>
-      <div class="spec-value">Nordic UART Service</div>
-      <div class="spec-desc">Standard NUS 6E400001 service for cross-platform iOS and Android pairing.</div>
-    </div>
-    <div class="spec-item">
-      <div class="spec-title">Browser Support</div>
-      <div class="spec-value">Chrome / Bluefy / Edge</div>
-      <div class="spec-desc">Web Bluetooth on Android/Windows/macOS. Bluefy or WebBLE on Apple iOS.</div>
-    </div>
-    <div class="spec-item">
-      <div class="spec-title">Direct USB Serial</div>
-      <div class="spec-value">115,200 Baud</div>
-      <div class="spec-desc">Web Serial API support for benchtop debugging directly into ESP32 USB port.</div>
-    </div>
-  </section>
+  </div>
 
   <footer>
-    LifeLine Disaster Communication Network &bull; Nepal Terrain Resilience &bull; 
-    <a href="../guides/bluetooth_ble_integration_guide.md">BLE Integration Guide</a> &bull;
-    <a href="tx_companion.html">TX Communicator</a> &bull;
-    <a href="rx_companion.html">RX Commander</a>
+    LifeLine Disaster Communication Network &bull; Zero Installation Offline PWA
   </footer>
 
   <script>
-    // Nordic UART Service UUID
     const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 
-    async function detectAndLaunchDevice() {
+    async function detectDevice() {
       if (!navigator.bluetooth) {
-        alert('Web Bluetooth is not supported on this browser.\nPlease use Google Chrome on Android/Windows or Bluefy on iOS.');
+        alert('Web Bluetooth is supported on Chrome (Android/Desktop) or Bluefy (iOS).');
         return;
       }
-
       try {
         const device = await navigator.bluetooth.requestDevice({
           filters: [
@@ -607,14 +243,13 @@
           ],
           optionalServices: [NUS_SERVICE_UUID]
         });
-
         if (device.name && device.name.includes('RX')) {
           window.location.href = 'rx_companion.html';
         } else {
           window.location.href = 'tx_companion.html';
         }
       } catch (err) {
-        console.log('Bluetooth device selection cancelled or failed:', err);
+        console.log('Detection cancelled:', err);
       }
     }
   </script>

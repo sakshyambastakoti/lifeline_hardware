@@ -3,46 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>LifeLine RX Pro — Incident Command & Triage Console</title>
-  <meta name="description" content="Offline Web Bluetooth, Web Serial, and Wi-Fi incident command center for LifeLine RX Pro disaster base station." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <title>LifeLine RX — Base Console</title>
+  <meta name="description" content="BitChat-inspired minimalist incident command console for LifeLine RX Pro disaster base station." />
   <style>
     :root {
-      --bg-base: #070b12;
-      --bg-surface: #0e1524;
-      --bg-card: #131d30;
-      --bg-card-hover: #19273f;
-      --border-subtle: #1e2c44;
-      --border-focus: #00ff9d;
+      --bg: #0c0e12;
+      --bg-panel: #12161f;
+      --bg-active: #181f2c;
+      --border: #222a38;
+      --border-bright: #323e52;
 
-      --green: #00ff9d;
-      --green-dim: rgba(0, 255, 157, 0.15);
-      --green-glow: rgba(0, 255, 157, 0.35);
-      
-      --cyan: #00d4ff;
-      --cyan-dim: rgba(0, 212, 255, 0.15);
-      --cyan-glow: rgba(0, 212, 255, 0.35);
+      --text: #e6edf3;
+      --text-muted: #8090a2;
+      --text-dim: #4d5b6d;
 
-      --red: #ff3355;
-      --red-dim: rgba(255, 51, 85, 0.15);
-      --red-glow: rgba(255, 51, 85, 0.4);
+      --green: #00e676;
+      --green-bg: rgba(0, 230, 118, 0.12);
+      --cyan: #00b0ff;
+      --cyan-bg: rgba(0, 176, 255, 0.12);
+      --red: #ff3d00;
+      --red-bg: rgba(255, 61, 0, 0.14);
+      --amber: #ffab00;
+      --amber-bg: rgba(255, 171, 0, 0.12);
 
-      --amber: #ffaa00;
-      --amber-dim: rgba(255, 170, 0, 0.15);
-      --amber-glow: rgba(255, 170, 0, 0.35);
-
-      --purple: #bf7af0;
-      --purple-dim: rgba(191, 122, 240, 0.15);
-
-      --text-main: #f0f6fc;
-      --text-muted: #8c9cb3;
-      --text-faint: #4b5a70;
-
-      --font-display: 'Outfit', -apple-system, sans-serif;
-      --font-body: 'Inter', -apple-system, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     }
 
     * {
@@ -53,1374 +37,641 @@
     }
 
     body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-body);
-      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.45;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
-      background-image: radial-gradient(circle at 50% -20%, #102138 0%, transparent 70%);
-    }
-
-    /* Top Command Header */
-    header {
-      background: rgba(14, 21, 36, 0.85);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border-subtle);
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .brand-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .brand-badge {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, #00ff9d, #0088ff);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      box-shadow: 0 0 16px var(--green-glow);
-    }
-
-    .brand-info h1 {
-      font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      line-height: 1.1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .brand-info h1 span.highlight {
-      color: var(--green);
-      text-shadow: 0 0 10px var(--green-glow);
-    }
-
-    .brand-info p {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-family: var(--font-body);
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .btn:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--green);
-    }
-
-    .btn-green {
-      border-color: var(--green);
-      color: var(--green);
-      box-shadow: 0 0 10px var(--green-dim);
-    }
-
-    .btn-green:hover {
-      background: var(--green);
-      color: #000;
-      box-shadow: 0 0 16px var(--green-glow);
-    }
-
-    .btn-connected {
-      border-color: var(--green);
-      color: var(--green);
-      box-shadow: 0 0 12px var(--green-dim);
-    }
-
-    .btn-connected:hover {
-      background: var(--red);
-      border-color: var(--red);
-      color: #fff;
-      box-shadow: 0 0 14px var(--red-glow);
-    }
-
-    .btn-hub {
-      padding: 8px 10px;
-      font-size: 11px;
-      color: var(--text-muted);
-      text-decoration: none;
-    }
-
-    /* Sub-header telemetry strip */
-    .telemetry-strip {
-      background: #090e18;
-      border-bottom: 1px solid var(--border-subtle);
-      padding: 8px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-      gap: 12px;
-    }
-
-    .strip-group {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4b5a70;
-      transition: background 0.3s ease;
-    }
-
-    .dot.live {
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-      animation: pulseDot 2s infinite;
-    }
-
-    .dot.sim {
-      background: var(--amber);
-      box-shadow: 0 0 8px var(--amber);
-    }
-
-    @keyframes pulseDot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.9); }
-    }
-
-    .sim-toggle-btn {
-      background: transparent;
-      border: 1px dashed var(--amber);
-      color: var(--amber);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      cursor: pointer;
-    }
-
-    .btn-siren-toggle {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      cursor: pointer;
-    }
-
-    .btn-siren-toggle.active {
-      border-color: var(--red);
-      color: var(--red);
-      background: var(--red-dim);
-    }
-
-    /* Layout Main */
-    main {
-      flex: 1;
-      max-width: 1200px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 16px 20px;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 18px;
-    }
-
-    .col-main, .col-side {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    /* Card Panels */
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      transition: border-color 0.2s ease;
     }
 
-    .card:hover {
-      border-color: rgba(0, 255, 157, 0.25);
-    }
-
-    .card-header {
-      padding: 12px 16px;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--border-subtle);
+    /* Top Status Bar */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+    .status-left {
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    .badge {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
-    .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
-    .badge-cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid var(--cyan); }
-    .badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
-
-    .card-body {
-      padding: 16px;
-    }
-
-    /* Triage Feed */
-    .triage-feed {
-      display: flex;
-      flex-direction: column;
       gap: 10px;
-      max-height: 480px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .triage-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
-      animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      transition: all 0.2s ease;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-10px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    .triage-item.critical {
-      border-left: 4px solid var(--red);
-      background: linear-gradient(90deg, rgba(255, 51, 85, 0.08) 0%, #131d30 100%);
-    }
-
-    .triage-item.high {
-      border-left: 4px solid var(--amber);
-      background: linear-gradient(90deg, rgba(255, 170, 0, 0.06) 0%, #131d30 100%);
-    }
-
-    .triage-item.medium {
-      border-left: 4px solid var(--cyan);
-      background: linear-gradient(90deg, rgba(0, 212, 255, 0.06) 0%, #131d30 100%);
-    }
-
-    .triage-item.nominal {
-      border-left: 4px solid var(--green);
-    }
-
-    .triage-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .triage-unit-tag {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--green);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .triage-meta {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .triage-body {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-    }
-
-    .triage-nepali {
-      font-size: 11px;
-      font-weight: normal;
-      color: var(--text-muted);
-    }
-
-    .triage-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 4px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-faint);
-    }
-
-    .btn-quick-reply {
-      background: rgba(0, 255, 157, 0.1);
-      border: 1px solid var(--green);
-      color: var(--green);
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: all 0.15s ease;
-    }
-
-    .btn-quick-reply:hover {
-      background: var(--green);
-      color: #000;
-    }
-
-    /* Active Units Tracker */
-    .units-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      text-align: left;
-    }
-
-    .units-table th {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      padding: 8px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .units-table td {
-      padding: 10px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-
-    .unit-id-pill {
-      font-weight: 700;
-      color: var(--cyan);
-      background: var(--cyan-dim);
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
-    }
-
-    .signal-bar {
-      display: inline-flex;
-      align-items: flex-end;
-      gap: 2px;
-      height: 12px;
-      margin-right: 4px;
-      vertical-align: middle;
-    }
-
-    .bar {
-      width: 3px;
-      background: #334458;
-      border-radius: 1px;
-    }
-
-    .bar.on {
-      background: var(--green);
-    }
-
-    /* Dispatch Controls */
-    .dispatch-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .dispatch-preset-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.15s ease;
-    }
-
-    .dispatch-preset-btn:hover {
-      border-color: var(--green);
-      background: var(--bg-card-hover);
-      transform: translateY(-1px);
-    }
-
-    .dispatch-preset-btn .d-title {
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .dispatch-preset-btn .d-desc {
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-
-    .dispatch-custom-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .select-unit {
-      background: #0a0f1a;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      outline: none;
-    }
-
-    .input-reply {
-      flex: 1;
-      background: #0a0f1a;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-family: var(--font-body);
-      font-size: 12px;
-      outline: none;
-    }
-
-    .input-reply:focus {
-      border-color: var(--green);
-    }
-
-    .btn-dispatch-send {
-      background: linear-gradient(135deg, #00ff9d, #00b8ff);
-      color: #000;
-      border: none;
-      padding: 9px 16px;
-      border-radius: 8px;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-dispatch-send:hover {
-      box-shadow: 0 0 16px var(--green-glow);
-    }
-
-    /* Broadcast Evac Banner */
-    .evac-banner {
-      background: linear-gradient(135deg, rgba(255, 51, 85, 0.15), rgba(255, 170, 0, 0.1));
-      border: 2px dashed rgba(255, 51, 85, 0.5);
-      border-radius: 10px;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .evac-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .evac-title {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--red);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .evac-desc {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .btn-evac-trigger {
-      background: var(--red);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-family: var(--font-display);
-      font-size: 11px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 0 12px var(--red-glow);
+      overflow: hidden;
       white-space: nowrap;
     }
 
-    /* Raw Log */
-    .raw-console {
-      background: #04070d;
-      color: #00ff9d;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 10px;
-      border-radius: 8px;
-      height: 120px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      line-height: 1.4;
-      border: 1px solid var(--border-subtle);
+    .app-title {
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.5px;
+      text-decoration: none;
     }
 
-    /* Modal for Broadcast Evacuation */
-    .modal-backdrop {
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+    .dot.on {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+    .dot.sim {
+      background: var(--amber);
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-sm {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-sm:hover {
+      border-color: var(--border-bright);
+      background: var(--bg-active);
+    }
+    .btn-sm.active {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-bg);
+    }
+    .btn-sm.danger {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* Peer / Unit Tabs Strip (BitChat Channels style) */
+    .channel-strip {
+      background: #0e1117;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .channel-strip::-webkit-scrollbar { display: none; }
+
+    .channel-tab {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .channel-tab:hover {
+      background: var(--bg-active);
+      color: var(--text);
+    }
+    .channel-tab.active {
+      background: var(--bg-active);
+      border-color: var(--green);
+      color: var(--green);
+      font-weight: 700;
+    }
+    .channel-tab .badge {
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: var(--border);
+      color: var(--text-muted);
+    }
+    .channel-tab.active .badge {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    /* Main Console Area (BitChat message stream) */
+    #chatLog {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: var(--bg);
+    }
+
+    .msg-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      word-break: break-word;
+      padding: 2px 0;
+    }
+
+    .msg-time {
+      color: var(--text-dim);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .msg-sender {
+      font-weight: 700;
+      color: var(--cyan);
+      flex-shrink: 0;
+    }
+    .msg-sender.sender-base {
+      color: var(--green);
+    }
+    .msg-sender.sender-sys {
+      color: var(--amber);
+    }
+    .msg-sender.sender-alert {
+      color: var(--red);
+    }
+
+    .msg-text {
+      color: var(--text);
+      flex: 1;
+    }
+    .msg-text.alert-text {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .msg-rssi {
+      color: var(--text-dim);
+      font-size: 10px;
+      margin-left: 6px;
+    }
+
+    .msg-sys {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 3px 0;
+      border-bottom: 1px dashed var(--border);
+      margin-bottom: 4px;
+    }
+
+    /* Quick Action Dispatch Chips (Above input) */
+    .quick-actions {
+      background: #0e1117;
+      border-top: 1px solid var(--border);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .quick-actions::-webkit-scrollbar { display: none; }
+
+    .action-chip {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .action-chip:hover {
+      background: var(--bg-active);
+      color: var(--text);
+      border-color: var(--cyan);
+    }
+    .action-chip.evac {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-bg);
+      font-weight: 700;
+    }
+
+    /* Bottom Input Bar */
+    footer {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .target-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      outline: none;
+      font-weight: 700;
+    }
+
+    .input-cmd {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      outline: none;
+    }
+    .input-cmd:focus {
+      border-color: var(--green);
+    }
+
+    .btn-send {
+      background: var(--green);
+      border: none;
+      color: #000;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-send:hover {
+      background: #00c853;
+    }
+
+    /* Modal dialog */
+    .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.85);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 999;
       padding: 16px;
     }
-
-    .modal-backdrop.active { display: flex; }
+    .modal-overlay.open { display: flex; }
 
     .modal-box {
-      background: #140e16;
-      border: 2px solid var(--red);
-      box-shadow: 0 0 32px var(--red-glow);
-      border-radius: 14px;
-      max-width: 460px;
+      background: var(--bg-panel);
+      border: 1px solid var(--red);
+      border-radius: 6px;
+      max-width: 420px;
       width: 100%;
-      padding: 24px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      text-align: center;
+      gap: 12px;
     }
-
-    footer {
-      border-top: 1px solid var(--border-subtle);
-      padding: 14px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-faint);
-      font-family: var(--font-mono);
-      margin-top: auto;
-    }
-
-    @media (max-width: 900px) {
-      main {
-        grid-template-columns: 1fr;
-      }
+    .modal-title {
+      color: var(--red);
+      font-weight: 700;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
+  <!-- Top Status Bar -->
   <header>
-    <a href="index.html" class="brand-wrap">
-      <div class="brand-badge">🛡️</div>
-      <div class="brand-info">
-        <h1>LIFELINE <span class="highlight">RX PRO</span></h1>
-        <p>Base Station Incident Command Hub</p>
+    <div class="status-left">
+      <a href="index.html" class="app-title">[LIFELINE//RX-BASE]</a>
+      <div class="status-pill">
+        <div id="dotConn" class="dot"></div>
+        <span id="labelConn">OFFLINE</span>
       </div>
-    </a>
+      <div class="status-pill">
+        <span>RF: 433.0MHz</span>
+      </div>
+    </div>
 
-    <div class="nav-actions">
-      <a href="index.html" class="btn btn-hub" title="Switch Mission App">⇄ Switch Role</a>
-      <button id="btnSerial" class="btn" onclick="toggleWebSerial()" title="Direct USB Serial to RX Pro Base">
-        <span>🔌 USB</span>
-      </button>
-      <button id="btnBle" class="btn btn-green" onclick="toggleBLE()">
-        <span>⚡ Connect Base BLE</span>
-      </button>
+    <div class="status-right">
+      <button id="btnSiren" class="btn-sm active" onclick="toggleSiren()">🔔 SIREN: ON</button>
+      <button id="btnSim" class="btn-sm" onclick="toggleSim()">SIM: OFF</button>
+      <button id="btnSerial" class="btn-sm" onclick="toggleSerial()">USB</button>
+      <button id="btnBle" class="btn-sm active" onclick="toggleBle()">BLE</button>
+      <button class="btn-sm" onclick="exportLog()">CSV</button>
+      <a href="tx_companion.html" class="btn-sm">→ TX APP</a>
     </div>
   </header>
 
-  <!-- Realtime Telemetry Strip -->
-  <div class="telemetry-strip">
-    <div class="strip-group">
-      <div class="pill">
-        <div id="connDot" class="dot"></div>
-        <span id="connLabel">OFFLINE (Disconnected)</span>
-      </div>
-      <div class="pill">
-        <span>STATION:</span>
-        <strong id="stationRole">BASE HUB 01</strong>
-      </div>
-      <div class="pill">
-        <span>LoRa RX:</span>
-        <strong id="loraStatus" style="color: var(--green);">CONTINUOUS 433 MHz</strong>
-      </div>
+  <!-- Channel & Active Peer Strip (BitChat inspired) -->
+  <div id="channelStrip" class="channel-strip">
+    <div class="channel-tab active" onclick="setChannel('ALL')">
+      <span>#all-traffic</span>
+      <span id="badgeAllCount" class="badge">0</span>
     </div>
+    <!-- Dynamically added peer tabs: #tx-003, #tx-001 -->
+  </div>
 
-    <div class="strip-group">
-      <div class="pill">
-        <button id="btnSirenMute" class="btn-siren-toggle active" onclick="toggleSirenMute()">
-          🔔 Siren: ON
-        </button>
-      </div>
-      <div class="pill">
-        <button id="btnSim" class="sim-toggle-btn" onclick="toggleSimulationMode()">
-          Multi-Unit Simulator: OFF
-        </button>
-      </div>
-      <div class="pill">
-        <button class="btn" style="padding:3px 8px;font-size:10px;" onclick="exportIncidentLog()">
-          📥 Export Log (CSV)
-        </button>
-      </div>
+  <!-- Main Terminal / Chat Log Stream -->
+  <div id="chatLog">
+    <div class="msg-line msg-sys">
+      [00:00:00] *** LifeLine RX Base Console initialized. Ready for 433MHz LoRa traffic ***
     </div>
   </div>
 
-  <!-- Main Command Center Grid -->
-  <main>
-
-    <!-- LEFT COLUMN: Live Incident Triage Stream -->
-    <div class="col-main">
-      
-      <!-- Incident Triage Feed -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>📥 Live Disaster Triage & LoRa Distress Stream</span>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <span id="alertCountBadge" class="badge badge-green">0 Incidents</span>
-            <button onclick="clearTriageFeed()" style="background:none;border:none;color:var(--cyan);font-size:11px;cursor:pointer;">Clear</button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div id="triageFeed" class="triage-feed">
-            <div class="triage-item nominal">
-              <div class="triage-top">
-                <span class="triage-unit-tag">BASE HUB STATION</span>
-                <span class="triage-meta">STANDBY</span>
-              </div>
-              <div class="triage-body">
-                Monitoring 433.0 MHz LoRa continuous channel for field distress packets and mobile reports.
-              </div>
-              <div class="triage-footer">
-                <span>Pair with LifeLine RX Pro via BLE or connect USB cable</span>
-                <span>CH: 433 MHz &bull; SF7 &bull; BW125</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Broadcast Evacuation Order -->
-      <div class="evac-banner">
-        <div class="evac-info">
-          <div class="evac-title">
-            <span>⚠️ MASS EVACUATION BROADCAST</span>
-          </div>
-          <div class="evac-desc">
-            Broadcast emergency evacuation frame (EVAC:ALL) over 433 MHz LoRa to all field units simultaneously.
-          </div>
-        </div>
-        <button class="btn-evac-trigger" onclick="openEvacModal()">BROADCAST EVAC</button>
-      </div>
-
-      <!-- Live Base Diagnostic Console -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>📟 Raw Base Station Stream Log</span>
-          </div>
-          <button onclick="document.getElementById('rawLog').innerText = ''" style="background:none;border:none;color:var(--green);font-size:11px;cursor:pointer;">Clear Log</button>
-        </div>
-        <div class="card-body" style="padding: 10px;">
-          <div id="rawLog" class="raw-console">Waiting for base station connection... Click 'Multi-Unit Simulator' to test with mock field units.</div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- RIGHT COLUMN: Dispatch & Unit Tracker -->
-    <div class="col-side">
-
-      <!-- Reverse Commander Downlink Dispatch -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>⚡ Commander Downlink Dispatch</span>
-          </div>
-          <span class="badge badge-cyan">LoRa CMD Frame</span>
-        </div>
-        <div class="card-body">
-          
-          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
-            Quick 1-Click Instructions (LoRa Downlink to Field Communicator):
-          </div>
-
-          <div class="dispatch-grid">
-            <button class="dispatch-preset-btn" onclick="sendQuickDispatch('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
-              <span class="d-title">🚁 Rescue Airborne</span>
-              <span class="d-desc">APF squad en route, ETA 20 min</span>
-            </button>
-            <button class="dispatch-preset-btn" onclick="sendQuickDispatch('STANDBY', 'Hold position, rescue team en route')">
-              <span class="d-title">✋ Hold Position</span>
-              <span class="d-desc">Do not move, stay sheltered</span>
-            </button>
-            <button class="dispatch-preset-btn" onclick="sendQuickDispatch('MEDICAL', 'Keep injured warm, apply direct pressure')">
-              <span class="d-title">🩺 Medical Guidance</span>
-              <span class="d-desc">Apply pressure, stay hydrated</span>
-            </button>
-            <button class="dispatch-preset-btn" onclick="sendQuickDispatch('EN_ROUTE', 'Ground SAR team on foot ETA 45m')">
-              <span class="d-title">🚚 Ground Team SAR</span>
-              <span class="d-desc">Rescuers approaching via trail</span>
-            </button>
-            <button class="dispatch-preset-btn" onclick="sendQuickDispatch('LOGGED', 'Coordinates verified, stay on high ground')">
-              <span class="d-title">📍 Acknowledged</span>
-              <span class="d-desc">Base has logged your GPS point</span>
-            </button>
-          </div>
-
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px; margin-bottom: 4px;">
-            Custom Tactical Downlink Instruction:
-          </div>
-          
-          <div class="dispatch-custom-row">
-            <select id="targetUnitSelect" class="select-unit">
-              <option value="3">Unit #003</option>
-              <option value="1">Unit #001</option>
-              <option value="12">Unit #012</option>
-            </select>
-            <input id="customReplyInput" type="text" class="input-reply" placeholder="Type custom order to target unit..." maxlength="48" />
-            <button class="btn-dispatch-send" onclick="sendCustomDispatch()">
-              <span>DISPATCH</span>
-              <span>➤</span>
-            </button>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- Active Field Units Radar -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>📡 Active Field Units Board</span>
-          </div>
-          <span id="activeUnitsCount" class="badge badge-cyan">0 Units Active</span>
-        </div>
-        <div class="card-body" style="padding: 6px;">
-          <table class="units-table">
-            <thead>
-              <tr>
-                <th>Unit ID</th>
-                <th>Signal</th>
-                <th>Est. Dist</th>
-                <th>Last Pkt</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="unitsTableBody">
-              <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-faint); padding: 18px;">
-                  No field units detected yet.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </div>
-
-  </main>
-
-  <!-- Mass Evacuation Confirmation Modal -->
-  <div id="evacModal" class="modal-backdrop">
-    <div class="modal-box">
-      <div style="font-size: 46px;">⚠️</div>
-      <div style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--red);">
-        CONFIRM MASS EVACUATION BROADCAST
-      </div>
-      <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
-        This will broadcast an urgent emergency instruction packet (<code style="color:var(--cyan)">EVAC:ALL</code>) over 433 MHz LoRa to ALL listening field units.
-      </div>
-      <input id="evacReasonInput" type="text" class="input-reply" value="Dam breach risk: head immediately to high ridge" maxlength="48" style="margin: 4px 0;" />
-      <div style="display:flex; gap: 10px;">
-        <button class="btn" style="flex:1;" onclick="closeEvacModal()">Cancel</button>
-        <button class="btn" style="flex:1.5; background:var(--red); border-color:var(--red); color:#fff; font-weight:800;" onclick="executeEvacBroadcast()">
-          TRANSMIT EVAC
-        </button>
-      </div>
-    </div>
+  <!-- Quick Command Dispatch Chips -->
+  <div class="quick-actions">
+    <span class="action-chip" onclick="quickDispatch('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
+      /dispatch: Airborne Rescue ETA 20m
+    </span>
+    <span class="action-chip" onclick="quickDispatch('STANDBY', 'Hold position and stay sheltered')">
+      /dispatch: Hold Position
+    </span>
+    <span class="action-chip" onclick="quickDispatch('MEDICAL', 'Keep injured warm apply direct pressure')">
+      /dispatch: Medical Instructions
+    </span>
+    <span class="action-chip" onclick="quickDispatch('EN_ROUTE', 'Ground rescue team en route on foot')">
+      /dispatch: Ground Team
+    </span>
+    <span class="action-chip evac" onclick="openEvacModal()">
+      /broadcast: MASS EVACUATION
+    </span>
   </div>
 
+  <!-- Bottom Message Input Bar -->
   <footer>
-    LifeLine RX Pro v3.1.0 PRO &bull; Base Station Incident Commander &bull; Web Bluetooth & Serial NUS Console
+    <select id="targetUnitSelect" class="target-select">
+      <option value="ALL">ALL (Broadcast)</option>
+      <option value="3">#TX-003</option>
+      <option value="1">#TX-001</option>
+      <option value="12">#TX-012</option>
+    </select>
+
+    <input id="inputCmd" type="text" class="input-cmd" placeholder="Type downlink instruction (/reply, /evac, or text)..." maxlength="48" onkeydown="if(event.key==='Enter')sendFromInput()" />
+
+    <button class="btn-send" onclick="sendFromInput()">TRANSMIT</button>
   </footer>
 
+  <!-- Evacuation Confirmation Modal -->
+  <div id="evacModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">⚠️ CONFIRM MASS EVACUATION (433MHz LoRa)</div>
+      <div style="font-size:12px; color:var(--text-muted);">
+        This transmits an emergency evacuation frame to ALL field communicators in range.
+      </div>
+      <input id="evacInput" class="input-cmd" value="Dam breach risk: head immediately to high ridge" maxlength="48" />
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn-sm" onclick="closeEvacModal()">Cancel</button>
+        <button class="btn-sm danger" style="background:var(--red); color:#fff;" onclick="execEvac()">BROADCAST EVAC</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ==========================================
-    // Nordic UART Service (NUS) UUIDs
-    // ==========================================
+    // NUS UUIDs
     const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-    const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Mobile -> Device (Write)
-    const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // Device -> Mobile (Notify)
+    const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+    const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 
     let bleDevice = null;
-    let gattServer = null;
     let rxCharacteristic = null;
     let txCharacteristic = null;
-    let isConnected = false;
+    let isBleConnected = false;
 
     // Web Serial
     let serialPort = null;
     let serialReader = null;
-    let serialWriter = null;
     let isSerialConnected = false;
 
-    // State Tracking
-    let isSimulationMode = false;
-    let isSirenMuted = false;
-    let simInterval = null;
+    // State
+    let isSirenOn = true;
+    let isSimOn = false;
+    let simTimer = null;
+    let currentChannel = 'ALL'; // 'ALL' or '3', '1'
 
-    const activeUnits = new Map(); // devId -> { id, lastSeen, rssi, lastMsg, pktCount, type }
-    const incidentRecords = [];
+    const activePeers = new Map(); // devId -> { lastRssi, lastSeen, count }
+    const logHistory = []; // { time, sender, text, rssi, isAlert, devId }
 
-    // Web Audio Synthesizer for Emergency Sirens
+    // Audio Synthesizer (BitChat style feedback)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playTone(freqStart, freqEnd, duration, type = 'sine') {
-      if (isSirenMuted) return;
+    function beep(freq, dur, type = 'sine') {
+      if (!isSirenOn) return;
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = type;
-      osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + dur);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + dur);
+    }
+    function alertSiren() {
+      if (!isSirenOn) return;
+      beep(880, 0.25, 'sawtooth');
+      setTimeout(() => beep(440, 0.35, 'sawtooth'), 260);
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    }
+    function chatBeep() { beep(750, 0.12, 'sine'); }
+
+    // Chat Log Renderer
+    function appendLog(sender, text, rssi = '', isAlert = false, devId = 'ALL') {
+      const now = new Date();
+      const time = now.toTimeString().split(' ')[0];
+      const entry = { time, sender, text, rssi, isAlert, devId };
+      logHistory.push(entry);
+
+      if (isAlert) alertSiren();
+      else if (sender !== 'BASE') chatBeep();
+
+      renderLine(entry);
     }
 
-    function soundEmergencyKlaxon() {
-      if (isSirenMuted) return;
-      playTone(950, 400, 0.45, 'sawtooth');
-      setTimeout(() => playTone(950, 400, 0.45, 'sawtooth'), 500);
-      if ('vibrate' in navigator) navigator.vibrate([300, 100, 300, 100, 400]);
-    }
+    function renderLine(entry) {
+      if (currentChannel !== 'ALL' && entry.devId !== 'ALL' && entry.devId !== currentChannel && !entry.sender.includes(currentChannel)) {
+        return; // Filtered out
+      }
 
-    function soundChatChime() {
-      if (isSirenMuted) return;
-      playTone(550, 880, 0.25);
-    }
-
-    function soundDispatchSuccess() {
-      playTone(700, 1400, 0.2);
-    }
-
-    function toggleSirenMute() {
-      isSirenMuted = !isSirenMuted;
-      const btn = document.getElementById('btnSirenMute');
-      btn.className = `btn-siren-toggle ${isSirenMuted ? '' : 'active'}`;
-      btn.innerText = `🔔 Siren: ${isSirenMuted ? 'MUTED' : 'ON'}`;
-    }
-
-    function logRaw(msg) {
-      const el = document.getElementById('rawLog');
-      const time = new Date().toLocaleTimeString();
-      el.innerText += `[${time}] ${msg}\n`;
-      el.scrollTop = el.scrollHeight;
-    }
-
-    // ==========================================
-    // Triage Feed & Units Management
-    // ==========================================
-    function recordIncident(unitId, type, title, nepali, text, rssi, severity = 'critical') {
-      const time = new Date().toLocaleTimeString();
-      const record = { unitId, type, title, nepali, text, rssi, severity, time };
-      incidentRecords.unshift(record);
-
-      // Sound notification
-      if (severity === 'critical') soundEmergencyKlaxon();
-      else soundChatChime();
-
-      // Update Active Units
-      const current = activeUnits.get(unitId) || { id: unitId, pktCount: 0 };
-      current.lastSeen = time;
-      current.rssi = rssi;
-      current.lastMsg = title || text;
-      current.pktCount += 1;
-      current.severity = severity;
-      activeUnits.set(unitId, current);
-
-      renderTriageItem(record);
-      renderActiveUnits();
-      updateUnitDropdown();
-    }
-
-    function renderTriageItem(item) {
-      const feed = document.getElementById('triageFeed');
+      const log = document.getElementById('chatLog');
       const div = document.createElement('div');
-      div.className = `triage-item ${item.severity}`;
+      div.className = 'msg-line';
 
-      const nepaliSpan = item.nepali ? `<span class="triage-nepali">(${item.nepali})</span>` : '';
-      const contentText = item.text ? `"${item.text}"` : item.title;
+      let senderCls = 'msg-sender';
+      if (entry.sender === 'BASE') senderCls += ' sender-base';
+      else if (entry.sender === 'SYSTEM') senderCls += ' sender-sys';
+      else if (entry.isAlert) senderCls += ' sender-alert';
+
+      const rssiHtml = entry.rssi ? `<span class="msg-rssi">[${entry.rssi}dBm]</span>` : '';
+      const textCls = entry.isAlert ? 'msg-text alert-text' : 'msg-text';
 
       div.innerHTML = `
-        <div class="triage-top">
-          <span class="triage-unit-tag">
-            <span class="badge ${item.severity === 'critical' ? 'badge-red' : item.severity === 'high' ? 'badge-amber' : 'badge-cyan'}">
-              UNIT #${String(item.unitId).padStart(3, '0')}
-            </span>
-            <span>${item.type}</span>
-          </span>
-          <span class="triage-meta">
-            <span>RSSI: ${item.rssi} dBm</span>
-            <span>${item.time}</span>
-          </span>
-        </div>
-        <div class="triage-body">
-          <span>${contentText}</span>
-          ${nepaliSpan}
-        </div>
-        <div class="triage-footer">
-          <span>Estimated Distance: ~${estimateDistance(item.rssi)} km</span>
-          <button class="btn-quick-reply" onclick="selectUnitForReply('${item.unitId}')">Reply to Unit #${item.unitId}</button>
+        <span class="msg-time">[${entry.time}]</span>
+        <span class="${senderCls}">&lt;${entry.sender}&gt;</span>
+        <span class="${textCls}">${entry.text}</span>
+        ${rssiHtml}
+      `;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function refreshLogView() {
+      const log = document.getElementById('chatLog');
+      log.innerHTML = '';
+      logHistory.forEach(renderLine);
+    }
+
+    // Peers & Channels
+    function updatePeer(devId, rssi) {
+      const idStr = String(devId);
+      const peer = activePeers.get(idStr) || { count: 0 };
+      peer.lastRssi = rssi;
+      peer.lastSeen = new Date().toTimeString().split(' ')[0];
+      peer.count += 1;
+      activePeers.set(idStr, peer);
+
+      renderPeerTabs();
+      updateSelect();
+    }
+
+    function renderPeerTabs() {
+      const strip = document.getElementById('channelStrip');
+      strip.innerHTML = `
+        <div class="channel-tab ${currentChannel === 'ALL' ? 'active' : ''}" onclick="setChannel('ALL')">
+          <span>#all-traffic</span>
+          <span class="badge">${logHistory.length}</span>
         </div>
       `;
-      feed.prepend(div);
 
-      document.getElementById('alertCountBadge').innerText = `${incidentRecords.length} Incidents`;
-      document.getElementById('alertCountBadge').className = 'badge badge-red';
-    }
-
-    function clearTriageFeed() {
-      document.getElementById('triageFeed').innerHTML = `
-        <div class="triage-item nominal">
-          <div class="triage-top">
-            <span class="triage-unit-tag">LOG PURGED</span>
-            <span class="triage-meta">${new Date().toLocaleTimeString()}</span>
-          </div>
-          <div class="triage-body">Incident stream cleared by commander.</div>
-        </div>
-      `;
-      incidentRecords.length = 0;
-      document.getElementById('alertCountBadge').innerText = `0 Incidents`;
-      document.getElementById('alertCountBadge').className = 'badge badge-green';
-    }
-
-    function estimateDistance(rssi) {
-      // 433 MHz free-space path loss approximation
-      if (!rssi) return '1.2';
-      const r = Math.abs(parseInt(rssi, 10));
-      if (r < 60) return '0.4';
-      if (r < 75) return '1.8';
-      if (r < 90) return '3.5';
-      return '5.0+';
-    }
-
-    function renderActiveUnits() {
-      const tbody = document.getElementById('unitsTableBody');
-      if (activeUnits.size === 0) return;
-
-      tbody.innerHTML = '';
-      activeUnits.forEach(u => {
-        const tr = document.createElement('tr');
-        const barsOn = u.rssi > -70 ? 4 : u.rssi > -85 ? 3 : u.rssi > -100 ? 2 : 1;
-
-        tr.innerHTML = `
-          <td><span class="unit-id-pill">#${String(u.id).padStart(3, '0')}</span></td>
-          <td>
-            <span class="signal-bar">
-              <span class="bar ${barsOn >= 1 ? 'on' : ''}" style="height:4px;"></span>
-              <span class="bar ${barsOn >= 2 ? 'on' : ''}" style="height:7px;"></span>
-              <span class="bar ${barsOn >= 3 ? 'on' : ''}" style="height:10px;"></span>
-              <span class="bar ${barsOn >= 4 ? 'on' : ''}" style="height:13px;"></span>
-            </span>
-            ${u.rssi} dBm
-          </td>
-          <td>~${estimateDistance(u.rssi)} km</td>
-          <td>${u.lastSeen}</td>
-          <td>
-            <button class="btn-quick-reply" onclick="selectUnitForReply('${u.id}')">Select</button>
-          </td>
+      activePeers.forEach((data, id) => {
+        const tab = document.createElement('div');
+        tab.className = `channel-tab ${currentChannel === id ? 'active' : ''}`;
+        tab.onclick = () => setChannel(id);
+        tab.innerHTML = `
+          <span>#tx-${String(id).padStart(3, '0')}</span>
+          <span class="badge">${data.lastRssi}dBm</span>
         `;
-        tbody.appendChild(tr);
+        strip.appendChild(tab);
       });
-
-      document.getElementById('activeUnitsCount').innerText = `${activeUnits.size} Active Units`;
     }
 
-    function updateUnitDropdown() {
+    function setChannel(ch) {
+      currentChannel = ch;
+      renderPeerTabs();
+      refreshLogView();
+
       const select = document.getElementById('targetUnitSelect');
-      const currentVal = select.value;
-      select.innerHTML = '';
-      activeUnits.forEach(u => {
+      if (ch !== 'ALL') select.value = ch;
+    }
+
+    function updateSelect() {
+      const select = document.getElementById('targetUnitSelect');
+      const val = select.value;
+      select.innerHTML = '<option value="ALL">ALL (Broadcast)</option>';
+      activePeers.forEach((data, id) => {
         const opt = document.createElement('option');
-        opt.value = u.id;
-        opt.innerText = `Unit #${String(u.id).padStart(3, '0')}`;
+        opt.value = id;
+        opt.innerText = `#TX-${String(id).padStart(3, '0')}`;
         select.appendChild(opt);
       });
-      if (activeUnits.has(parseInt(currentVal, 10))) {
-        select.value = currentVal;
+      select.value = val;
+    }
+
+    // Command Dispatch
+    async function quickDispatch(action, msg) {
+      const target = document.getElementById('targetUnitSelect').value;
+      const cmd = `REPLY:${target === 'ALL' ? '3' : target},${action},${msg}`;
+      const ok = await transmit(cmd);
+      if (ok || isSimOn) {
+        appendLog('BASE', `[DOWNLINK -> #${target}] [${action}] ${msg}`, '', false, target);
       }
     }
 
-    function selectUnitForReply(unitId) {
-      const select = document.getElementById('targetUnitSelect');
-      select.value = unitId;
-      document.getElementById('customReplyInput').focus();
-    }
-
-    // ==========================================
-    // Dispatch Transmissions
-    // ==========================================
-    async function sendQuickDispatch(action, message) {
-      const select = document.getElementById('targetUnitSelect');
-      const devId = select.value || '3';
-      const cmd = `REPLY:${devId},${action},${message}`;
-
-      const ok = await transmitData(cmd);
-      if (ok || isSimulationMode) {
-        soundDispatchSuccess();
-        logRaw(`[CMD DISPATCH] -> Unit #${devId} [${action}]: "${message}"`);
-        const item = {
-          unitId: devId,
-          type: 'DOWNLINK DISPATCH',
-          title: `[${action}] ${message}`,
-          nepali: 'आदेश पठाइयो',
-          text: message,
-          rssi: '--',
-          severity: 'nominal',
-          time: new Date().toLocaleTimeString()
-        };
-        renderTriageItem(item);
-      }
-    }
-
-    async function sendCustomDispatch() {
-      const select = document.getElementById('targetUnitSelect');
-      const devId = select.value || '3';
-      const input = document.getElementById('customReplyInput');
+    async function sendFromInput() {
+      const input = document.getElementById('inputCmd');
       const text = input.value.trim();
       if (!text) return;
 
-      const cmd = `REPLY:${devId},COMMAND,${text}`;
-      const ok = await transmitData(cmd);
-      if (ok || isSimulationMode) {
-        soundDispatchSuccess();
-        logRaw(`[CMD CUSTOM] -> Unit #${devId}: "${text}"`);
-        const item = {
-          unitId: devId,
-          type: 'DOWNLINK INSTRUCTION',
-          title: text,
-          nepali: 'निर्देशन',
-          text: text,
-          rssi: '--',
-          severity: 'nominal',
-          time: new Date().toLocaleTimeString()
-        };
-        renderTriageItem(item);
-        input.value = '';
-      }
-    }
-
-    // Evacuation Broadcast
-    function openEvacModal() {
-      document.getElementById('evacModal').classList.add('active');
-    }
-    function closeEvacModal() {
-      document.getElementById('evacModal').classList.remove('active');
-    }
-
-    async function executeEvacBroadcast() {
-      const msg = document.getElementById('evacReasonInput').value.trim() || 'EVACUATE IMMEDIATELY TO HIGH GROUND';
-      closeEvacModal();
-
-      const cmd = `EVAC:${msg}`;
-      const ok = await transmitData(cmd);
-      soundEmergencyKlaxon();
-
-      logRaw(`[EVAC BROADCAST] Transmitted to all units: "${msg}"`);
-      const item = {
-        unitId: 'ALL',
-        type: 'MASS EVACUATION ORDER',
-        title: msg,
-        nepali: 'सामूहिक उद्धार / सुरक्षित स्थान प्रस्थान',
-        text: msg,
-        rssi: 'ALL UNITS',
-        severity: 'critical',
-        time: new Date().toLocaleTimeString()
-      };
-      renderTriageItem(item);
-    }
-
-    // ==========================================
-    // Inbound Frame Parser
-    // ==========================================
-    function parseIncomingFrame(data) {
-      logRaw(`[RX IN] ${data}`);
-
-      if (data.startsWith('ALERT:')) {
-        // e.g. ALERT:DEV=003,CODE=A,NAME=CRITICAL SOS,RSSI=-65
-        const devMatch = data.match(/DEV=(\d+)/);
-        const codeMatch = data.match(/CODE=([^,]+)/);
-        const nameMatch = data.match(/NAME=([^,]+)/);
-        const rssiMatch = data.match(/RSSI=([^,]+)/);
-
-        const devId = devMatch ? parseInt(devMatch[1], 10) : 3;
-        const code = codeMatch ? codeMatch[1] : 'A';
-        const name = nameMatch ? nameMatch[1] : 'CRITICAL SOS';
-        const rssi = rssiMatch ? rssiMatch[1] : '-65';
-
-        const severity = (code === 'A' || code === 'B' || code === 'C' || code === 'E' || code === 'G') ? 'critical' : 'high';
-        recordIncident(devId, `SOS ALERT [${code}]`, name, '', '', rssi, severity);
-      }
-      else if (data.startsWith('CHAT:')) {
-        // e.g. CHAT:DEV=003,TEXT=Landslide blocked road,RSSI=-62
-        const devMatch = data.match(/DEV=(\d+)/);
-        const textMatch = data.match(/TEXT=([^,]+)/);
-        const rssiMatch = data.match(/RSSI=([^,]+)/);
-
-        const devId = devMatch ? parseInt(devMatch[1], 10) : 3;
-        const text = textMatch ? textMatch[1] : '';
-        const rssi = rssiMatch ? rssiMatch[1] : '-65';
-
-        recordIncident(devId, 'FIELD CHAT REPORT', '', '', text, rssi, 'medium');
-      }
-      else if (data.startsWith('TELEMETRY:')) {
-        // e.g. TELEMETRY:DEV=003,TEMP=21.4,HUM=88.2,LAT=27.7172,LON=85.3240,RSSI=-65
-        const devMatch = data.match(/DEV=(\d+)/);
-        const tempMatch = data.match(/TEMP=([^,]+)/);
-        const latMatch = data.match(/LAT=([^,]+)/);
-        const lonMatch = data.match(/LON=([^,]+)/);
-        const rssiMatch = data.match(/RSSI=([^,]+)/);
-
-        const devId = devMatch ? parseInt(devMatch[1], 10) : 3;
-        const temp = tempMatch ? tempMatch[1] : '--';
-        const lat = latMatch ? latMatch[1] : '';
-        const lon = lonMatch ? lonMatch[1] : '';
-        const rssi = rssiMatch ? rssiMatch[1] : '-65';
-
-        const info = `Temp: ${temp}°C, GPS: ${lat}, ${lon}`;
-        recordIncident(devId, 'SENSOR TELEMETRY', info, '', '', rssi, 'nominal');
-      }
-      else if (data.startsWith('STATUS:')) {
-        // STATUS:ROLE=BASE,LORA=OK,VER=v3.1.0 PRO
-        document.getElementById('loraStatus').innerText = 'LORA ONLINE (433MHz)';
-      }
-    }
-
-    // ==========================================
-    // Connectivity (BLE & Web Serial)
-    // ==========================================
-    async function toggleBLE() {
-      if (isConnected) disconnectBLE();
-      else await connectBLE();
-    }
-
-    async function connectBLE() {
-      if (!navigator.bluetooth) {
-        alert('Web Bluetooth is not supported on this browser. Use Chrome on Android/Windows or Bluefy on iOS.');
-        return;
-      }
-
-      try {
-        logRaw('Scanning for LifeLine RX Base station...');
-        bleDevice = await navigator.bluetooth.requestDevice({
-          filters: [
-            { namePrefix: 'LifeLine-RX' },
-            { namePrefix: 'LifeLine' },
-            { services: [NUS_SERVICE_UUID] }
-          ],
-          optionalServices: [NUS_SERVICE_UUID]
-        });
-
-        logRaw(`Connecting to Base Station: ${bleDevice.name}...`);
-        bleDevice.addEventListener('gattserverdisconnected', onBLEDisconnected);
-
-        gattServer = await bleDevice.gatt.connect();
-        const service = await gattServer.getPrimaryService(NUS_SERVICE_UUID);
-        rxCharacteristic = await service.getCharacteristic(NUS_RX_CHAR_UUID);
-        txCharacteristic = await service.getCharacteristic(NUS_TX_CHAR_UUID);
-
-        await txCharacteristic.startNotifications();
-        txCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
-          const dec = new TextDecoder('utf-8');
-          parseIncomingFrame(dec.decode(e.target.value).trim());
-        });
-
-        isConnected = true;
-        updateUIConnected('BLE', bleDevice.name);
-        soundDispatchSuccess();
-        logRaw('Commander smartphone connected to Base Station via BLE.');
-
-        await transmitData('STATUS');
-      } catch (err) {
-        logRaw(`BLE Connection error: ${err}`);
-        updateUIConnected(false);
-      }
-    }
-
-    function onBLEDisconnected() {
-      logRaw('Base station BLE disconnected.');
-      updateUIConnected(false);
-    }
-
-    function disconnectBLE() {
-      if (bleDevice && bleDevice.gatt.connected) {
-        bleDevice.gatt.disconnect();
-      }
-      updateUIConnected(false);
-    }
-
-    // Web Serial
-    async function toggleWebSerial() {
-      if (isSerialConnected) disconnectSerial();
-      else await connectSerial();
-    }
-
-    async function connectSerial() {
-      if (!('serial' in navigator)) {
-        alert('Web Serial is not supported on this browser. Use Chrome or Edge.');
-        return;
-      }
-
-      try {
-        serialPort = await navigator.serial.requestPort();
-        await serialPort.open({ baudRate: 115200 });
-        isSerialConnected = true;
-        updateUIConnected('SERIAL', 'RX Base USB (115200)');
-        logRaw('Connected to LifeLine RX Pro via USB Serial.');
-        readSerialLoop();
-      } catch (err) {
-        logRaw(`Serial error: ${err}`);
-        updateUIConnected(false);
-      }
-    }
-
-    async function readSerialLoop() {
-      const textDecoder = new TextDecoderStream();
-      const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
-      const reader = textDecoder.readable.getReader();
-      serialReader = reader;
-
-      let buffer = '';
-      try {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          if (value) {
-            buffer += value;
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-            for (const line of lines) {
-              const clean = line.trim();
-              if (clean) parseIncomingFrame(clean);
-            }
-          }
+      const target = document.getElementById('targetUnitSelect').value;
+      if (text.startsWith('/')) {
+        // IRC slash command style: /reply 3 text or /evac text
+        handleSlashCommand(text);
+      } else {
+        const cmd = `REPLY:${target === 'ALL' ? '3' : target},COMMAND,${text}`;
+        const ok = await transmit(cmd);
+        if (ok || isSimOn) {
+          appendLog('BASE', `[DOWNLINK -> #${target}] "${text}"`, '', false, target);
         }
-      } catch (err) {
-        logRaw(`Serial read error: ${err}`);
+      }
+      input.value = '';
+    }
+
+    function handleSlashCommand(cmdStr) {
+      const parts = cmdStr.split(' ');
+      const verb = parts[0].toLowerCase();
+      if (verb === '/evac') {
+        const reason = parts.slice(1).join(' ') || 'Evacuate to high ground';
+        transmit(`EVAC:${reason}`);
+        appendLog('BASE', `*** BROADCAST EVAC: ${reason} ***`, '', true, 'ALL');
+      } else if (verb === '/reply' && parts.length >= 3) {
+        const devId = parts[1];
+        const msg = parts.slice(2).join(' ');
+        transmit(`REPLY:${devId},COMMAND,${msg}`);
+        appendLog('BASE', `[DOWNLINK -> #${devId}] "${msg}"`, '', false, devId);
+      } else if (verb === '/status') {
+        transmit('STATUS');
+        appendLog('SYSTEM', 'Queried Base Station hardware status');
+      } else {
+        appendLog('SYSTEM', `Unknown command: ${verb}. Use /reply <id> <msg> or /evac <msg>`);
       }
     }
 
-    async function disconnectSerial() {
-      if (serialReader) await serialReader.cancel();
-      if (serialPort) await serialPort.close();
-      isSerialConnected = false;
-      updateUIConnected(false);
+    // Modal Evac
+    function openEvacModal() { document.getElementById('evacModal').classList.add('open'); }
+    function closeEvacModal() { document.getElementById('evacModal').classList.remove('open'); }
+    async function execEvac() {
+      const msg = document.getElementById('evacInput').value.trim() || 'EVACUATE IMMEDIATELY';
+      closeEvacModal();
+      await transmit(`EVAC:${msg}`);
+      appendLog('BASE', `*** BROADCAST MASS EVACUATION: "${msg}" ***`, '', true, 'ALL');
     }
 
-    async function transmitData(str) {
-      logRaw(`[CMD TX] ${str}`);
-      if (isConnected && rxCharacteristic) {
+    // Transmit Router
+    async function transmit(str) {
+      if (isBleConnected && rxCharacteristic) {
         try {
           const enc = new TextEncoder();
           await rxCharacteristic.writeValueWithoutResponse(enc.encode(str));
           return true;
-        } catch (err) {
-          logRaw(`BLE send failed: ${err}`);
+        } catch (e) {
+          appendLog('SYSTEM', `BLE TX Error: ${e}`);
           return false;
         }
       } else if (isSerialConnected && serialPort && serialPort.writable) {
@@ -1430,109 +681,205 @@
           await writer.write(enc.encode(str + '\n'));
           writer.releaseLock();
           return true;
-        } catch (err) {
-          logRaw(`Serial send failed: ${err}`);
+        } catch (e) {
+          appendLog('SYSTEM', `Serial TX Error: ${e}`);
           return false;
         }
       }
       return false;
     }
 
-    function updateUIConnected(type, name = '') {
-      const dot = document.getElementById('connDot');
-      const label = document.getElementById('connLabel');
-      const bleBtn = document.getElementById('btnBle');
-      const serBtn = document.getElementById('btnSerial');
+    // Inbound Frame Parser
+    function parseInbound(line) {
+      if (line.startsWith('ALERT:')) {
+        // ALERT:DEV=003,CODE=A,NAME=CRITICAL SOS,RSSI=-65
+        const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
+        const code = (line.match(/CODE=([^,]+)/) || [])[1] || 'A';
+        const name = (line.match(/NAME=([^,]+)/) || [])[1] || 'SOS';
+        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
 
-      if (type) {
-        dot.className = 'dot live';
-        label.innerText = `ONLINE (${type}): ${name}`;
-        if (type === 'BLE') {
-          bleBtn.className = 'btn btn-connected';
-          bleBtn.innerHTML = '<span>⚡ Disconnect Base</span>';
-        } else {
-          serBtn.className = 'btn btn-connected';
-          serBtn.innerHTML = '<span>🔌 Disconnect USB</span>';
+        updatePeer(dev, rssi);
+        appendLog(`TX-${String(dev).padStart(3, '0')}`, `🚨 [ALERT ${code}] ${name}`, rssi, true, dev);
+      }
+      else if (line.startsWith('CHAT:')) {
+        // CHAT:DEV=003,TEXT=...,RSSI=-62
+        const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
+        const text = (line.match(/TEXT=([^,]+)/) || [])[1] || '';
+        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
+
+        updatePeer(dev, rssi);
+        appendLog(`TX-${String(dev).padStart(3, '0')}`, `"${text}"`, rssi, false, dev);
+      }
+      else if (line.startsWith('TELEMETRY:')) {
+        const dev = (line.match(/DEV=(\d+)/) || [])[1] || '0';
+        const temp = (line.match(/TEMP=([^,]+)/) || [])[1] || '--';
+        const lat = (line.match(/LAT=([^,]+)/) || [])[1] || '';
+        const lon = (line.match(/LON=([^,]+)/) || [])[1] || '';
+        const rssi = (line.match(/RSSI=([^,]+)/) || [])[1] || '-65';
+
+        updatePeer(dev, rssi);
+        appendLog(`TX-${String(dev).padStart(3, '0')}`, `[TELEMETRY] ${temp}°C | GPS: ${lat},${lon}`, rssi, false, dev);
+      }
+      else if (line.startsWith('STATUS:')) {
+        appendLog('SYSTEM', line);
+      }
+    }
+
+    // BLE Connect
+    async function toggleBle() {
+      if (isBleConnected) {
+        if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+        setConnState(false);
+      } else {
+        if (!navigator.bluetooth) {
+          alert('Web Bluetooth requires Google Chrome or Bluefy on iOS.');
+          return;
         }
-      } else {
-        dot.className = isSimulationMode ? 'dot sim' : 'dot';
-        label.innerText = isSimulationMode ? 'SIMULATOR MODE (Active)' : 'OFFLINE (Disconnected)';
-        bleBtn.className = 'btn btn-green';
-        bleBtn.innerHTML = '<span>⚡ Connect Base BLE</span>';
-        serBtn.className = 'btn';
-        serBtn.innerHTML = '<span>🔌 USB</span>';
+        try {
+          bleDevice = await navigator.bluetooth.requestDevice({
+            filters: [{ namePrefix: 'LifeLine-RX' }, { namePrefix: 'LifeLine' }, { services: [NUS_SERVICE_UUID] }],
+            optionalServices: [NUS_SERVICE_UUID]
+          });
+          bleDevice.addEventListener('gattserverdisconnected', () => setConnState(false));
+          const server = await bleDevice.gatt.connect();
+          const svc = await server.getPrimaryService(NUS_SERVICE_UUID);
+          rxCharacteristic = await svc.getCharacteristic(NUS_RX_CHAR_UUID);
+          txCharacteristic = await svc.getCharacteristic(NUS_TX_CHAR_UUID);
+
+          await txCharacteristic.startNotifications();
+          txCharacteristic.addEventListener('characteristicvaluechanged', e => {
+            const dec = new TextDecoder();
+            parseInbound(dec.decode(e.target.value).trim());
+          });
+
+          setConnState(true, `BLE:${bleDevice.name}`);
+          appendLog('SYSTEM', `Connected to ${bleDevice.name} via Nordic UART`);
+          transmit('STATUS');
+        } catch (e) {
+          appendLog('SYSTEM', `BLE Error: ${e}`);
+          setConnState(false);
+        }
       }
     }
 
-    // ==========================================
-    // Multi-Unit Simulator
-    // ==========================================
-    function toggleSimulationMode() {
-      isSimulationMode = !isSimulationMode;
+    // Web Serial
+    async function toggleSerial() {
+      if (isSerialConnected) {
+        if (serialReader) await serialReader.cancel();
+        if (serialPort) await serialPort.close();
+        isSerialConnected = false;
+        setConnState(false);
+      } else {
+        if (!('serial' in navigator)) {
+          alert('Web Serial requires Chrome / Edge.');
+          return;
+        }
+        try {
+          serialPort = await navigator.serial.requestPort();
+          await serialPort.open({ baudRate: 115200 });
+          isSerialConnected = true;
+          setConnState(true, 'USB:115200');
+          appendLog('SYSTEM', 'Connected via USB Web Serial (115200)');
+
+          readSerial();
+        } catch (e) {
+          appendLog('SYSTEM', `Serial Error: ${e}`);
+          setConnState(false);
+        }
+      }
+    }
+
+    async function readSerial() {
+      const dec = new TextDecoderStream();
+      serialPort.readable.pipeTo(dec.writable);
+      const reader = dec.readable.getReader();
+      serialReader = reader;
+      let buf = '';
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            buf += value;
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const l of lines) {
+              const clean = l.trim();
+              if (clean) parseInbound(clean);
+            }
+          }
+        }
+      } catch (e) {
+        appendLog('SYSTEM', `Serial stream closed: ${e}`);
+      }
+    }
+
+    function setConnState(online, label = '') {
+      isBleConnected = online && label.startsWith('BLE');
+      isSerialConnected = online && label.startsWith('USB');
+
+      const dot = document.getElementById('dotConn');
+      const text = document.getElementById('labelConn');
+      if (online) {
+        dot.className = 'dot on';
+        text.innerText = label;
+      } else {
+        dot.className = isSimOn ? 'dot sim' : 'dot';
+        text.innerText = isSimOn ? 'SIMULATOR' : 'OFFLINE';
+      }
+    }
+
+    function toggleSiren() {
+      isSirenOn = !isSirenOn;
+      const btn = document.getElementById('btnSiren');
+      btn.innerText = `🔔 SIREN: ${isSirenOn ? 'ON' : 'MUTED'}`;
+      btn.classList.toggle('active', isSirenOn);
+    }
+
+    function toggleSim() {
+      isSimOn = !isSimOn;
       const btn = document.getElementById('btnSim');
-      btn.innerText = `Multi-Unit Simulator: ${isSimulationMode ? 'ON' : 'OFF'}`;
-      btn.style.background = isSimulationMode ? 'var(--amber-dim)' : 'transparent';
+      btn.innerText = `SIM: ${isSimOn ? 'ON' : 'OFF'}`;
+      btn.classList.toggle('active', isSimOn);
+      setConnState(false);
 
-      if (isSimulationMode) {
-        updateUIConnected(false);
-        logRaw('Multi-Unit Simulation active. Injecting field distress packets...');
-        startSimEvents();
+      if (isSimOn) {
+        appendLog('SYSTEM', 'Simulation started. Injecting mock peer units...');
+        updatePeer(3, -65);
+        updatePeer(1, -74);
+        updatePeer(12, -82);
+        appendLog('TX-003', '🚨 [ALERT A] CRITICAL SOS (आपतकालीन उद्धार)', '-65', true, '3');
+        appendLog('TX-001', '"Landslide blocking road near bridge"', '-74', false, '1');
+
+        simTimer = setInterval(() => {
+          if (!isSimOn) return;
+          const mock = [
+            () => appendLog('TX-003', '"Elderly patient hypothermia, need blankets"', '-67', false, '3'),
+            () => appendLog('TX-012', '🚨 [ALERT B] DELIVERY / LABOR (सुत्केरी / प्रसूति)', '-81', true, '12'),
+            () => appendLog('TX-001', '"River levels rising fast"', '-72', false, '1')
+          ];
+          mock[Math.floor(Math.random() * mock.length)]();
+        }, 14000);
       } else {
-        clearInterval(simInterval);
-        logRaw('Simulation stopped.');
-        updateUIConnected(false);
+        clearInterval(simTimer);
+        appendLog('SYSTEM', 'Simulation stopped.');
       }
     }
 
-    function startSimEvents() {
-      // Seed initial mock units
-      recordIncident(3, 'SOS ALERT [A]', 'CRITICAL SOS', 'आपतकालीन उद्धार', '', -68, 'critical');
-      recordIncident(1, 'FIELD CHAT REPORT', '', '', 'Landslide blocked trail near bridge', -74, 'high');
-      recordIncident(12, 'SOS ALERT [B]', 'DELIVERY / LABOR', 'सुत्केरी / प्रसूति', '', -82, 'critical');
-
-      simInterval = setInterval(() => {
-        if (!isSimulationMode) return;
-        const mockEvents = [
-          () => recordIncident(3, 'FIELD CHAT REPORT', '', '', 'Water supplies depleted, need airlift', -69, 'high'),
-          () => recordIncident(1, 'SOS ALERT [F]', 'SEVERE INJURY', 'गम्भीर चोटपटक', '', -73, 'high'),
-          () => recordIncident(12, 'STATUS UPDATE', 'STATUS OK', 'सबै सुरक्षित', '', -81, 'nominal'),
-          () => recordIncident(5, 'SOS ALERT [C]', 'HELI RESCUE NEEDED', 'हेलिकप्टर उद्धार', '', -88, 'critical')
-        ];
-        const evt = mockEvents[Math.floor(Math.random() * mockEvents.length)];
-        evt();
-      }, 12000);
-    }
-
-    // ==========================================
-    // Incident Log Export (CSV)
-    // ==========================================
-    function exportIncidentLog() {
-      if (incidentRecords.length === 0) {
-        alert('No incident events logged yet.');
-        return;
-      }
-
-      let csv = 'Timestamp,UnitID,Type,Title,Text,Severity,RSSI_dBm\n';
-      incidentRecords.forEach(r => {
-        const cleanTitle = (r.title || '').replace(/,/g, ' ');
-        const cleanText = (r.text || '').replace(/,/g, ' ');
-        csv += `"${r.time}",${r.unitId},"${r.type}","${cleanTitle}","${cleanText}",${r.severity},${r.rssi}\n`;
+    function exportLog() {
+      if (!logHistory.length) return alert('No logs to export');
+      let csv = 'Timestamp,Sender,Text,RSSI,Alert,DevID\n';
+      logHistory.forEach(l => {
+        csv += `"${l.time}","${l.sender}","${l.text.replace(/"/g, '""')}","${l.rssi}",${l.isAlert},"${l.devId}"\n`;
       });
-
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lifeline_incident_log_${Date.now()}.csv`;
+      a.download = `lifeline_rx_log_${Date.now()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      logRaw('Exported incident event log as CSV.');
     }
-
-    // Initialize
-    window.addEventListener('DOMContentLoaded', () => {
-      logRaw('LifeLine RX Pro Base Commander Console initialized.');
-    });
   </script>
 </body>
 </html>
