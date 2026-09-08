@@ -61,18 +61,21 @@ bool handleIncomingLoRaTelemetry() {
                       telemetry.deviceId, telemetry.temperature, telemetry.latitude, telemetry.longitude);
         notifyBLETelemetry(telemetry.deviceId, telemetry.temperature, telemetry.humidity,
                            telemetry.latitude, telemetry.longitude, telemetry.rssi);
-        pushFullTelemetryToAPI(telemetry);
+        // Immediate Downlink ACK BEFORE cloud HTTP request!
         sendDownlinkACK(telemetry.deviceId, 'N', "LOGGED", "Heartbeat OK");
+        pushFullTelemetryToAPI(telemetry);
     } else {
         // Active Emergency Alert (Fire, Landslide, Earthquake, Manual SOS, etc.)
         Serial.printf("[RX ALERT] Device=%d, Code=%c (%s), RSSI=%d\n",
                       telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
         notifyBLEAlert(telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
+
+        // Immediate Two-Way Downlink ACK over LoRa BEFORE blocking LCD UI rendering, buzzer alarms, and cloud HTTP push!
+        sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
+
         currentScreen = SCREEN_ALERT;
         drawAlertScreen(telemetry.deviceId, telemetry.alertIndex, telemetry.rssi); // LCD update & loud siren
         pushFullTelemetryToAPI(telemetry);
-        // Automatic Two-Way Downlink ACK over LoRa
-        sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
     }
 
     return true;

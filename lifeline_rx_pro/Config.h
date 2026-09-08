@@ -16,6 +16,7 @@
 #define LORA_CR             8              // LoRa Coding Rate 4/8 - Max error correction
 #define LORA_PREAMBLE       16             // Preamble Length - Good for weak signals
 #define LORA_SYNC_WORD      0x12           // LoRa Sync Word (default, must match TX)
+#define LORA_TX_POWER       18             // LoRa TX Power in dBm (2-20)
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              WIFI & API CONFIGURATION

@@ -193,6 +193,7 @@ char getAlertCode(int index);
 #define DEBOUNCE_DELAY          30      // Keypress debounce (ms)
 #define SCROLL_REPEAT_DELAY     80      // Auto-scroll repeat delay (ms)
 #define MAX_RETRY_ATTEMPTS      3       // Maximum transmission retry attempts
+#define DOWNLINK_ACK_TIMEOUT_MS 5000    // LoRa 2-way ACK window (5000 ms, required for SF12 ~2s airtime)
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              SERIAL DEBUG CONFIGURATION

@@ -17,10 +17,15 @@ bool initLoRa() {
     
     LoRa.setSpreadingFactor(LORA_SF);
     LoRa.setSignalBandwidth(LORA_BW);
+    LoRa.setCodingRate4(LORA_CR);
+    LoRa.setPreambleLength(LORA_PREAMBLE);
+    LoRa.setSyncWord(LORA_SYNC_WORD);
+    LoRa.setTxPower(LORA_TX_POWER);
     LoRa.enableCrc();
+    LoRa.receive(); // Enter continuous receive mode immediately on boot
     loraInitialized = true;
-    Serial.println(F("[OK] LoRa initialized @ 433MHz, SF12, BW125kHz, CRC enabled"));
-    Serial.println(F("[OK] LoRa in continuous receive mode"));
+    Serial.printf("[OK] LoRa initialized @ %.1f MHz, SF%d, BW125kHz, CR4/%d, CRC enabled (Continuous RX)\n",
+                  LORA_FREQUENCY / 1E6, LORA_SF, LORA_CR);
     return true;
 }
 
@@ -140,6 +145,7 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
 
     if (tokenCount == 0) {
         Serial.println(F("[RX EX] Invalid packet: No commas found"));
+        LoRa.receive();
         return false;
     }
 
@@ -210,8 +216,8 @@ bool sendDownlinkACK(int targetDeviceId, char emergencyCode, const char* status,
         return false;
     }
 
-    // 120ms turnaround delay to let field unit transition to receive mode
-    delay(120);
+    // 50ms turnaround delay to let field unit transition to receive mode
+    delay(50);
 
     char packet[96];
     snprintf(packet, sizeof(packet), "ACK%03d,%c,%s,BASE%02d,%s",
