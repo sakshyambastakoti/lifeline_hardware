@@ -32,8 +32,6 @@
       --red-light: #fef2f2;
       --amber: #f59e0b;
       --amber-light: #fffbeb;
-      --purple: #8b5cf6;
-      --purple-light: #f5f3ff;
 
       --bubble-in: #e0f2fe;
       --bubble-out: #ffffff;
@@ -122,7 +120,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
-    /* 2. APP WORKSPACE (TOP BAR + 3 COLUMNS) */
+    /* 2. APP WORKSPACE */
     .app-workspace {
       flex: 1;
       display: flex;
@@ -156,23 +154,23 @@
 
     .search-wrap {
       position: relative;
-      width: 320px;
+      width: 260px;
     }
     .search-input {
       width: 100%;
+      height: 34px;
       background: #f8fafc;
       border: 1px solid var(--border);
-      padding: 7px 12px 7px 34px;
       border-radius: 8px;
+      padding: 0 12px 0 32px;
       font-size: 12px;
       color: var(--text-main);
       outline: none;
-      transition: all 0.2s ease;
+      transition: border 0.15s ease;
     }
     .search-input:focus {
-      background: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      border-color: var(--border-focus);
+      background: #ffffff;
     }
     .search-icon {
       position: absolute;
@@ -191,11 +189,11 @@
     .btn-top {
       background: #ffffff;
       border: 1px solid var(--border);
+      color: var(--text-main);
       padding: 6px 12px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -204,89 +202,88 @@
     }
     .btn-top:hover {
       background: #f8fafc;
-      color: var(--text-main);
       border-color: #cbd5e1;
-    }
-    .btn-top.active-green {
-      background: var(--green-light);
-      border-color: #a7f3d0;
-      color: #065f46;
     }
     .btn-top.active-primary {
       background: var(--primary);
       color: #fff;
       border-color: var(--primary);
     }
+    .btn-top.active-primary:hover {
+      background: var(--primary-hover);
+    }
+    .btn-top.active-green {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
 
     .operator-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding-left: 6px;
+      padding-left: 8px;
       border-left: 1px solid var(--border);
     }
     .operator-avatar {
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: #f59e0b;
+      background: #0f172a;
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
     }
 
-    /* 3-COLUMN MAIN BODY */
+    /* 3. 3-COLUMN WORKSPACE */
     .columns-container {
       flex: 1;
       display: grid;
-      grid-template-columns: 310px 1fr 310px;
+      grid-template-columns: 320px 1fr 300px;
       overflow: hidden;
-      background: #f1f5f9;
-      gap: 1px;
     }
 
-    /* COLUMN 1: INBOX LIST (LEFT) */
+    /* COLUMN 1: INBOX */
     .col-inbox {
       background: #ffffff;
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
     .inbox-header {
-      padding: 14px 16px 10px 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      flex-shrink: 0;
     }
-
     .inbox-title-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-
     .inbox-filter-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 13px;
       font-weight: 700;
       color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .inbox-count-badge {
-      background: #0f172a;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 1px 7px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      padding: 2px 7px;
       border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
     }
-
     .inbox-actions-row {
       display: flex;
       align-items: center;
@@ -301,19 +298,19 @@
     }
 
     .inbox-item {
-      padding: 12px 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
       display: flex;
       gap: 12px;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background 0.15s ease;
       position: relative;
     }
     .inbox-item:hover {
       background: #f8fafc;
     }
     .inbox-item.active {
-      background: #eff6ff;
+      background: #f1f5f9;
       border-left: 3px solid var(--primary);
     }
 
@@ -321,12 +318,13 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
+      background: #0284c7;
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       font-size: 13px;
-      color: #fff;
       flex-shrink: 0;
       position: relative;
     }
@@ -334,38 +332,39 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      border: 2px solid #fff;
+      border: 2px solid #ffffff;
       position: absolute;
       bottom: 0;
       right: 0;
     }
-    .dot-green { background: var(--green); }
     .dot-red { background: var(--red); }
+    .dot-green { background: var(--green); }
     .dot-amber { background: var(--amber); }
 
     .item-content {
       flex: 1;
-      overflow: hidden;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
-
     .item-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .item-name {
-      font-weight: 600;
-      color: #0f172a;
+      font-weight: 700;
       font-size: 13px;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .item-time {
       font-size: 11px;
       color: var(--text-faint);
     }
-
     .item-snippet {
       font-size: 12px;
       color: var(--text-muted);
@@ -373,45 +372,47 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
     .item-bottom {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
       margin-top: 4px;
     }
+
     .alert-tag-pill {
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       padding: 2px 7px;
-      border-radius: 4px;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      letter-spacing: 0.2px;
     }
-    .tag-critical { background: var(--red-light); color: var(--red); }
-    .tag-high { background: var(--amber-light); color: var(--amber); }
-    .tag-nominal { background: var(--green-light); color: var(--green); }
+    .tag-critical { background: var(--red-light); color: var(--red); border: 1px solid #fecaca; }
+    .tag-high { background: var(--amber-light); color: var(--amber); border: 1px solid #fde68a; }
+    .tag-nominal { background: var(--green-light); color: var(--green); border: 1px solid #a7f3d0; }
 
     /* COLUMN 2: CENTER CHAT */
     .col-chat {
-      background: #f8fafc;
+      background: var(--main-bg);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      position: relative;
     }
 
     .chat-top-bar {
-      height: 58px;
+      height: 56px;
       background: #ffffff;
       border-bottom: 1px solid var(--border);
-      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 20px;
       flex-shrink: 0;
     }
-
     .chat-peer-info {
       display: flex;
       align-items: center;
@@ -436,55 +437,53 @@
       gap: 8px;
     }
     .btn-action-pill {
-      background: #f1f5f9;
+      background: #ffffff;
       border: 1px solid var(--border);
-      border-radius: 6px;
+      color: #334155;
       padding: 5px 10px;
-      font-size: 12px;
+      border-radius: 8px;
+      font-size: 11px;
       font-weight: 600;
-      color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
     .btn-action-pill:hover {
-      background: #e2e8f0;
-      color: var(--text-main);
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: var(--primary);
     }
     .btn-resolve-check {
-      background: #0f172a;
-      color: #fff;
+      background: var(--green-light);
+      border: 1px solid #a7f3d0;
+      color: var(--green);
       width: 32px;
       height: 32px;
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      border: none;
-      transition: background 0.15s ease;
-    }
-    .btn-resolve-check:hover {
-      background: var(--green);
     }
 
-    /* SPEECH BUBBLE STREAM */
     .chat-stream-area {
       flex: 1;
-      padding: 20px;
       overflow-y: auto;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
     }
 
     .time-divider {
       text-align: center;
       font-size: 11px;
       color: var(--text-faint);
-      margin: 8px 0;
+      font-weight: 600;
       position: relative;
+      margin: 8px 0;
     }
 
     .msg-group {
@@ -793,6 +792,78 @@
       color: #0f172a;
     }
 
+    /* Empty & Standby States */
+    .empty-state-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 48px 24px;
+      gap: 12px;
+      color: var(--text-muted);
+      height: 100%;
+    }
+    .empty-state-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .empty-state-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .empty-state-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 320px;
+      line-height: 1.5;
+    }
+    .empty-action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* Toast Notifications */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast-msg.warn {
+      background: #b45309;
+    }
+    .toast-msg.success {
+      background: #059669;
+    }
+
     /* Modal */
     .modal-overlay {
       position: fixed;
@@ -941,7 +1012,7 @@
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
           </span>
-          <input type="text" class="search-input" placeholder="Search field units, alerts, reports..." />
+          <input type="text" id="searchInput" class="search-input" placeholder="Filter active field units..." oninput="filterUnits(this.value)" />
         </div>
       </div>
 
@@ -966,8 +1037,13 @@
           <span>USB</span>
         </button>
 
-        <button id="btnSim" class="btn-top" onclick="toggleSim()">
-          <span>Simulator: OFF</span>
+        <button class="btn-top" onclick="clearFeed()" title="Clear Received Incidents">
+          <span class="svg-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </span>
+          <span>Clear</span>
         </button>
 
         <div class="operator-badge">
@@ -989,7 +1065,7 @@
           <div class="inbox-title-row">
             <div class="inbox-filter-pill">
               <span>Active Field Units</span>
-              <span id="badgeActiveCount" class="inbox-count-badge">3</span>
+              <span id="badgeActiveCount" class="inbox-count-badge">0</span>
             </div>
             <button class="btn-top" style="padding:3px 7px;" onclick="exportLog()" title="Download CSV">
               <span class="svg-icon">
@@ -1001,8 +1077,8 @@
             </button>
           </div>
           <div class="inbox-actions-row">
-            <span>Sorted by newest distress transmission</span>
-            <span>433 MHz LoRa</span>
+            <span>433.0 MHz LoRa Continuous Channel</span>
+            <span id="baseLoraStatus">SX1278 Ready</span>
           </div>
         </div>
 
@@ -1012,25 +1088,239 @@
       </section>
 
       <!-- COLUMN 2: ACTIVE CHAT & TWO-WAY TIMELINE -->
-      <section class="col-chat">
-        
-        <!-- Chat Header -->
+      <section class="col-chat" id="chatColumnContainer">
+        <!-- Rendered dynamically by renderCenterColumn() -->
+      </section>
+
+      <!-- COLUMN 3: NODE PROPERTIES & HARDWARE TELEMETRY -->
+      <section class="col-details" id="detailsColumnContainer">
+        <!-- Rendered dynamically by renderDetailsColumn() -->
+      </section>
+
+    </div>
+
+  </div>
+
+  <!-- MASS EVACUATION CONFIRMATION MODAL -->
+  <div id="evacModal" class="modal-overlay">
+    <div class="modal-box">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:var(--red-light); color:var(--red); display:flex; align-items:center; justify-content:center;">
+          <span class="svg-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
+        </div>
+        <div>
+          <h3 style="font-size:15px; font-weight:700; color:#0f172a;">Broadcast Mass Evacuation</h3>
+          <p style="font-size:12px; color:var(--text-muted);">Transmit urgent evacuation frame (EVAC:ALL) over 433 MHz LoRa.</p>
+        </div>
+      </div>
+      <input id="evacReason" type="text" class="search-input" style="padding:10px; width:100%;" value="Emergency evacuation ordered: proceed to high ridge immediately" maxlength="48" />
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-top" onclick="closeEvacModal()">Cancel</button>
+        <button class="btn-top" style="background:var(--red); color:#fff; border-color:var(--red);" onclick="executeEvac()">Transmit Evac Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast-msg"></div>
+
+  <script>
+    // Nordic UART Service UUIDs
+    const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+    const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+
+    let bleDevice = null;
+    let rxCharacteristic = null;
+    let txCharacteristic = null;
+    let isConnected = false;
+
+    let serialPort = null;
+    let serialReader = null;
+    let isSerial = false;
+
+    let isSirenOn = true;
+    let currentTargetId = null;
+    let baseHardwareInfo = { ver: 'v3.1.0 PRO', lora: 'Ready', packets: 0 };
+    let searchQuery = '';
+
+    // Real in-memory state (starts completely empty, real data only)
+    const unitsMap = new Map();
+    const messagesMap = new Map();
+
+    // Web Audio Synthesizer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, dur, type = 'sine') {
+      if (!isSirenOn) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    }
+    function alertSiren() {
+      if (!isSirenOn) return;
+      playBeep(900, 0.25, 'sawtooth');
+      setTimeout(() => playBeep(450, 0.35, 'sawtooth'), 260);
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    }
+    function toggleSiren() {
+      isSirenOn = !isSirenOn;
+      const el = document.getElementById('iconSiren');
+      el.style.color = isSirenOn ? '#fff' : '#ef4444';
+      showToast(isSirenOn ? 'Acoustic Siren Unmuted' : 'Acoustic Siren Muted');
+    }
+
+    // Toast message
+    let toastTimer = null;
+    function showToast(text, type = '') {
+      const t = document.getElementById('toast');
+      t.innerText = text;
+      t.className = 'toast-msg show ' + type;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.className = 'toast-msg';
+      }, 3200);
+    }
+
+    // Render Inbox List
+    function renderInbox() {
+      const container = document.getElementById('inboxList');
+      container.innerHTML = '';
+
+      let filtered = Array.from(unitsMap.values());
+      if (searchQuery) {
+        filtered = filtered.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || (u.lastMsg && u.lastMsg.toLowerCase().includes(searchQuery.toLowerCase())));
+      }
+
+      document.getElementById('badgeActiveCount').innerText = unitsMap.size;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-box" style="padding:40px 16px;">
+            <div class="empty-state-icon" style="width:44px; height:44px; border-radius:12px;">
+              <span class="svg-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+                  <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="empty-state-title" style="font-size:13px;">No Units Active</div>
+            <div class="empty-state-desc" style="font-size:11px;">Listening on 433 MHz LoRa. Transmissions from field units will appear here automatically.</div>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'inbox-item ' + (u.id === currentTargetId ? 'active' : '');
+        item.onclick = () => selectUnit(u.id);
+
+        item.innerHTML = `
+          <div class="unit-avatar" style="background:${u.color || '#2563eb'};">
+            #${String(u.id).padStart(2, '0')}
+            <div class="avatar-status-dot ${u.dot || 'dot-green'}"></div>
+          </div>
+          <div class="item-content">
+            <div class="item-top">
+              <span class="item-name">${u.name}</span>
+              <span class="item-time">${u.time || 'Just now'}</span>
+            </div>
+            <div class="item-snippet">${u.lastMsg || 'Active transmission'}</div>
+            <div class="item-bottom">
+              <span class="alert-tag-pill ${u.tagCls || 'tag-nominal'}">
+                <span class="svg-icon">
+                  ${u.tagCls === 'tag-critical' ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>' : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'}
+                </span>
+                <span>${u.alertTag || 'ACTIVE'}</span>
+              </span>
+              <span style="font-size:10px; color:var(--text-faint);">${u.rssi ? u.rssi + ' dBm' : ''}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function filterUnits(query) {
+      searchQuery = query;
+      renderInbox();
+    }
+
+    // Select active conversation unit
+    function selectUnit(id) {
+      currentTargetId = id;
+      renderInbox();
+      renderCenterColumn();
+      renderDetailsColumn();
+    }
+
+    // Render Column 2 (Center Chat)
+    function renderCenterColumn() {
+      const container = document.getElementById('chatColumnContainer');
+      if (!currentTargetId || !unitsMap.has(currentTargetId)) {
+        container.innerHTML = `
+          <div class="empty-state-box">
+            <div class="empty-state-icon">
+              <span class="svg-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.93 19.07A10 10 0 0 1 2 12a10 10 0 0 1 2.93-7.07"/>
+                  <path d="M19.07 4.93A10 10 0 0 1 22 12a10 10 0 0 1-2.93 7.07"/>
+                  <path d="M8.46 15.54A5 5 0 0 1 7 12a5 5 0 0 1 1.46-3.54"/>
+                  <path d="M15.54 8.46A5 5 0 0 1 17 12a5 5 0 0 1-1.46 3.54"/>
+                  <circle cx="12" cy="12" r="2"/>
+                </svg>
+              </span>
+            </div>
+            <div class="empty-state-title">Incident Command Standby</div>
+            <div class="empty-state-desc">Connect your LifeLine RX Pro Base Station via Bluetooth or USB. Incoming distress signals and two-way field messages will stream here.</div>
+            <div class="empty-action-row">
+              <button class="btn-top active-primary" onclick="toggleBle()">
+                <span class="svg-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
+                <span>Connect BLE</span>
+              </button>
+              <button class="btn-top" onclick="toggleSerial()">
+                <span class="svg-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="7" rx="1"/><path d="M10 9v4a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9"/><path d="M12 15v7"/></svg></span>
+                <span>USB Serial</span>
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const u = unitsMap.get(currentTargetId);
+      const msgs = messagesMap.get(currentTargetId) || [];
+
+      container.innerHTML = `
         <div class="chat-top-bar">
           <div class="chat-peer-info">
-            <div class="bubble-avatar" style="background:#2563eb;" id="activePeerAvatar">TX</div>
+            <div class="bubble-avatar" style="background:${u.color || '#2563eb'};">#${String(u.id).padStart(2, '0')}</div>
             <div>
               <div class="chat-peer-title">
-                <span id="activePeerTitle">Unit #003 — Field Distress Beacon</span>
-                <span class="alert-tag-pill tag-critical" id="activePeerPill">
+                <span>${u.name}</span>
+                <span class="alert-tag-pill ${u.tagCls || 'tag-nominal'}">
                   <span class="svg-icon">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
                   </span>
-                  <span>CRITICAL SOS</span>
+                  <span>${u.alertTag || 'ACTIVE'}</span>
                 </span>
               </div>
-              <div class="chat-peer-sub" id="activePeerSub">via 433 MHz LoRa &bull; Langtang Valley Ridge</div>
+              <div class="chat-peer-sub">via 433 MHz LoRa &bull; Signal: ${u.rssi ? u.rssi + ' dBm' : 'Active'}</div>
             </div>
           </div>
 
@@ -1050,7 +1340,7 @@
                   <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/>
                 </svg>
               </span>
-              <span>Medical Advice</span>
+              <span>Medical Guidance</span>
             </div>
 
             <button class="btn-resolve-check" onclick="sendQuickDispatch('LOGGED', 'Coordinates logged by Base Hub')" title="Acknowledge Alert">
@@ -1063,13 +1353,10 @@
           </div>
         </div>
 
-        <!-- Chat Speech Bubbles Stream -->
         <div id="chatStream" class="chat-stream-area">
-          <div class="time-divider">TODAY &bull; 433.0 MHz CONTINUOUS RX CHANNEL</div>
-          <!-- Injected chat bubbles -->
+          <div class="time-divider">TODAY &bull; 433.0 MHz LoRa TDD CHANNEL</div>
         </div>
 
-        <!-- Modern Message Composer -->
         <div class="chat-composer-card">
           <div class="composer-tabs">
             <span class="composer-tab active">Downlink Reply</span>
@@ -1083,7 +1370,6 @@
             </span>
           </div>
 
-          <!-- Canned Responses Chips -->
           <div class="composer-canned-chips">
             <span class="canned-chip" onclick="sendQuickDispatch('DISPATCHED', 'APF Rescue squad airborne ETA 20m')">
               <span class="svg-icon">
@@ -1120,29 +1406,12 @@
               </span>
               <span>/ground: Ground Team SAR</span>
             </span>
-
-            <span class="canned-chip evac" onclick="openEvacModal()">
-              <span class="svg-icon">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-              </span>
-              <span>/evac: Mass Evacuation Broadcast</span>
-            </span>
           </div>
 
-          <textarea id="composerInput" class="composer-textarea" placeholder="Start with a '/' to add a Canned Response or type custom downlink..." maxlength="48" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomReply();}"></textarea>
+          <textarea id="composerInput" class="composer-textarea" placeholder="Type custom downlink or command to Unit #${u.id} (48 chars max)..." maxlength="48" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomReply();}"></textarea>
 
           <div class="composer-bottom-bar">
             <div class="composer-actions-left">
-              <span class="composer-btn-icon" title="Canned Responses" onclick="document.getElementById('composerInput').value = '/';">
-                <span class="svg-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                  </svg>
-                </span>
-              </span>
-
               <span class="composer-btn-icon" title="Acoustic Alert" onclick="alertSiren()">
                 <span class="svg-icon">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1150,7 +1419,6 @@
                   </svg>
                 </span>
               </span>
-
               <span style="font-size:11px; color:var(--text-faint);" id="charCount">0/48</span>
             </div>
 
@@ -1164,13 +1432,102 @@
             </button>
           </div>
         </div>
+      `;
 
-      </section>
+      // Render Messages
+      const stream = document.getElementById('chatStream');
+      msgs.forEach(m => {
+        const row = document.createElement('div');
+        row.className = 'msg-group ' + (m.in ? 'in' : 'out');
 
-      <!-- COLUMN 3: NODE PROPERTIES & HARDWARE TELEMETRY -->
-      <section class="col-details">
-        
-        <!-- Profile Card -->
+        const avatarColor = m.in ? (u.color || '#0284c7') : '#0f172a';
+        const avatarInitial = m.in ? `#${String(u.id).padStart(2, '0')}` : 'OP';
+
+        row.innerHTML = `
+          <div class="bubble-avatar" style="background:${avatarColor};">${avatarInitial}</div>
+          <div class="bubble-body">
+            <div class="bubble-sender">${m.sender}</div>
+            <div class="bubble ${m.alert ? 'alert-highlight' : ''}">
+              ${m.alert ? '<span class="svg-icon" style="color:var(--red);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>' : ''}
+              <span>${m.text}</span>
+            </div>
+            <div class="bubble-footer">
+              <span>${m.time}</span>
+              ${!m.in ? `
+                <span class="check-double">
+                  <span class="svg-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </span>
+                  <span>Delivered</span>
+                </span>` : ''}
+            </div>
+          </div>
+        `;
+        stream.appendChild(row);
+      });
+      stream.scrollTop = stream.scrollHeight;
+
+      const compInput = document.getElementById('composerInput');
+      if (compInput) {
+        compInput.addEventListener('input', e => {
+          document.getElementById('charCount').innerText = `${e.target.value.length}/48`;
+        });
+      }
+    }
+
+    // Render Column 3 (Details Panel)
+    function renderDetailsColumn() {
+      const container = document.getElementById('detailsColumnContainer');
+      if (!currentTargetId || !unitsMap.has(currentTargetId)) {
+        container.innerHTML = `
+          <div class="details-card">
+            <div class="details-card-header">
+              <span>Base Station Status</span>
+              <span style="color:var(--primary); font-size:11px; font-weight:600;">ACTIVE</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Hardware Device</span>
+              <span class="detail-value">LifeLine-RX-Base (ESP32)</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Connection State</span>
+              <span class="detail-value" style="color:${isConnected || isSerial ? 'var(--green)' : 'var(--text-muted)'};">
+                ${isConnected ? 'Connected (BLE NUS)' : isSerial ? 'Connected (USB Serial)' : 'Standby (Not Connected)'}
+              </span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">LoRa Transceiver</span>
+              <span class="detail-value">SX1278 433.0 MHz &bull; Continuous RX</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Firmware</span>
+              <span class="detail-value">${baseHardwareInfo.ver}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Active Field Nodes</span>
+              <span class="detail-value">${unitsMap.size} Detected</span>
+            </div>
+          </div>
+
+          <div class="details-card">
+            <div class="details-card-header">
+              <span>Quick Actions</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <button class="btn-top" onclick="exportLog()" style="justify-content:center; width:100%;">Export Incident Log (CSV)</button>
+              <button class="btn-top" onclick="openEvacModal()" style="justify-content:center; width:100%; color:var(--red); border-color:#fecaca;">Broadcast Mass Evac</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const u = unitsMap.get(currentTargetId);
+      const estDist = u.rssi ? (Math.pow(10, (-45 - u.rssi) / (10 * 2.5))).toFixed(2) + ' km' : '—';
+
+      container.innerHTML = `
         <div class="details-card">
           <div class="details-card-header">
             <span>Node Profile</span>
@@ -1178,32 +1535,32 @@
           </div>
 
           <div class="unit-profile-center">
-            <div class="profile-avatar-lg" id="detailsAvatar">#03</div>
-            <div class="profile-name" id="detailsName">Unit #003 (Field TX)</div>
-            <div class="profile-location">Sector 4 &bull; Northern Ridge Pass</div>
+            <div class="profile-avatar-lg" style="background:${u.color || '#2563eb'};">#${String(u.id).padStart(2, '0')}</div>
+            <div class="profile-name">${u.name}</div>
+            <div class="profile-location">${u.lat && u.lon ? `GPS: ${u.lat.toFixed(4)}, ${u.lon.toFixed(4)}` : 'Sector 433 MHz RF Link'}</div>
             <div class="profile-chips-row">
-              <span class="chip-badge" style="color:var(--green); background:var(--green-light);" id="detailsLinkBadge">LoRa 433MHz Active</span>
-              <span class="chip-badge" id="detailsAckBadge">2-Way ACK OK</span>
+              <span class="chip-badge" style="color:var(--green); background:var(--green-light);">LoRa 433MHz Active</span>
+              <span class="chip-badge">2-Way Handshake</span>
             </div>
           </div>
 
           <div style="border-top:1px solid #f1f5f9; padding-top:10px; display:flex; flex-direction:column; gap:8px;">
             <div class="detail-field">
               <span class="detail-label">Signal Link RSSI</span>
-              <span class="detail-value" id="detailsRssi">-65 dBm (Good Line-of-Sight)</span>
+              <span class="detail-value">${u.rssi ? u.rssi + ' dBm' : 'Pending transmission'}</span>
             </div>
             <div class="detail-field">
               <span class="detail-label">Estimated Distance</span>
-              <span class="detail-value" id="detailsDist">~1.8 km</span>
+              <span class="detail-value">${estDist}</span>
             </div>
+            ${u.temp !== undefined ? `
             <div class="detail-field">
-              <span class="detail-label">Battery Level</span>
-              <span class="detail-value" id="detailsBat">94% Nominal</span>
-            </div>
+              <span class="detail-label">Environmental Sensor</span>
+              <span class="detail-value">${u.temp}&deg;C &bull; ${u.hum}% RH</span>
+            </div>` : ''}
           </div>
         </div>
 
-        <!-- Hardware & RF Properties Card -->
         <div class="details-card">
           <div class="details-card-header">
             <span>RF &amp; Hardware Telemetry</span>
@@ -1215,227 +1572,26 @@
           </div>
 
           <div class="detail-field">
-            <span class="detail-label">Firmware Version</span>
-            <span class="detail-value">v3.1.0 PRO (SX1278 + NimBLE)</span>
-          </div>
-
-          <div class="detail-field">
             <span class="detail-label">Last Transmission</span>
-            <span class="detail-value" id="detailsLastSeen">Just now</span>
+            <span class="detail-value">${u.time || 'Just now'}</span>
           </div>
 
           <div class="detail-field">
             <span class="detail-label">Triage Priority Tag</span>
-            <span class="detail-value" style="color:var(--red);" id="detailsPrioTag">Critical Emergency (Air Evac)</span>
+            <span class="detail-value" style="color:var(--red);">${u.alertTag || 'Nominal'}</span>
           </div>
         </div>
-
-      </section>
-
-    </div>
-
-  </div>
-
-  <!-- MASS EVACUATION CONFIRMATION MODAL -->
-  <div id="evacModal" class="modal-overlay">
-    <div class="modal-box">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div style="width:40px; height:40px; border-radius:10px; background:var(--red-light); color:var(--red); display:flex; align-items:center; justify-content:center;">
-          <span class="svg-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-          </span>
-        </div>
-        <div>
-          <h3 style="font-size:15px; font-weight:700; color:#0f172a;">Broadcast Mass Evacuation</h3>
-          <p style="font-size:12px; color:var(--text-muted);">Transmit urgent evacuation frame (EVAC:ALL) over 433 MHz LoRa.</p>
-        </div>
-      </div>
-      <input id="evacReason" type="text" class="search-input" style="padding:10px; width:100%;" value="Dam breach risk: head immediately to high ridge" maxlength="48" />
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn-top" onclick="closeEvacModal()">Cancel</button>
-        <button class="btn-top" style="background:var(--red); color:#fff; border-color:var(--red);" onclick="executeEvac()">Transmit Evac Order</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // NUS Nordic UART Service UUIDs
-    const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-    const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-    const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-
-    let bleDevice = null;
-    let rxCharacteristic = null;
-    let txCharacteristic = null;
-    let isConnected = false;
-
-    let serialPort = null;
-    let serialReader = null;
-    let isSerial = false;
-
-    let isSirenOn = true;
-    let isSimOn = false;
-    let simTimer = null;
-    let currentTargetId = 3;
-
-    // Active field units state
-    const unitsMap = new Map([
-      [3, { id: 3, name: 'Unit #003 (Field TX)', lastMsg: '3 trapped near school, need stretcher', time: '2m ago', alertTag: 'CRITICAL SOS', tagCls: 'tag-critical', rssi: -65, bat: 94, dot: 'dot-red', color: '#ef4444' }],
-      [1, { id: 1, name: 'Unit #001 (Trail Unit)', lastMsg: 'Landslide blocked road near bridge', time: '8m ago', alertTag: 'LANDSLIDE', tagCls: 'tag-high', rssi: -74, bat: 88, dot: 'dot-amber', color: '#f59e0b' }],
-      [12, { id: 12, name: 'Unit #012 (Ridge Base)', lastMsg: 'Status nominal, all safe', time: '2h ago', alertTag: 'STATUS OK', tagCls: 'tag-nominal', rssi: -82, bat: 98, dot: 'dot-green', color: '#10b981' }]
-    ]);
-
-    // Conversation messages per unit
-    const messagesMap = new Map([
-      [3, [
-        { sender: 'Unit #003', text: 'ALERT [A]: CRITICAL SOS (आपतकालीन उद्धार)', time: '10:11 AM', in: true, alert: true },
-        { sender: 'Unit #003', text: '3 trapped near school, need medical stretcher', time: '10:11 AM', in: true },
-        { sender: 'Base Commander (You)', text: 'APF squad airborne ETA 20 min. Keep them warm and hold position.', time: '10:12 AM', in: false }
-      ]],
-      [1, [
-        { sender: 'Unit #001', text: 'Landslide blocked main trail near bridge pass', time: '09:45 AM', in: true, alert: true },
-        { sender: 'Base Commander (You)', text: 'Ground team dispatched on foot. Do not cross the slide.', time: '09:48 AM', in: false }
-      ]],
-      [12, [
-        { sender: 'Unit #012', text: 'Nominal check-in: all 5 team members safe at high camp.', time: '08:00 AM', in: true }
-      ]]
-    ]);
-
-    // Web Audio Synthesizer
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep(freq, dur, type = 'sine') {
-      if (!isSirenOn) return;
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + dur);
-    }
-    function alertSiren() {
-      if (!isSirenOn) return;
-      playBeep(900, 0.25, 'sawtooth');
-      setTimeout(() => playBeep(450, 0.35, 'sawtooth'), 260);
-      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-    }
-    function toggleSiren() {
-      isSirenOn = !isSirenOn;
-      const el = document.getElementById('iconSiren');
-      el.style.color = isSirenOn ? '#fff' : '#ef4444';
-    }
-
-    // Render Inbox List
-    function renderInbox() {
-      const container = document.getElementById('inboxList');
-      container.innerHTML = '';
-      unitsMap.forEach((u, id) => {
-        const item = document.createElement('div');
-        item.className = `inbox-item ${id === currentTargetId ? 'active' : ''}`;
-        item.onclick = () => selectUnit(id);
-
-        item.innerHTML = `
-          <div class="unit-avatar" style="background:${u.color};">
-            #${String(u.id).padStart(2, '0')}
-            <div class="avatar-status-dot ${u.dot}"></div>
-          </div>
-          <div class="item-content">
-            <div class="item-top">
-              <span class="item-name">${u.name}</span>
-              <span class="item-time">${u.time}</span>
-            </div>
-            <div class="item-snippet">${u.lastMsg}</div>
-            <div class="item-bottom">
-              <span class="alert-tag-pill ${u.tagCls}">
-                <span class="svg-icon">
-                  ${u.tagCls === 'tag-critical' ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>' : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'}
-                </span>
-                <span>${u.alertTag}</span>
-              </span>
-              <span style="font-size:10px; color:var(--text-faint);">${u.rssi} dBm</span>
-            </div>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-      document.getElementById('badgeActiveCount').innerText = unitsMap.size;
-    }
-
-    // Select active conversation unit
-    function selectUnit(id) {
-      currentTargetId = id;
-      const u = unitsMap.get(id);
-      renderInbox();
-      renderChatStream();
-
-      document.getElementById('activePeerTitle').innerText = `${u.name}`;
-      document.getElementById('activePeerAvatar').innerText = `#${String(u.id).padStart(2, '0')}`;
-      document.getElementById('activePeerAvatar').style.background = u.color;
-      document.getElementById('activePeerPill').className = `alert-tag-pill ${u.tagCls}`;
-      document.getElementById('activePeerPill').innerHTML = `
-        <span class="svg-icon">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-        </span>
-        <span>${u.alertTag}</span>
       `;
-
-      // Update right panel details
-      document.getElementById('detailsAvatar').innerText = `#${String(u.id).padStart(2, '0')}`;
-      document.getElementById('detailsName').innerText = u.name;
-      document.getElementById('detailsRssi').innerText = `${u.rssi} dBm`;
-      document.getElementById('detailsBat').innerText = `${u.bat}%`;
-      document.getElementById('detailsDist').innerText = u.rssi > -70 ? '~0.6 km' : u.rssi > -80 ? '~1.8 km' : '~4.2 km';
-      document.getElementById('detailsPrioTag').innerText = u.alertTag;
     }
 
-    // Render Chat Messages
-    function renderChatStream() {
-      const stream = document.getElementById('chatStream');
-      stream.innerHTML = '<div class="time-divider">TODAY &bull; 433.0 MHz LoRa TDD CHANNEL</div>';
-
-      const msgs = messagesMap.get(currentTargetId) || [];
-      msgs.forEach(m => {
-        const row = document.createElement('div');
-        row.className = `msg-group ${m.in ? 'in' : 'out'}`;
-
-        const avatarColor = m.in ? '#0284c7' : '#0f172a';
-        const avatarInitial = m.in ? `#${String(currentTargetId).padStart(2, '0')}` : 'OP';
-
-        row.innerHTML = `
-          <div class="bubble-avatar" style="background:${avatarColor};">${avatarInitial}</div>
-          <div class="bubble-body">
-            <div class="bubble-sender">${m.sender}</div>
-            <div class="bubble ${m.alert ? 'alert-highlight' : ''}">${m.text}</div>
-            <div class="bubble-footer">
-              <span>${m.time}</span>
-              ${!m.in ? `<span class="check-double">
-                <span class="svg-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </span>
-                <span>ACK</span>
-              </span>` : ''}
-            </div>
-          </div>
-        `;
-        stream.appendChild(row);
-      });
-      stream.scrollTop = stream.scrollHeight;
-    }
-
-    // Quick Command Dispatch (Canned responses)
+    // Quick Command Dispatch
     async function sendQuickDispatch(action, msg) {
+      if (!currentTargetId) {
+        showToast('Please select a field unit first', 'warn');
+        return;
+      }
       const cmd = `REPLY:${currentTargetId},${action},${msg}`;
-      await transmit(cmd);
+      const sent = await transmit(cmd);
 
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const msgs = messagesMap.get(currentTargetId) || [];
@@ -1443,17 +1599,26 @@
       messagesMap.set(currentTargetId, msgs);
 
       playBeep(700, 0.15);
-      renderChatStream();
+      renderCenterColumn();
+      if (!sent) {
+        showToast('Command queued (Hardware offline - connect BLE/USB)', 'warn');
+      } else {
+        showToast(`Downlink transmitted to Unit #${currentTargetId}`, 'success');
+      }
     }
 
-    // Send from input composer
+    // Custom Downlink from input
     async function sendCustomReply() {
+      if (!currentTargetId) {
+        showToast('Please select a field unit first', 'warn');
+        return;
+      }
       const input = document.getElementById('composerInput');
       const text = input.value.trim();
       if (!text) return;
 
       const cmd = `REPLY:${currentTargetId},COMMAND,${text}`;
-      await transmit(cmd);
+      const sent = await transmit(cmd);
 
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const msgs = messagesMap.get(currentTargetId) || [];
@@ -1463,94 +1628,152 @@
       input.value = '';
       document.getElementById('charCount').innerText = '0/48';
       playBeep(700, 0.15);
-      renderChatStream();
+      renderCenterColumn();
+      if (!sent) {
+        showToast('Message queued (Hardware offline - connect BLE/USB)', 'warn');
+      } else {
+        showToast(`Message sent to Unit #${currentTargetId}`, 'success');
+      }
     }
 
-    // Evacuation Broadcast Modal
+    // Evacuation Broadcast
     function openEvacModal() { document.getElementById('evacModal').classList.add('open'); }
     function closeEvacModal() { document.getElementById('evacModal').classList.remove('open'); }
     async function executeEvac() {
-      const reason = document.getElementById('evacReason').value.trim() || 'EVACUATE IMMEDIATELY';
+      const reason = document.getElementById('evacReason').value.trim();
       closeEvacModal();
-      await transmit(`EVAC:${reason}`);
+      const cmd = `EVAC:${reason}`;
+      const sent = await transmit(cmd);
       alertSiren();
-
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const msgs = messagesMap.get(currentTargetId) || [];
-      msgs.push({ sender: 'BROADCAST DISPATCH', text: `MASS EVACUATION ORDER: ${reason}`, time, in: false });
-      renderChatStream();
+      showToast(sent ? 'Mass Evacuation Broadcast Transmitted' : 'Evac frame queued (Hardware offline)', 'warn');
     }
 
-    // Hardware Transmission Router (BLE / USB / Sim)
-    async function transmit(str) {
-      console.log('[LORA TX]', str);
+    // Clear feed
+    function clearFeed() {
+      unitsMap.clear();
+      messagesMap.clear();
+      currentTargetId = null;
+      renderInbox();
+      renderCenterColumn();
+      renderDetailsColumn();
+      showToast('Incident log cleared');
+    }
+
+    // Real Hardware Transmit
+    async function transmit(cmd) {
+      const payload = cmd + '\n';
       if (isConnected && rxCharacteristic) {
         try {
           const enc = new TextEncoder();
-          await rxCharacteristic.writeValueWithoutResponse(enc.encode(str));
+          await rxCharacteristic.writeValueWithoutResponse(enc.encode(payload));
           return true;
         } catch (e) {
-          console.error('BLE send failed', e);
+          console.error('BLE send error', e);
         }
-      } else if (isSerial && serialPort && serialPort.writable) {
+      }
+      if (isSerial && serialPort && serialPort.writable) {
         try {
           const writer = serialPort.writable.getWriter();
           const enc = new TextEncoder();
-          await writer.write(enc.encode(str + '\n'));
+          await writer.write(enc.encode(payload));
           writer.releaseLock();
           return true;
         } catch (e) {
-          console.error('Serial send failed', e);
+          console.error('Serial send error', e);
         }
       }
       return false;
     }
 
-    // Parse Inbound LoRa Frame
+    // Parse Real Inbound Packet
     function parseInbound(line) {
-      console.log('[LORA RX]', line);
-      if (line.startsWith('ALERT:')) {
-        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '3', 10);
-        const code = (line.match(/CODE=([^,]+)/) || [])[1] || 'A';
-        const name = (line.match(/NAME=([^,]+)/) || [])[1] || 'CRITICAL SOS';
-        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-65', 10);
+      console.log('[LORA INBOUND]', line);
+      baseHardwareInfo.packets++;
 
-        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#ef4444' };
+      if (line.startsWith('STATUS:')) {
+        const ver = (line.match(/VER=([^,]+)/) || [])[1];
+        const lora = (line.match(/LORA=([^,]+)/) || [])[1];
+        if (ver) baseHardwareInfo.ver = ver;
+        if (lora) {
+          baseHardwareInfo.lora = lora;
+          const lbl = document.getElementById('baseLoraStatus');
+          if (lbl) lbl.innerText = `SX1278 ${lora}`;
+        }
+        renderDetailsColumn();
+      }
+      else if (line.startsWith('ALERT:')) {
+        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '1', 10);
+        const code = (line.match(/CODE=([^,]+)/) || [])[1] || 'A';
+        const name = (line.match(/NAME=([^,]+)/) || [])[1] || 'EMERGENCY SOS';
+        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-70', 10);
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#ef4444', dot: 'dot-red' };
         u.lastMsg = `[${code}] ${name}`;
-        u.time = 'Just now';
+        u.time = time;
         u.alertTag = name;
         u.tagCls = 'tag-critical';
         u.rssi = rssi;
         unitsMap.set(dev, u);
 
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const msgs = messagesMap.get(dev) || [];
-        msgs.push({ sender: u.name, text: `ALERT [${code}]: ${name}`, time, in: true, alert: true });
+        msgs.push({ sender: u.name, text: `ALERT [${code}]: ${name}`, time, in: true, alert: true, rssi });
         messagesMap.set(dev, msgs);
+
+        if (!currentTargetId) currentTargetId = dev;
 
         alertSiren();
         renderInbox();
-        if (dev === currentTargetId) renderChatStream();
+        renderCenterColumn();
+        renderDetailsColumn();
+        showToast(`Distress alert from Unit #${dev}: ${name}`, 'warn');
       }
       else if (line.startsWith('CHAT:')) {
-        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '3', 10);
+        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '1', 10);
         const text = (line.match(/TEXT=([^,]+)/) || [])[1] || '';
-        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-65', 10);
-
-        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#0284c7' };
-        u.lastMsg = text;
-        u.time = 'Just now';
-        u.rssi = rssi;
-        unitsMap.set(dev, u);
+        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-70', 10);
 
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#0284c7', dot: 'dot-green' };
+        u.lastMsg = text;
+        u.time = time;
+        u.rssi = rssi;
+        if (!u.alertTag) {
+          u.alertTag = 'ACTIVE';
+          u.tagCls = 'tag-nominal';
+        }
+        unitsMap.set(dev, u);
+
         const msgs = messagesMap.get(dev) || [];
-        msgs.push({ sender: u.name, text, time, in: true });
+        msgs.push({ sender: u.name, text, time, in: true, rssi });
         messagesMap.set(dev, msgs);
+
+        if (!currentTargetId) currentTargetId = dev;
 
         playBeep(800, 0.15);
         renderInbox();
-        if (dev === currentTargetId) renderChatStream();
+        renderCenterColumn();
+        renderDetailsColumn();
+        showToast(`Message from Unit #${dev}: "${text.slice(0, 24)}"`);
+      }
+      else if (line.startsWith('TELEMETRY:')) {
+        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '1', 10);
+        const temp = parseFloat((line.match(/TEMP=([^,]+)/) || [])[1]);
+        const hum = parseFloat((line.match(/HUM=([^,]+)/) || [])[1]);
+        const lat = parseFloat((line.match(/LAT=([^,]+)/) || [])[1]);
+        const lon = parseFloat((line.match(/LON=([^,]+)/) || [])[1]);
+        const rssi = parseInt((line.match(/RSSI=([^,]+)/) || [])[1] || '-70', 10);
+
+        const u = unitsMap.get(dev) || { id: dev, name: `Unit #${String(dev).padStart(3, '0')}`, color: '#0284c7', dot: 'dot-green' };
+        if (!isNaN(temp)) u.temp = temp;
+        if (!isNaN(hum)) u.hum = hum;
+        if (!isNaN(lat)) u.lat = lat;
+        if (!isNaN(lon)) u.lon = lon;
+        u.rssi = rssi;
+        unitsMap.set(dev, u);
+
+        renderInbox();
+        if (currentTargetId === dev) renderDetailsColumn();
       }
     }
 
@@ -1580,8 +1803,9 @@
 
           updateConn(true, bleDevice.name);
           transmit('STATUS');
+          showToast(`Connected to ${bleDevice.name}`, 'success');
         } catch (e) {
-          console.error('BLE error', e);
+          console.error('BLE connection failed', e);
           updateConn(false);
         }
       }
@@ -1595,15 +1819,17 @@
         isSerial = false;
         updateConn(false);
       } else {
-        if (!('serial' in navigator)) return alert('Web Serial requires Chrome or Edge.');
+        if (!('serial' in navigator)) return alert('Web Serial requires Chrome or Edge on Desktop.');
         try {
           serialPort = await navigator.serial.requestPort();
           await serialPort.open({ baudRate: 115200 });
           isSerial = true;
           updateConn(true, 'USB 115200');
           readSerial();
+          transmit('STATUS');
+          showToast('Connected to LifeLine RX via USB Serial', 'success');
         } catch (e) {
-          console.error('Serial error', e);
+          console.error('Serial connection failed', e);
           updateConn(false);
         }
       }
@@ -1635,7 +1861,7 @@
     }
 
     function updateConn(online, label = '') {
-      isConnected = online && label.includes('LifeLine');
+      isConnected = online && !label.includes('USB');
       isSerial = online && label.includes('USB');
       const text = document.getElementById('connStatusText');
       const btnBle = document.getElementById('btnBle');
@@ -1647,60 +1873,36 @@
         if (isConnected) btnBle.className = 'btn-top active-green';
         if (isSerial) btnSerial.className = 'btn-top active-green';
       } else {
-        text.innerText = isSimOn ? 'Simulator Mode' : 'Offline';
-        text.style.color = isSimOn ? 'var(--amber)' : 'var(--text-faint)';
+        text.innerText = 'Offline';
+        text.style.color = 'var(--text-faint)';
         btnBle.className = 'btn-top';
         btnSerial.className = 'btn-top';
       }
-    }
-
-    function toggleSim() {
-      isSimOn = !isSimOn;
-      const b = document.getElementById('btnSim');
-      b.innerText = `Simulator: ${isSimOn ? 'ON' : 'OFF'}`;
-      b.classList.toggle('active-green', isSimOn);
-      updateConn(false);
-
-      if (isSimOn) {
-        simTimer = setInterval(() => {
-          if (!isSimOn) return;
-          const mocks = [
-            () => parseInbound('CHAT:DEV=003,TEXT=Water levels rising rapidly near footbridge,RSSI=-67'),
-            () => parseInbound('ALERT:DEV=001,CODE=B,NAME=DELIVERY / LABOR,RSSI=-76'),
-            () => parseInbound('CHAT:DEV=012,TEXT=Avalanche hazard cleared, ridge trail nominal,RSSI=-81')
-          ];
-          mocks[Math.floor(Math.random() * mocks.length)]();
-        }, 12000);
-      } else {
-        clearInterval(simTimer);
-      }
+      renderDetailsColumn();
     }
 
     function exportLog() {
-      let csv = 'Timestamp,UnitID,Sender,Text,Inbound\n';
+      let csv = 'Timestamp,UnitID,Sender,Text,Inbound,RSSI\n';
       messagesMap.forEach((msgs, unitId) => {
         msgs.forEach(m => {
-          csv += `"${m.time}",${unitId},"${m.sender}","${m.text.replace(/"/g, '""')}",${m.in}\n`;
+          csv += `"${m.time}",${unitId},"${m.sender}","${m.text.replace(/"/g, '""')}",${m.in},"${m.rssi || ''}"\n`;
         });
       });
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lifeline_incident_inbox_${Date.now()}.csv`;
+      a.download = `lifeline_incident_log_${Date.now()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      showToast('Incident log exported as CSV');
     }
-
-    // Textarea input char counter
-    document.getElementById('composerInput').addEventListener('input', e => {
-      document.getElementById('charCount').innerText = `${e.target.value.length}/48`;
-    });
 
     // Initialize
     window.addEventListener('DOMContentLoaded', () => {
       renderInbox();
-      selectUnit(3);
+      renderCenterColumn();
+      renderDetailsColumn();
     });
   </script>
 </body>
