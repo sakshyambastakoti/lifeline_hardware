@@ -1,0 +1,30 @@
+{
+    "folders": [
+        {
+            "name": "LifeLine (Workspace Docs & Tools)",
+            "path": "."
+        },
+        {
+            "name": "LifeLine RX Pro (Base Station)",
+            "path": "lifeline_rx_pro"
+        },
+        {
+            "name": "LifeLine TX Pro (Field Transmitter)",
+            "path": "lifeline_tx_pro"
+        },
+        {
+            "name": "LifeLine SPU (Sensor Node)",
+            "path": "lifeline_tx_spu"
+        },
+        {
+            "name": "LifeLine CCU (LoRa Bridge)",
+            "path": "lifeline_tx_ccu"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/.git": true,
+            "**/.pio": true
+        }
+    }
+}

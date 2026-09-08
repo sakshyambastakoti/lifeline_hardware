@@ -1,0 +1,73 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build All Firmware (RX, TX, SPU, CCU)",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target all",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Build LifeLine RX Pro (Base Station)",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target rx",
+            "group": "build",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Build LifeLine TX Pro (Field Transmitter)",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target tx",
+            "group": "build",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Build LifeLine SPU (Sensor Processing Unit)",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target spu",
+            "group": "build",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Build LifeLine CCU (Communication Controller)",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target ccu",
+            "group": "build",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Upload LifeLine RX Pro",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target rx -Upload",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Upload LifeLine TX Pro",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target tx -Upload",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Upload LifeLine SPU",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target spu -Upload",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Upload LifeLine CCU",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target ccu -Upload",
+            "problemMatcher": ["$platformio"]
+        },
+        {
+            "label": "Clean All Build Artifacts",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\build.ps1 -Target clean",
+            "problemMatcher": []
+        }
+    ]
+}
