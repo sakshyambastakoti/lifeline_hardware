@@ -427,203 +427,310 @@ void drawBootScreen() {
 
 
 void drawHomeStatusBar() {
-    // 1. Clean Deep Midnight Header (y = 0..31)
-    tft.fillRect(0, 0, SCREEN_WIDTH, 31, RGB565(12, 16, 24));
-    tft.drawFastHLine(0, 31, SCREEN_WIDTH, RGB565(32, 42, 60)); // Crisp 1px hairline divider
+    // 1. Deep tactical dark background (matching boot screen RGB565(8, 12, 18))
+    tft.fillRect(0, 0, SCREEN_WIDTH, 35, RGB565(8, 12, 18));
     
-    // 2. Brand & Device Tag
+    // Technical hairline outer border (top segment of boot screen HUD border)
+    tft.drawFastHLine(2, 2, SCREEN_WIDTH - 4, RGB565(25, 35, 52));
+    tft.drawFastHLine(4, 4, SCREEN_WIDTH - 8, RGB565(15, 22, 34));
+    tft.drawFastVLine(2, 2, 33, RGB565(25, 35, 52));
+    tft.drawFastVLine(SCREEN_WIDTH - 3, 2, 33, RGB565(25, 35, 52));
+    tft.drawFastVLine(4, 4, 31, RGB565(15, 22, 34));
+    tft.drawFastVLine(SCREEN_WIDTH - 5, 4, 31, RGB565(15, 22, 34));
+    
+    // Tactical Top-Left & Top-Right Registration Marks (matching boot screen)
+    int mDist = 8;
+    tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_CYAN_DARK);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_CYAN_DARK);
+    
+    // 2. Top Header Telemetry Strip (exact match to boot screen topStrip)
+    int topStripY = 6;
+    int topStripH = 16;
+    tft.fillRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(14, 22, 34));
+    tft.drawRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(35, 52, 75));
+    tft.drawFastHLine(6, topStripY + topStripH, SCREEN_WIDTH - 12, COLOR_CYAN_DARK);
+    
+    // Medical Cross Icon (5x5)
+    tft.fillRect(14, topStripY + 3, 2, 10, COLOR_RED);
+    tft.fillRect(10, topStripY + 7, 10, 2, COLOR_RED);
+    tft.drawPixel(14, topStripY + 7, COLOR_WHITE);
+    
+    // Device & Model branding
     tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_WHITE);
-    tft.setCursor(10, 10);
-    tft.print(F("LIFELINE"));
     tft.setTextColor(COLOR_CYAN);
-    tft.print(F(" TX"));
+    tft.setCursor(24, topStripY + 4);
+    tft.print(F("LIFELINE // TX #003"));
     
-    // Unit ID
-    char idStr[10];
-    sprintf(idStr, "#%03d", DEVICE_ID);
+    // Screen Context Tag
     tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(84, 10);
-    tft.print(idStr);
+    tft.setCursor(144, topStripY + 4);
+    tft.print(F("ALERT DISPATCH"));
     
-    // 3. Center Screen Context Title
-    tft.setTextColor(COLOR_TEXT_SECONDARY);
-    tft.setCursor(128, 10);
-    tft.print(F("ALERT SELECT"));
-    
-    // 4. Right Status: Radio Link
+    // LoRa RF Status
     tft.setTextColor(loraInitialized ? COLOR_GREEN_BRIGHT : COLOR_RED);
-    tft.setCursor(222, 10);
+    tft.setCursor(228, topStripY + 4);
     tft.print(loraInitialized ? F("RF:OK") : F("RF:ERR"));
     
-    // 5. Battery Gauge (Clean rectangular cell)
-    int batX = 286;
-    tft.drawRect(batX, 9, 22, 12, RGB565(55, 70, 95));
-    tft.fillRect(batX + 22, 13, 2, 4, RGB565(55, 70, 95));  // Terminal nub
-    tft.fillRect(batX + 1, 10, 20, 10, RGB565(12, 16, 24)); // Interior
+    // Battery Status
+    int batX = 276;
+    tft.drawRect(batX, topStripY + 3, 20, 10, RGB565(45, 65, 90));
+    tft.fillRect(batX + 20, topStripY + 6, 2, 4, RGB565(45, 65, 90)); // Nub
+    tft.fillRect(batX + 1, topStripY + 4, 18, 8, RGB565(10, 15, 22)); // Interior
     
     if (batteryPercent >= 0) {
-        int fillW = constrain((batteryPercent * 18) / 100, 1, 18);
+        int fillW = constrain((batteryPercent * 16) / 100, 1, 16);
         uint16_t bCol = (batteryPercent > 50) ? COLOR_GREEN : ((batteryPercent > 20) ? COLOR_AMBER : COLOR_RED);
-        tft.fillRect(batX + 2, 11, fillW, 8, bCol);
+        tft.fillRect(batX + 2, topStripY + 5, fillW, 6, bCol);
         char bStr[8];
         sprintf(bStr, "%d%%", batteryPercent);
         tft.setTextColor(bCol);
-        tft.setCursor(258, 10);
+        tft.setCursor(batX - 26, topStripY + 4);
         tft.print(bStr);
     } else {
-        tft.fillRect(batX + 2, 11, 18, 8, RGB565(0, 60, 80));
+        tft.fillRect(batX + 2, topStripY + 5, 16, 6, RGB565(0, 60, 80));
         tft.setTextColor(COLOR_CYAN_BRIGHT);
-        tft.setCursor(260, 10);
-        tft.print(F("USB"));
+        tft.setCursor(batX + 2, topStripY + 4);
+        tft.print(F("PWR"));
     }
+    
+    // 3. Sub-Header Navigation Breadcrumb (y = 25)
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN_DARK);
+    tft.setCursor(8, 25);
+    tft.print(F("MIL-SPEC // SECURE BROADCAST"));
+    
+    char frameStr[24];
+    int firstItem = menuScrollOffset + 1;
+    int lastItem = min(menuScrollOffset + VISIBLE_MENU_ITEMS, ALERT_COUNT);
+    sprintf(frameStr, "FRAME [%02d-%02d]/%02d", firstItem, lastItem, ALERT_COUNT);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(204, 25);
+    tft.print(frameStr);
+    tft.setTextColor(menuScrollOffset > 0 ? COLOR_CYAN : COLOR_TEXT_DISABLED);
+    tft.print((char)24);
+    tft.setTextColor(menuScrollOffset + VISIBLE_MENU_ITEMS < ALERT_COUNT ? COLOR_CYAN : COLOR_TEXT_DISABLED);
+    tft.print((char)25);
 }
 
 void drawSharpAlertCard(int index, int slotY, bool isSelected) {
     if (index < 0 || index >= ALERT_COUNT) return;
     
-    int cardX = 10;
-    int cardW = 292;
-    int cardH = 32;
+    int cardX = 8;
+    int cardW = 288;
+    int cardH = 31;
     
     uint16_t prioColor = getAlertColor(index);
     uint8_t prio = alertPriority[index];
     const char* prioTag = "NORMAL";
-    if (prio == 0) prioTag = "CRITICAL";
+    if (prio == 0) prioTag = "CRIT";
     else if (prio == 1) prioTag = "HIGH";
-    else if (prio == 2) prioTag = "MEDIUM";
-    else if (prio == 3) prioTag = "NORMAL";
+    else if (prio == 2) prioTag = "MED";
+    else if (prio == 3) prioTag = " OK ";
     
     if (!isSelected) {
-        // IDLE CARD: Clean, uncluttered, high contrast
-        tft.fillRect(cardX, slotY, cardW, cardH, RGB565(16, 20, 28));
-        tft.drawRect(cardX, slotY, cardW, cardH, RGB565(32, 40, 56));
+        // IDLE CARD: Tactical stealth card (matching boot screen drawSharpCard)
+        tft.fillRect(cardX, slotY, cardW, cardH, RGB565(14, 20, 30));
+        tft.drawRect(cardX, slotY, cardW, cardH, RGB565(32, 45, 65));
+        tft.drawFastHLine(cardX + 1, slotY + 1, cardW - 2, RGB565(45, 60, 85)); // Chiseled top edge
+        
+        // Tactical corner brackets (3px ticks matching boot screen)
+        tft.drawFastHLine(cardX, slotY, 4, RGB565(45, 65, 90));
+        tft.drawFastVLine(cardX, slotY, 4, RGB565(45, 65, 90));
+        tft.drawFastHLine(cardX + cardW - 4, slotY, 4, RGB565(45, 65, 90));
+        tft.drawFastVLine(cardX + cardW - 1, slotY, 4, RGB565(45, 65, 90));
+        tft.drawFastHLine(cardX, slotY + cardH - 1, 4, RGB565(45, 65, 90));
+        tft.drawFastVLine(cardX, slotY + cardH - 4, 4, RGB565(45, 65, 90));
+        tft.drawFastHLine(cardX + cardW - 4, slotY + cardH - 1, 4, RGB565(45, 65, 90));
+        tft.drawFastVLine(cardX + cardW - 1, slotY + cardH - 4, 4, RGB565(45, 65, 90));
         
         // Left priority bar (4px)
         tft.fillRect(cardX, slotY, 4, cardH, prioColor);
         
         // Sharp Index Box
-        tft.fillRect(cardX + 10, slotY + 6, 22, 20, RGB565(22, 28, 40));
-        tft.drawRect(cardX + 10, slotY + 6, 22, 20, RGB565(38, 48, 68));
+        tft.fillRect(cardX + 8, slotY + 5, 22, 21, RGB565(20, 28, 42));
+        tft.drawRect(cardX + 8, slotY + 5, 22, 21, RGB565(40, 56, 80));
         tft.setTextSize(TEXT_SMALL);
-        tft.setTextColor(COLOR_TEXT_MUTED);
-        tft.setCursor(cardX + 14, slotY + 11);
+        tft.setTextColor(COLOR_CYAN);
+        tft.setCursor(cardX + 12, slotY + 11);
         if (index + 1 < 10) tft.print('0');
         tft.print(index + 1);
         
         // Alert Title
         tft.setTextSize(TEXT_MEDIUM);
         tft.setTextColor(COLOR_TEXT_PRIMARY);
-        tft.setCursor(cardX + 40, slotY + 9);
+        tft.setCursor(cardX + 38, slotY + 8);
         tft.print(alertNamesShort[index]);
         
-        // Priority Label Right-Aligned
+        // Right Priority Badge
+        tft.fillRect(cardX + cardW - 74, slotY + 6, 40, 19, RGB565(18, 26, 38));
+        tft.drawRect(cardX + cardW - 74, slotY + 6, 40, 19, prioColor);
         tft.setTextSize(TEXT_SMALL);
         tft.setTextColor(prioColor);
-        int16_t x1, y1;
-        uint16_t tw, th;
-        tft.getTextBounds(prioTag, 0, 0, &x1, &y1, &tw, &th);
-        tft.setCursor(cardX + cardW - tw - 12, slotY + 12);
+        tft.setCursor(cardX + cardW - 68, slotY + 11);
         tft.print(prioTag);
         
-    } else {
-        // SELECTED / ARMED CARD: Eye immediately drawn here
-        // 1. High-Contrast Deep Navy Body
-        tft.fillRect(cardX, slotY, cardW, cardH, RGB565(14, 32, 54));
+        // Hotkey Badge
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(cardX + cardW - 24, slotY + 11);
+        if (index < 9) {
+            tft.print('['); tft.print(index + 1); tft.print(']');
+        } else if (index == 9) {
+            tft.print(F("[0]"));
+        } else {
+            tft.print('['); tft.print(getAlertCode(index)); tft.print(']');
+        }
         
-        // 2. Glowing Razor-Sharp Cyan Borders (cleanly bounded)
+    } else {
+        // SELECTED / ARMED CARD: Boot screen SYS STATUS inspired!
+        // 1. High-Contrast Deep Navy Cockpit Fill
+        tft.fillRect(cardX, slotY, cardW, cardH, RGB565(16, 32, 52));
+        
+        // 2. Glowing Razor-Sharp Neon Cyan Borders
         tft.drawRect(cardX, slotY, cardW, cardH, COLOR_CYAN);
         tft.drawRect(cardX + 1, slotY + 1, cardW - 2, cardH - 2, COLOR_CYAN_DARK);
         
-        // 3. Solid Left Priority Indicator (6px)
-        tft.fillRect(cardX, slotY, 6, cardH, prioColor);
+        // 3. Tactical Corner Brackets (6px bright white ticks)
+        tft.drawFastHLine(cardX, slotY, 6, COLOR_WHITE);
+        tft.drawFastVLine(cardX, slotY, 6, COLOR_WHITE);
+        tft.drawFastHLine(cardX + cardW - 6, slotY, 6, COLOR_WHITE);
+        tft.drawFastVLine(cardX + cardW - 1, slotY, 6, COLOR_WHITE);
+        tft.drawFastHLine(cardX, slotY + cardH - 1, 6, COLOR_WHITE);
+        tft.drawFastVLine(cardX, slotY + cardH - 6, 6, COLOR_WHITE);
+        tft.drawFastHLine(cardX + cardW - 6, slotY + cardH - 1, 6, COLOR_WHITE);
+        tft.drawFastVLine(cardX + cardW - 1, slotY + cardH - 6, 6, COLOR_WHITE);
         
-        // 4. Solid Inverted Number Badge
-        tft.fillRect(cardX + 10, slotY + 6, 22, 20, COLOR_CYAN);
-        tft.drawRect(cardX + 10, slotY + 6, 22, 20, COLOR_WHITE);
+        // 4. Solid Left Priority Indicator (5px)
+        tft.fillRect(cardX, slotY, 5, cardH, prioColor);
+        
+        // 5. Tactical Pointer Chevron
+        tft.drawLine(cardX + 6, slotY + 9, cardX + 10, slotY + 15, COLOR_CYAN_BRIGHT);
+        tft.drawLine(cardX + 6, slotY + 21, cardX + 10, slotY + 15, COLOR_CYAN_BRIGHT);
+        tft.drawLine(cardX + 7, slotY + 9, cardX + 11, slotY + 15, COLOR_WHITE);
+        tft.drawLine(cardX + 7, slotY + 21, cardX + 11, slotY + 15, COLOR_WHITE);
+        
+        // 6. Solid Inverted Number Badge
+        tft.fillRect(cardX + 13, slotY + 5, 22, 21, COLOR_CYAN);
+        tft.drawRect(cardX + 13, slotY + 5, 22, 21, COLOR_WHITE);
         tft.setTextSize(TEXT_SMALL);
         tft.setTextColor(COLOR_TEXT_DARK);
-        tft.setCursor(cardX + 14, slotY + 11);
+        tft.setCursor(cardX + 17, slotY + 11);
         if (index + 1 < 10) tft.print('0');
         tft.print(index + 1);
         
-        // 5. Bold Pure White Title with Crisp Shadow
+        // 7. Bold Pure White Title with Crisp Shadow
         tft.setTextSize(TEXT_MEDIUM);
         tft.setTextColor(RGB565(5, 12, 20));
-        tft.setCursor(cardX + 41, slotY + 10);
+        tft.setCursor(cardX + 41, slotY + 9);
         tft.print(alertNamesShort[index]);
         tft.setTextColor(COLOR_WHITE);
-        tft.setCursor(cardX + 40, slotY + 9);
+        tft.setCursor(cardX + 40, slotY + 8);
         tft.print(alertNamesShort[index]);
         
-        // 6. Direct Action Tag: [* SEND >]
-        int btnW = 76;
-        int btnH = 22;
-        int btnX = cardX + cardW - btnW - 8;
+        // 8. Boot-Screen SYS STATUS Inspired Action Card [* ARM]
+        int btnW = 86;
+        int btnH = 21;
+        int btnX = cardX + cardW - btnW - 6;
         int btnY = slotY + 5;
-        tft.fillRect(btnX, btnY, btnW, btnH, RGB565(0, 65, 32));
+        tft.fillRect(btnX, btnY, btnW, btnH, RGB565(10, 36, 26));
         tft.drawRect(btnX, btnY, btnW, btnH, COLOR_GREEN_BRIGHT);
+        
+        // Square status LED (exact match to boot screen rightCardX + 8, cardY + 23)
+        tft.fillRect(btnX + 5, btnY + 7, 6, 6, COLOR_GREEN_BRIGHT);
+        tft.drawRect(btnX + 4, btnY + 6, 8, 8, COLOR_GREEN_DARK);
+        
         tft.setTextSize(TEXT_SMALL);
         tft.setTextColor(COLOR_WHITE);
-        tft.setCursor(btnX + 6, btnY + 6);
-        tft.print(F("* SEND"));
+        tft.setCursor(btnX + 17, btnY + 7);
+        tft.print(F("* ARM"));
         tft.setTextColor(COLOR_GREEN_BRIGHT);
         tft.print(F(" >"));
     }
 }
 
 void drawElevatorRail(int scrollOffset, int totalItems, int visibleCount) {
-    int railX = 308;
+    int railX = 302;
     int railY = 36;
-    int railW = 4;
-    int railH = 168;
+    int railW = 9;
+    int railH = 163;
     
-    // Minimalist 4px Track Line
-    tft.fillRect(railX, railY, railW, railH, RGB565(24, 30, 42));
+    // Segmented Telemetry Track (matching boot screen segmented bar)
+    tft.fillRect(railX, railY, railW, railH, RGB565(10, 15, 22));
+    tft.drawRect(railX, railY, railW, railH, RGB565(25, 38, 55));
     
-    // Glowing Cyan Thumb
+    // Glowing Cyan Thumb with Center Tick
     int thumbH = (railH * visibleCount) / totalItems;
     if (thumbH < 24) thumbH = 24;
     
     int maxOffset = max(1, totalItems - visibleCount);
     int thumbY = railY + (scrollOffset * (railH - thumbH)) / maxOffset;
     
-    tft.fillRect(railX, thumbY, railW, thumbH, COLOR_CYAN);
+    tft.fillRect(railX + 1, thumbY, railW - 2, thumbH, RGB565(16, 42, 60));
+    tft.drawRect(railX + 1, thumbY, railW - 2, thumbH, COLOR_CYAN);
+    tft.drawFastHLine(railX + 2, thumbY + thumbH / 2, railW - 4, COLOR_WHITE);
 }
 
 void drawHomeCommandDeck() {
-    // 1. Crisp Hairline Divider
-    tft.drawFastHLine(0, 208, SCREEN_WIDTH, RGB565(32, 42, 60));
+    int footerY = 205;
+    int footerW = SCREEN_WIDTH - 12;
+    int footerH = 25;
     
-    // 2. Command Deck Background (y = 209..239)
-    tft.fillRect(0, 209, SCREEN_WIDTH, 31, RGB565(12, 16, 24));
+    // 1. Technical Separator Lines & Strip (matching boot screen bottom strip)
+    tft.drawFastHLine(6, footerY - 1, footerW, COLOR_CYAN_DARK);
+    tft.fillRect(6, footerY, footerW, footerH, RGB565(12, 18, 28));
+    tft.drawRect(6, footerY, footerW, footerH, RGB565(30, 44, 65));
     
-    // 3. Clear, Spacious Action Labels
-    // Left: Scroll
+    // 2. Action Key Badges
     tft.setTextSize(TEXT_SMALL);
+    
+    // [A] UP
     tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(14, 219);
-    tft.print(F("[A/B]"));
-    tft.setTextColor(COLOR_TEXT_SECONDARY);
-    tft.print(F(" Scroll"));
+    tft.setCursor(14, footerY + 8);
+    tft.print(F("[A"));
+    tft.print((char)24);
+    tft.print(F("]"));
     
-    // Center: Select & Send
+    // [B] DOWN
+    tft.setCursor(44, footerY + 8);
+    tft.print(F("[B"));
+    tft.print((char)25);
+    tft.print(F("]"));
+    
+    tft.drawFastVLine(78, footerY + 4, footerH - 8, RGB565(30, 44, 65));
+    
+    // [*] ARM & TRANSMIT
     tft.setTextColor(COLOR_GREEN_BRIGHT);
-    tft.setCursor(114, 219);
-    tft.print(F("[*]"));
-    tft.setTextColor(COLOR_TEXT_PRIMARY);
-    tft.print(F(" Select & Send"));
+    tft.setCursor(88, footerY + 8);
+    tft.print(F("[*] ARM & TRANSMIT"));
     
-    // Right: OTA
-    tft.setTextColor(COLOR_AMBER);
-    tft.setCursor(246, 219);
-    tft.print(F("[C]"));
-    tft.setTextColor(COLOR_TEXT_SECONDARY);
-    tft.print(F(" OTA"));
+    tft.drawFastVLine(206, footerY + 4, footerH - 8, RGB565(30, 44, 65));
+    
+    // [C] OTA
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(214, footerY + 8);
+    tft.print(F("[C] OTA"));
+    
+    tft.drawFastVLine(262, footerY + 4, footerH - 8, RGB565(30, 44, 65));
+    
+    // [1-9]
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(270, footerY + 8);
+    tft.print(F("1-9"));
+    
+    // 3. Signature Bottom Gradient Hairline (exact match to boot screen line 422!)
+    drawGradientH(6, SCREEN_HEIGHT - 4, footerW, 2, COLOR_CYAN_DARK, COLOR_PURPLE_DARK);
+    
+    // Bottom-Left & Bottom-Right Registration Marks (matching boot screen!)
+    int mDist = 8;
+    tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_DARK);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_DARK);
 }
 
 void updateMenuSelection(int oldIndex, int newIndex) {
-    const int CARD_HEIGHT = 32;
+    const int CARD_HEIGHT = 31;
     const int CARD_SPACING = 2;
     const int LIST_START_Y = 36;
     
@@ -641,12 +748,12 @@ void updateMenuSelection(int oldIndex, int newIndex) {
         drawSharpAlertCard(newIndex, newY, true);
     }
     
-    // Update right minimalist scroll rail
+    // Update right elevator rail
     drawElevatorRail(menuScrollOffset, ALERT_COUNT, VISIBLE_MENU_ITEMS);
 }
 
 void drawMenuCards() {
-    const int CARD_HEIGHT = 32;
+    const int CARD_HEIGHT = 31;
     const int CARD_SPACING = 2;
     const int LIST_START_Y = 36;
     
@@ -662,366 +769,891 @@ void drawMenuCards() {
 }
 
 void drawMenuScreen() {
-    // 1. Clean Hardware Status Bar (y = 0..31)
+    // 1. Draw outer HUD framing, background, & status telemetry strip
     drawHomeStatusBar();
     
-    // 2. Clear cards canvas area once (y = 32..207)
-    tft.fillRect(0, 32, SCREEN_WIDTH, 176, COLOR_BG_PRIMARY);
+    // 2. Clear cards canvas area once with tactical background
+    tft.fillRect(6, 35, SCREEN_WIDTH - 12, 169, RGB565(8, 12, 18));
     
-    // 3. 5 High-Legibility Alert Cards & Scroll Rail (y = 36..203)
+    // 3. 5 Boot-Screen Inspired Sharp Alert Cards & Scroll Rail
     drawMenuCards();
     
-    // 4. Clean Action Command Footer (y = 208..239)
+    // 4. Boot-Screen Command Deck Footer with signature gradient
     drawHomeCommandDeck();
     
-    Serial.println(F("[SCREEN] Clean High-Legibility Home Screen displayed"));
+    Serial.println(F("[SCREEN] Boot-Screen Inspired Tactical Home Screen displayed"));
 }
 
 
 void drawConfirmScreen() {
-    drawGradientV(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, RGB565(60, 45, 0), COLOR_AMBER_DARK);
-    tft.fillRect(0, HEADER_HEIGHT + 1, SCREEN_WIDTH, SCREEN_HEIGHT - HEADER_HEIGHT - 1, COLOR_BG_PRIMARY);
+    // 1. Deep tactical dark background
+    tft.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, RGB565(8, 12, 18));
     
-    tft.drawFastHLine(0, HEADER_HEIGHT - 1, SCREEN_WIDTH, COLOR_AMBER_BRIGHT);
-    tft.drawFastHLine(0, HEADER_HEIGHT, SCREEN_WIDTH, COLOR_AMBER);
+    // Technical hairline outer border (dual perimeter hairlines)
+    tft.drawFastHLine(2, 2, SCREEN_WIDTH - 4, RGB565(25, 35, 52));
+    tft.drawFastHLine(4, 4, SCREEN_WIDTH - 8, RGB565(15, 22, 34));
+    tft.drawFastHLine(2, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 4, RGB565(25, 35, 52));
+    tft.drawFastHLine(4, SCREEN_HEIGHT - 5, SCREEN_WIDTH - 8, RGB565(15, 22, 34));
+    tft.drawFastVLine(2, 2, SCREEN_HEIGHT - 4, RGB565(25, 35, 52));
+    tft.drawFastVLine(SCREEN_WIDTH - 3, 2, SCREEN_HEIGHT - 4, RGB565(25, 35, 52));
+    tft.drawFastVLine(4, 4, SCREEN_HEIGHT - 8, RGB565(15, 22, 34));
+    tft.drawFastVLine(SCREEN_WIDTH - 5, 4, SCREEN_HEIGHT - 8, RGB565(15, 22, 34));
     
-    int triX = MARGIN + 20;
-    int triCenterY = HEADER_HEIGHT / 2;
+    // Amber Tactical Corner Registration Marks (L-ticks)
+    int mDist = 8;
+    tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_AMBER_DARK);
+    tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_AMBER_DARK);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_AMBER_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_AMBER_DARK);
+    tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_AMBER_DARK);
+    tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_AMBER_DARK);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_AMBER_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_AMBER_DARK);
     
-    for (int g = 3; g > 0; g--) {
-        uint16_t glowColor = RGB565(30 - g*8, 25 - g*6, 0);
-        tft.fillTriangle(triX, triCenterY - 11 - g, triX - 11 - g, triCenterY + 7 + g, triX + 11 + g, triCenterY + 7 + g, glowColor);
-    }
+    // 2. Top Header Telemetry Strip
+    int topStripY = 6;
+    int topStripH = 16;
+    tft.fillRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(24, 18, 10));
+    tft.drawRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(65, 48, 20));
+    tft.drawFastHLine(6, topStripY + topStripH, SCREEN_WIDTH - 12, COLOR_AMBER_DARK);
     
-    tft.fillTriangle(triX, triCenterY - 9, triX - 9, triCenterY + 6, triX + 9, triCenterY + 6, COLOR_TEXT_DARK);
-    tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(COLOR_AMBER);
-    tft.setCursor(triX - 5, triCenterY - 5);
+    // Amber warning glyph badge
+    tft.fillRect(10, topStripY + 2, 12, 12, COLOR_AMBER);
+    tft.drawRect(10, topStripY + 2, 12, 12, COLOR_WHITE);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_DARK);
+    tft.setCursor(14, topStripY + 4);
     tft.print('!');
     
-    int headerTextX = MARGIN + 42;
-    int headerTextY = (HEADER_HEIGHT - 14) / 2;
-    tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(RGB565(40, 30, 0));
-    tft.setCursor(headerTextX + 1, headerTextY + 1);
-    tft.print(F("CONFIRM TRANSMISSION"));
+    tft.setTextColor(COLOR_AMBER_BRIGHT);
+    tft.setCursor(28, topStripY + 4);
+    char unitTag[24];
+    sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
+    tft.print(unitTag);
     
-    tft.setTextColor(COLOR_TEXT_DARK);
-    tft.setCursor(headerTextX, headerTextY);
-    tft.print(F("CONFIRM TRANSMISSION"));
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(154, topStripY + 4);
+    tft.print(F("ARMED // CONFIRM REQ"));
     
-    int contentY = HEADER_HEIGHT + 12;
+    tft.setTextColor(loraInitialized ? COLOR_GREEN_BRIGHT : COLOR_RED);
+    tft.setCursor(264, topStripY + 4);
+    tft.print(loraInitialized ? F("RF:RDY") : F("RF:ERR"));
+    
+    // 3. Sub-header Context Breadcrumb (y = 25)
     tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_AMBER);
+    tft.setCursor(8, 25);
+    tft.print(F("ALERT DISPATCH VERIFICATION // BROADCAST PROTOCOL"));
     tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(MARGIN, contentY);
-    tft.print(F("SELECTED ALERT"));
+    tft.setCursor(248, 25);
+    tft.print(F("OP:0xTX"));
     
-    tft.drawFastHLine(MARGIN + 92, contentY + 4, SCREEN_WIDTH - MARGIN * 2 - 92, COLOR_ACCENT_LINE);
-    
-    int alertBoxY = contentY + 18;
-    int alertBoxH = 58;
-    int alertBoxW = SCREEN_WIDTH - (2 * MARGIN);
+    // 4. Primary Tactical Alert Focus Card (y = 37 to 101)
+    int alertCardX = 8;
+    int alertCardY = 37;
+    int alertCardW = 304;
+    int alertCardH = 64;
     uint16_t alertColor = getAlertColor(selectedAlertIndex);
     
-    tft.fillRoundRect(MARGIN + 3, alertBoxY + 3, alertBoxW, alertBoxH, 6, RGB565(5, 5, 10));
-    tft.fillRoundRect(MARGIN, alertBoxY, alertBoxW, alertBoxH, 6, COLOR_BG_CARD);
+    // Deep cockpit card fill & double border
+    tft.fillRect(alertCardX, alertCardY, alertCardW, alertCardH, RGB565(16, 24, 36));
+    tft.drawRect(alertCardX, alertCardY, alertCardW, alertCardH, RGB565(40, 56, 80));
+    tft.drawFastHLine(alertCardX + 1, alertCardY + 1, alertCardW - 2, RGB565(60, 75, 105));
     
-    for (int g = 3; g >= 0; g--) {
-        uint16_t barColor = (g == 0) ? alertColor : RGB565(
-            ((alertColor >> 11) & 0x1F) / (g + 1),
-            ((alertColor >> 5) & 0x3F) / (g + 1),
-            (alertColor & 0x1F) / (g + 1)
-        );
-        tft.fillRect(MARGIN, alertBoxY, 6 + g, alertBoxH, barColor);
-    }
+    // 6px White corner brackets
+    tft.drawFastHLine(alertCardX, alertCardY, 6, COLOR_WHITE);
+    tft.drawFastVLine(alertCardX, alertCardY, 6, COLOR_WHITE);
+    tft.drawFastHLine(alertCardX + alertCardW - 6, alertCardY, 6, COLOR_WHITE);
+    tft.drawFastVLine(alertCardX + alertCardW - 1, alertCardY, 6, COLOR_WHITE);
+    tft.drawFastHLine(alertCardX, alertCardY + alertCardH - 1, 6, COLOR_WHITE);
+    tft.drawFastVLine(alertCardX, alertCardY + alertCardH - 6, 6, COLOR_WHITE);
+    tft.drawFastHLine(alertCardX + alertCardW - 6, alertCardY + alertCardH - 1, 6, COLOR_WHITE);
+    tft.drawFastVLine(alertCardX + alertCardW - 1, alertCardY + alertCardH - 6, 6, COLOR_WHITE);
     
-    tft.drawFastHLine(MARGIN + 12, alertBoxY + 2, alertBoxW - 24, RGB565(50, 50, 70));
+    // Left 6px solid priority bar
+    tft.fillRect(alertCardX, alertCardY, 6, alertCardH, alertColor);
     
+    // Tactical Chevron
+    tft.drawLine(alertCardX + 10, alertCardY + 14, alertCardX + 14, alertCardY + 20, COLOR_AMBER_BRIGHT);
+    tft.drawLine(alertCardX + 10, alertCardY + 26, alertCardX + 14, alertCardY + 20, COLOR_AMBER_BRIGHT);
+    tft.drawLine(alertCardX + 11, alertCardY + 14, alertCardX + 15, alertCardY + 20, COLOR_WHITE);
+    tft.drawLine(alertCardX + 11, alertCardY + 26, alertCardX + 15, alertCardY + 20, COLOR_WHITE);
+    
+    // Alert Title with shadow
     tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(alertColor);
-    tft.setCursor(MARGIN + 18, alertBoxY + 12);
+    tft.setTextColor(RGB565(5, 10, 16));
+    tft.setCursor(alertCardX + 23, alertCardY + 13);
+    tft.print(alertNames[selectedAlertIndex]);
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(alertCardX + 22, alertCardY + 12);
     tft.print(alertNames[selectedAlertIndex]);
     
-    int codeBadgeW = 34;
-    int codeBadgeH = 20;
-    int codeBadgeX = SCREEN_WIDTH - MARGIN - codeBadgeW - 8;
-    int codeBadgeY = alertBoxY + 10;
-    tft.fillRoundRect(codeBadgeX, codeBadgeY, codeBadgeW, codeBadgeH, 4, COLOR_BG_INPUT);
-    tft.drawRoundRect(codeBadgeX, codeBadgeY, codeBadgeW, codeBadgeH, 4, alertColor);
+    // Right Alert Code Badge
+    int codeBadgeW = 44;
+    int codeBadgeH = 22;
+    int codeBadgeX = alertCardX + alertCardW - codeBadgeW - 8;
+    int codeBadgeY = alertCardY + 10;
+    tft.fillRect(codeBadgeX, codeBadgeY, codeBadgeW, codeBadgeH, RGB565(20, 28, 42));
+    tft.drawRect(codeBadgeX, codeBadgeY, codeBadgeW, codeBadgeH, alertColor);
+    tft.drawFastHLine(codeBadgeX + 1, codeBadgeY + 1, codeBadgeW - 2, COLOR_WHITE);
     tft.setTextSize(TEXT_MEDIUM);
     tft.setTextColor(alertColor);
-    tft.setCursor(codeBadgeX + 10, codeBadgeY + 3);
+    tft.setCursor(codeBadgeX + 8, codeBadgeY + 3);
+    tft.print('[');
     tft.print(getAlertCode(selectedAlertIndex));
+    tft.print(']');
     
-    const char* prioLabels[] = {"CRITICAL", "HIGH", "MEDIUM", "OK", "INFO"};
+    // Lower Status Strip inside Alert Card
+    tft.drawFastHLine(alertCardX + 6, alertCardY + 38, alertCardW - 12, RGB565(30, 44, 65));
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(MARGIN + 18, alertBoxY + 38);
-    tft.print(F("Priority: "));
+    tft.setCursor(alertCardX + 14, alertCardY + 45);
+    tft.print(F("SEVERITY: "));
+    
+    const char* prioFullLabels[] = {"CRITICAL (P0)", "HIGH PRIORITY (P1)", "MEDIUM (P2)", "ROUTINE/OK (P3)", "INFO (P4)"};
+    int pIdx = min((int)alertPriority[selectedAlertIndex], 4);
+    tft.fillRect(alertCardX + 76, alertCardY + 46, 6, 6, alertColor);
+    tft.drawRect(alertCardX + 75, alertCardY + 45, 8, 8, COLOR_WHITE);
     tft.setTextColor(alertColor);
-    tft.print(prioLabels[min((int)alertPriority[selectedAlertIndex], 4)]);
-    
-    int deviceInfoY = alertBoxY + alertBoxH + 10;
-    int deviceInfoH = 36;
-    drawPremiumCard(MARGIN, deviceInfoY, alertBoxW, deviceInfoH, COLOR_BG_CARD, COLOR_BORDER);
-    
-    tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(MARGIN + 12, deviceInfoY + 8);
-    tft.print(F("FROM DEVICE:"));
+    tft.setCursor(alertCardX + 88, alertCardY + 45);
+    tft.print(prioFullLabels[pIdx]);
     
     tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(alertCardX + alertCardW - 68, alertCardY + 45);
+    char slotStr[12];
+    sprintf(slotStr, "SLOT #%02d", selectedAlertIndex + 1);
+    tft.print(slotStr);
+    
+    // 5. Secondary Dual-Column Telemetry & Payload Card (y = 106 to 156)
+    int telCardY = 106;
+    int telCardH = 50;
+    tft.fillRect(alertCardX, telCardY, alertCardW, telCardH, RGB565(12, 18, 28));
+    tft.drawRect(alertCardX, telCardY, alertCardW, telCardH, RGB565(30, 44, 65));
+    tft.drawFastHLine(alertCardX + 1, telCardY + 1, alertCardW - 2, RGB565(45, 60, 85));
+    
+    // Corner ticks (3px)
+    tft.drawFastHLine(alertCardX, telCardY, 4, RGB565(45, 65, 90));
+    tft.drawFastVLine(alertCardX, telCardY, 4, RGB565(45, 65, 90));
+    tft.drawFastHLine(alertCardX + alertCardW - 4, telCardY, 4, RGB565(45, 65, 90));
+    tft.drawFastVLine(alertCardX + alertCardW - 1, telCardY, 4, RGB565(45, 65, 90));
+    tft.drawFastHLine(alertCardX, telCardY + telCardH - 1, 4, RGB565(45, 65, 90));
+    tft.drawFastVLine(alertCardX, telCardY + telCardH - 4, 4, RGB565(45, 65, 90));
+    tft.drawFastHLine(alertCardX + alertCardW - 4, telCardY + telCardH - 1, 4, RGB565(45, 65, 90));
+    tft.drawFastVLine(alertCardX + alertCardW - 1, telCardY + telCardH - 4, 4, RGB565(45, 65, 90));
+    
+    // Left Column
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(alertCardX + 12, telCardY + 8);
+    tft.print(F("ORIGIN NODE:"));
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
     char devStr[24];
-    sprintf(devStr, "TX Unit #%03d", DEVICE_ID);
-    tft.setCursor(MARGIN + 12, deviceInfoY + 20);
+    sprintf(devStr, "TX UNIT #%03d", DEVICE_ID);
+    tft.setCursor(alertCardX + 12, telCardY + 20);
     tft.print(devStr);
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(alertCardX + 12, telCardY + 33);
+    tft.print(F("FREQ: 868.00 MHz // SF7"));
     
-    int loraIndicatorX = SCREEN_WIDTH - MARGIN - 22;
-    int loraIndicatorY = deviceInfoY + deviceInfoH / 2;
-    tft.fillCircle(loraIndicatorX, loraIndicatorY, 6, loraInitialized ? COLOR_GREEN : COLOR_RED);
+    // Vertical Separator
+    tft.drawFastVLine(alertCardX + 148, telCardY + 6, telCardH - 12, RGB565(25, 38, 55));
     
-    int btnY = SCREEN_HEIGHT - 54;
-    int btnW = 105;
+    // Right Column
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(alertCardX + 158, telCardY + 8);
+    tft.print(F("TARGET GATEWAY:"));
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(alertCardX + 158, telCardY + 20);
+    tft.print(F("BASE SPU (ALL CH)"));
+    tft.setTextColor(COLOR_TEXT_SECONDARY);
+    tft.setCursor(alertCardX + 158, telCardY + 33);
+    tft.print(F("MOD: LoRa CHIRP // 20dBm"));
+    
+    // 6. Tactical Warning Banner (y = 161 to 184)
+    int warnY = 161;
+    int warnH = 23;
+    tft.fillRect(alertCardX, warnY, alertCardW, warnH, RGB565(32, 20, 8));
+    tft.drawRect(alertCardX, warnY, alertCardW, warnH, COLOR_AMBER_DARK);
+    tft.drawFastHLine(alertCardX + 1, warnY + 1, alertCardW - 2, COLOR_AMBER);
+    
+    tft.fillRect(alertCardX + 8, warnY + 5, 12, 12, COLOR_AMBER);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_DARK);
+    tft.setCursor(alertCardX + 12, warnY + 7);
+    tft.print('!');
+    
+    tft.setTextColor(COLOR_AMBER_BRIGHT);
+    tft.setCursor(alertCardX + 26, warnY + 7);
+    tft.print(F("WARNING: BROADCAST PACKET CANNOT BE RECALLED"));
+    
+    // 7. Tactical Command Deck Action Buttons (y = 190, h = 38)
+    int btnY = 190;
+    int btnW = 148;
     int btnH = 38;
-    int btnGap = 20;
-    int totalBtnWidth = (btnW * 2) + btnGap;
-    int btnStartX = (SCREEN_WIDTH - totalBtnWidth) / 2;
     
-    for (int g = 2; g >= 0; g--) {
-        uint16_t glowColor = RGB565(0, 50 - g*15, 25 - g*8);
-        tft.fillRoundRect(btnStartX - g, btnY - g, btnW + g*2, btnH + g*2, 6, glowColor);
-    }
-    tft.fillRoundRect(btnStartX, btnY, btnW, btnH, 5, COLOR_GREEN);
-    tft.drawFastHLine(btnStartX + 6, btnY + 3, btnW - 12, COLOR_GREEN_BRIGHT);
+    // Left Button: [* CONFIRM & BROADCAST]
+    int sendBtnX = 8;
+    tft.fillRect(sendBtnX, btnY, btnW, btnH, RGB565(10, 40, 24));
+    tft.drawRect(sendBtnX, btnY, btnW, btnH, COLOR_GREEN_BRIGHT);
+    tft.drawRect(sendBtnX + 1, btnY + 1, btnW - 2, btnH - 2, COLOR_GREEN_DARK);
+    tft.drawFastHLine(sendBtnX + 2, btnY + 2, btnW - 4, COLOR_WHITE);
+    
+    // Square green status LED
+    tft.fillRect(sendBtnX + 8, btnY + 14, 8, 8, COLOR_GREEN_BRIGHT);
+    tft.drawRect(sendBtnX + 7, btnY + 13, 10, 10, COLOR_WHITE);
     
     tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(COLOR_TEXT_DARK);
-    int16_t tx1, ty1;
-    uint16_t tw1, th1;
-    tft.getTextBounds("* SEND", 0, 0, &tx1, &ty1, &tw1, &th1);
-    tft.setCursor(btnStartX + (btnW - tw1) / 2, btnY + (btnH - th1) / 2);
+    tft.setTextColor(RGB565(5, 16, 10));
+    tft.setCursor(sendBtnX + 25, btnY + 8);
+    tft.print(F("* SEND"));
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(sendBtnX + 24, btnY + 7);
     tft.print(F("* SEND"));
     
-    int cancelX = btnStartX + btnW + btnGap;
-    tft.fillRoundRect(cancelX, btnY, btnW, btnH, 5, COLOR_BG_CARD);
-    tft.drawRoundRect(cancelX, btnY, btnW, btnH, 5, COLOR_RED);
-    tft.drawRoundRect(cancelX + 1, btnY + 1, btnW - 2, btnH - 2, 4, COLOR_RED_DARK);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(sendBtnX + 24, btnY + 23);
+    tft.print(F("BROADCAST RF"));
     
-    tft.setTextColor(COLOR_RED);
-    tft.getTextBounds("# CANCEL", 0, 0, &tx1, &ty1, &tw1, &th1);
-    tft.setCursor(cancelX + (btnW - tw1) / 2, btnY + (btnH - th1) / 2);
+    // Right Button: [# ABORT / CANCEL]
+    int cancelBtnX = 164;
+    tft.fillRect(cancelBtnX, btnY, btnW, btnH, RGB565(42, 12, 16));
+    tft.drawRect(cancelBtnX, btnY, btnW, btnH, COLOR_RED);
+    tft.drawRect(cancelBtnX + 1, btnY + 1, btnW - 2, btnH - 2, COLOR_RED_DARK);
+    tft.drawFastHLine(cancelBtnX + 2, btnY + 2, btnW - 4, RGB565(255, 140, 140));
+    
+    // Square red status LED
+    tft.fillRect(cancelBtnX + 8, btnY + 14, 8, 8, COLOR_RED);
+    tft.drawRect(cancelBtnX + 7, btnY + 13, 10, 10, COLOR_WHITE);
+    
+    tft.setTextSize(TEXT_MEDIUM);
+    tft.setTextColor(RGB565(20, 5, 6));
+    tft.setCursor(cancelBtnX + 25, btnY + 8);
+    tft.print(F("# CANCEL"));
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(cancelBtnX + 24, btnY + 7);
     tft.print(F("# CANCEL"));
     
-    Serial.println(F("[SCREEN] Confirm screen displayed"));
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_RED_BRIGHT);
+    tft.setCursor(cancelBtnX + 24, btnY + 23);
+    tft.print(F("ABORT & RETURN"));
+    
+    // Signature bottom gradient hairline
+    drawGradientH(6, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 12, 2, COLOR_AMBER_DARK, COLOR_PURPLE_DARK);
+    
+    Serial.println(F("[SCREEN] Tactical Confirm screen displayed"));
 }
 
 void drawSendingScreen() {
-    drawGradientV(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, RGB565(15, 35, 55), COLOR_BG_HEADER);
-    drawGradientV(0, HEADER_HEIGHT + 1, SCREEN_WIDTH, SCREEN_HEIGHT - HEADER_HEIGHT - 1, RGB565(8, 15, 25), COLOR_BG_PRIMARY);
-    tft.drawFastHLine(0, HEADER_HEIGHT - 1, SCREEN_WIDTH, COLOR_CYAN_BRIGHT);
-    tft.drawFastHLine(0, HEADER_HEIGHT, SCREEN_WIDTH, COLOR_CYAN);
+    // 1. Deep tactical dark background
+    tft.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, RGB565(8, 12, 18));
     
-    tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(MARGIN, (HEADER_HEIGHT - 14) / 2);
-    tft.print(F("TRANSMITTING"));
+    // Dual perimeter hairlines
+    tft.drawFastHLine(2, 2, SCREEN_WIDTH - 4, RGB565(25, 35, 52));
+    tft.drawFastHLine(4, 4, SCREEN_WIDTH - 8, RGB565(15, 22, 34));
+    tft.drawFastHLine(2, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 4, RGB565(25, 35, 52));
+    tft.drawFastHLine(4, SCREEN_HEIGHT - 5, SCREEN_WIDTH - 8, RGB565(15, 22, 34));
+    tft.drawFastVLine(2, 2, SCREEN_HEIGHT - 4, RGB565(25, 35, 52));
+    tft.drawFastVLine(SCREEN_WIDTH - 3, 2, SCREEN_HEIGHT - 4, RGB565(25, 35, 52));
+    tft.drawFastVLine(4, 4, SCREEN_HEIGHT - 8, RGB565(15, 22, 34));
+    tft.drawFastVLine(SCREEN_WIDTH - 5, 4, SCREEN_HEIGHT - 8, RGB565(15, 22, 34));
     
-    int dotsStartX = MARGIN + 130;
-    for (int d = 0; d < 3; d++) {
-        tft.fillCircle(dotsStartX + d * 12, HEADER_HEIGHT / 2, 3, COLOR_CYAN);
-    }
+    // Cyan Tactical Corner Registration Marks (L-ticks)
+    int mDist = 8;
+    tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_CYAN_DARK);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_CYAN_DARK);
+    tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_DARK);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_DARK);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_DARK);
     
-    int cx = SCREEN_WIDTH / 2;
-    int cy = 90;
+    // 2. Top Header Telemetry Strip
+    int topStripY = 6;
+    int topStripH = 16;
+    tft.fillRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(12, 26, 40));
+    tft.drawRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(35, 65, 95));
+    tft.drawFastHLine(6, topStripY + topStripH, SCREEN_WIDTH - 12, COLOR_CYAN);
     
-    for (int i = 4; i > 0; i--) {
-        uint16_t ringColor = RGB565(80 - i*15, 40 - i*8, 10);
-        int ringRadius = 18 + (i * 14);
-        tft.drawCircle(cx, cy, ringRadius, ringColor);
-        tft.drawCircle(cx, cy, ringRadius + 1, ringColor);
-    }
+    // Transmitting cyan square beacon
+    tft.fillRect(10, topStripY + 4, 8, 8, COLOR_CYAN_BRIGHT);
+    tft.drawRect(9, topStripY + 3, 10, 10, COLOR_WHITE);
     
-    drawGlowCircle(cx, cy, 16, COLOR_ORANGE);
-    tft.fillRect(cx - 3, cy - 26, 6, 12, COLOR_ORANGE);
-    tft.fillCircle(cx, cy - 28, 5, COLOR_ORANGE);
-    
-    tft.setTextColor(COLOR_ORANGE);
     tft.setTextSize(TEXT_SMALL);
-    tft.setCursor(cx - 55, cy - 3);
-    tft.print(F(">>>"));
-    tft.setCursor(cx + 28, cy - 3);
-    tft.print(F(">>>"));
+    tft.setTextColor(COLOR_CYAN_BRIGHT);
+    tft.setCursor(24, topStripY + 4);
+    char unitTag[24];
+    sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
+    tft.print(unitTag);
     
-    int alertCardY = 145;
-    int alertCardH = 54;
-    int alertCardW = SCREEN_WIDTH - MARGIN * 2;
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(144, topStripY + 4);
+    tft.print(F("TRANSMITTING // RF ACTIVE"));
     
-    drawPremiumCard(MARGIN, alertCardY, alertCardW, alertCardH, COLOR_BG_CARD, COLOR_ORANGE_DARK);
-    tft.fillRect(MARGIN, alertCardY, 5, alertCardH, COLOR_ORANGE);
+    tft.setTextColor(COLOR_AMBER_BRIGHT);
+    tft.setCursor(266, topStripY + 4);
+    tft.print(F("TX:20dBm"));
+    
+    // 3. Sub-header Breadcrumb (y = 25)
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(8, 25);
+    tft.print(F("UPLINK FREQ: 868.000 MHz // SPREADING FACTOR: 7"));
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(248, 25);
+    tft.print(F("AIRTIME ~82ms"));
+    
+    // 4. Hero Cybernetic Radar & Sonar Array (y = 36 to 126)
+    int cx = SCREEN_WIDTH / 2; // 160
+    int cy = 80;
+    
+    // Crosshairs
+    tft.drawFastHLine(cx - 90, cy, 180, RGB565(20, 34, 50));
+    tft.drawFastVLine(cx, cy - 42, 84, RGB565(20, 34, 50));
+    for (int d = -80; d <= 80; d += 20) {
+        if (d != 0) {
+            tft.drawFastVLine(cx + d, cy - 2, 5, RGB565(30, 50, 75));
+            tft.drawFastHLine(cx - 2, cy + d/2, 5, RGB565(30, 50, 75));
+        }
+    }
+    
+    // Concentric Radar Rings
+    const uint16_t ringCols[] = {
+        RGB565(0, 40, 65),
+        RGB565(0, 80, 120),
+        RGB565(0, 140, 190),
+        COLOR_CYAN_BRIGHT
+    };
+    const int ringRadii[] = { 46, 34, 23, 12 };
+    
+    for (int r = 0; r < 4; r++) {
+        tft.drawCircle(cx, cy, ringRadii[r], ringCols[r]);
+        tft.drawCircle(cx, cy, ringRadii[r] + 1, ringCols[r]);
+    }
+    
+    // Diagonal tick marks
+    int tOff = 26;
+    tft.drawLine(cx - tOff - 4, cy - tOff - 4, cx - tOff, cy - tOff, COLOR_CYAN_DARK);
+    tft.drawLine(cx + tOff, cy - tOff, cx + tOff + 4, cy - tOff - 4, COLOR_CYAN_DARK);
+    tft.drawLine(cx - tOff - 4, cy + tOff + 4, cx - tOff, cy + tOff, COLOR_CYAN_DARK);
+    tft.drawLine(cx + tOff, cy + tOff, cx + tOff + 4, cy + tOff + 4, COLOR_CYAN_DARK);
+    
+    // Center Transmitter Beacon Core
+    tft.fillRect(cx - 4, cy - 4, 9, 9, COLOR_CYAN_BRIGHT);
+    tft.drawRect(cx - 5, cy - 5, 11, 11, COLOR_WHITE);
+    tft.drawPixel(cx, cy, COLOR_WHITE);
+    
+    // Vertical Antenna mast
+    tft.fillRect(cx - 1, cy - 14, 3, 9, COLOR_WHITE);
+    tft.drawPixel(cx, cy - 16, COLOR_CYAN_BRIGHT);
+    
+    // Directional Vector Wings
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_CYAN_DARK);
+    tft.setCursor(cx - 110, cy - 4);
+    tft.print(F("<<< LORA RF"));
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(cx + 42, cy - 4);
+    tft.print(F("UPLINK >>>"));
+    
+    // Flanking Telemetry Badges
+    // Left Badge
+    tft.fillRect(8, 48, 54, 28, RGB565(14, 22, 34));
+    tft.drawRect(8, 48, 54, 28, RGB565(30, 48, 70));
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(12, 52);
+    tft.print(F("MOD"));
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(12, 63);
+    tft.print(F("CSS125"));
+    
+    // Right Badge
+    tft.fillRect(SCREEN_WIDTH - 8 - 54, 48, 54, 28, RGB565(14, 22, 34));
+    tft.drawRect(SCREEN_WIDTH - 8 - 54, 48, 54, 28, RGB565(30, 48, 70));
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(SCREEN_WIDTH - 8 - 50, 52);
+    tft.print(F("CRC"));
+    tft.setTextColor(COLOR_GREEN_BRIGHT);
+    tft.setCursor(SCREEN_WIDTH - 8 - 50, 63);
+    tft.print(F("VALID"));
+    
+    // 5. Tactical Payload Card (y = 130 to 178)
+    int pCardY = 130;
+    int pCardH = 48;
+    uint16_t alertColor = getAlertColor(selectedAlertIndex);
+    
+    tft.fillRect(8, pCardY, 304, pCardH, RGB565(14, 22, 34));
+    tft.drawRect(8, pCardY, 304, pCardH, COLOR_CYAN_DARK);
+    tft.drawFastHLine(9, pCardY + 1, 302, RGB565(50, 80, 110));
+    
+    // Left 5px priority bar
+    tft.fillRect(8, pCardY, 5, pCardH, alertColor);
+    
+    // Corner ticks
+    tft.drawFastHLine(8, pCardY, 4, COLOR_WHITE);
+    tft.drawFastVLine(8, pCardY, 4, COLOR_WHITE);
+    tft.drawFastHLine(308, pCardY, 4, COLOR_WHITE);
+    tft.drawFastVLine(311, pCardY, 4, COLOR_WHITE);
+    tft.drawFastHLine(8, pCardY + pCardH - 1, 4, COLOR_WHITE);
+    tft.drawFastVLine(8, pCardY + pCardH - 4, 4, COLOR_WHITE);
+    tft.drawFastHLine(308, pCardY + pCardH - 1, 4, COLOR_WHITE);
+    tft.drawFastVLine(311, pCardY + pCardH - 4, 4, COLOR_WHITE);
     
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(MARGIN + 14, alertCardY + 10);
-    tft.print(F("SENDING ALERT:"));
+    tft.setCursor(18, pCardY + 8);
+    tft.print(F("ACTIVE PAYLOAD DISPATCH:"));
     
     tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(COLOR_TEXT_PRIMARY);
-    tft.setCursor(MARGIN + 14, alertCardY + 28);
-    tft.print(alertNamesShort[selectedAlertIndex]);
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(18, pCardY + 23);
+    tft.print(alertNames[selectedAlertIndex]);
     
-    uint16_t alertColor = getAlertColor(selectedAlertIndex);
-    int sendBadgeW = 32;
-    int sendBadgeH = 24;
-    int sendBadgeX = SCREEN_WIDTH - MARGIN - sendBadgeW - 10;
-    int sendBadgeY = alertCardY + (alertCardH - sendBadgeH) / 2;
-    tft.fillRoundRect(sendBadgeX, sendBadgeY, sendBadgeW, sendBadgeH, 4, alertColor);
+    // Code badge
+    int sndBadgeW = 44;
+    int sndBadgeH = 24;
+    int sndBadgeX = 304 - sndBadgeW;
+    int sndBadgeY = pCardY + 12;
+    tft.fillRect(sndBadgeX, sndBadgeY, sndBadgeW, sndBadgeH, RGB565(18, 28, 44));
+    tft.drawRect(sndBadgeX, sndBadgeY, sndBadgeW, sndBadgeH, alertColor);
     tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(COLOR_TEXT_DARK);
-    tft.setCursor(sendBadgeX + 9, sendBadgeY + 5);
+    tft.setTextColor(alertColor);
+    tft.setCursor(sndBadgeX + 9, sndBadgeY + 4);
+    tft.print('[');
     tft.print(getAlertCode(selectedAlertIndex));
+    tft.print(']');
     
-    int deviceInfoY = alertCardY + alertCardH + 10;
-    char devStr[24];
-    sprintf(devStr, "From TX Unit #%03d", DEVICE_ID);
-    drawCenteredText(devStr, deviceInfoY, TEXT_SMALL, COLOR_TEXT_MUTED);
+    // 6. Segmented High-Tech Progress Bar (y = 184 to 204)
+    int progY = 184;
+    int progH = 20;
+    tft.fillRect(8, progY, 304, progH, RGB565(10, 15, 22));
+    tft.drawRect(8, progY, 304, progH, RGB565(25, 45, 65));
     
-    int progressY = deviceInfoY + 20;
-    int progressW = SCREEN_WIDTH - MARGIN * 4;
-    int progressX = (SCREEN_WIDTH - progressW) / 2;
-    int progressH = 8;
+    // 20 Discrete Tactical Segments
+    int numSegments = 20;
+    int segSpacing = 2;
+    int totalInnerW = 304 - 6;
+    int segW = (totalInnerW - (numSegments - 1) * segSpacing) / numSegments;
+    int activeSegments = 14;
     
-    tft.fillRoundRect(progressX, progressY, progressW, progressH, 3, COLOR_BG_CARD);
-    int fillW = progressW / 2;
-    tft.fillRoundRect(progressX + 1, progressY + 1, fillW, progressH - 2, 2, COLOR_ORANGE);
+    for (int s = 0; s < numSegments; s++) {
+        int segX = 11 + s * (segW + segSpacing);
+        if (s < activeSegments - 1) {
+            tft.fillRect(segX, progY + 3, segW, progH - 6, RGB565(0, 120 + s * 8, 180 + s * 4));
+        } else if (s == activeSegments - 1) {
+            tft.fillRect(segX, progY + 3, segW, progH - 6, COLOR_WHITE);
+        } else {
+            tft.fillRect(segX, progY + 3, segW, progH - 6, RGB565(14, 22, 32));
+        }
+    }
     
-    Serial.println(F("[SCREEN] Premium Sending screen displayed"));
+    // 7. Bottom Safety Banner (y = 208 to 232)
+    int botY = 208;
+    int botH = 24;
+    tft.fillRect(8, botY, 304, botH, RGB565(12, 18, 28));
+    tft.drawRect(8, botY, 304, botH, RGB565(30, 44, 65));
+    
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_AMBER);
+    tft.setCursor(14, botY + 7);
+    tft.print(F("[TX ENERGIZED]"));
+    tft.setTextColor(COLOR_WHITE);
+    tft.setCursor(102, botY + 7);
+    tft.print(F("AIRTIME ACTIVE - DO NOT POWER OFF"));
+    
+    // Signature bottom gradient hairline
+    drawGradientH(6, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 12, 2, COLOR_CYAN_DARK, COLOR_PURPLE_DARK);
+    
+    Serial.println(F("[SCREEN] Tactical Sending screen displayed"));
 }
 
 void drawResultScreen() {
     if (lastTransmitSuccess) {
-        drawGradientV(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, RGB565(15, 60, 35), COLOR_GREEN_DARK);
-        drawGradientV(0, HEADER_HEIGHT + 1, SCREEN_WIDTH, SCREEN_HEIGHT - HEADER_HEIGHT - 1, RGB565(10, 40, 25), RGB565(5, 20, 12));
-        tft.drawFastHLine(0, HEADER_HEIGHT - 1, SCREEN_WIDTH, COLOR_GREEN_BRIGHT);
-        tft.drawFastHLine(0, HEADER_HEIGHT, SCREEN_WIDTH, COLOR_GREEN);
+        // ═══════════════════════════════════════════════════════════════════════
+        //                      SUCCESS RESULT SCREEN
+        // ═══════════════════════════════════════════════════════════════════════
+        tft.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, RGB565(6, 16, 12));
         
-        tft.setTextSize(TEXT_MEDIUM);
-        tft.setTextColor(COLOR_TEXT_PRIMARY);
-        tft.setCursor(MARGIN, (HEADER_HEIGHT - 14) / 2);
-        tft.print(F("TRANSMISSION SUCCESS"));
+        // Dual perimeter hairlines
+        tft.drawFastHLine(2, 2, SCREEN_WIDTH - 4, RGB565(15, 45, 30));
+        tft.drawFastHLine(4, 4, SCREEN_WIDTH - 8, RGB565(10, 30, 20));
+        tft.drawFastHLine(2, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 4, RGB565(15, 45, 30));
+        tft.drawFastHLine(4, SCREEN_HEIGHT - 5, SCREEN_WIDTH - 8, RGB565(10, 30, 20));
+        tft.drawFastVLine(2, 2, SCREEN_HEIGHT - 4, RGB565(15, 45, 30));
+        tft.drawFastVLine(SCREEN_WIDTH - 3, 2, SCREEN_HEIGHT - 4, RGB565(15, 45, 30));
+        tft.drawFastVLine(4, 4, SCREEN_HEIGHT - 8, RGB565(10, 30, 20));
+        tft.drawFastVLine(SCREEN_WIDTH - 5, 4, SCREEN_HEIGHT - 8, RGB565(10, 30, 20));
         
-        int cx = SCREEN_WIDTH / 2;
-        int cy = 92;
-        int circleRadius = 30;
+        // Emerald Corner Registration Marks
+        int mDist = 8;
+        tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_GREEN_DARK);
+        tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_GREEN_DARK);
+        tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_GREEN_DARK);
+        tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_GREEN_DARK);
+        tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_GREEN_DARK);
+        tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_GREEN_DARK);
+        tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_GREEN_DARK);
+        tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_GREEN_DARK);
         
-        for (int g = 4; g > 0; g--) {
-            uint16_t glowColor = RGB565(0, 70 - g*14, 35 - g*7);
-            tft.drawCircle(cx, cy, circleRadius + g*3, glowColor);
-        }
+        // Top Header Telemetry Strip
+        int topStripY = 6;
+        int topStripH = 16;
+        tft.fillRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(10, 34, 20));
+        tft.drawRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(25, 75, 45));
+        tft.drawFastHLine(6, topStripY + topStripH, SCREEN_WIDTH - 12, COLOR_GREEN_BRIGHT);
         
-        tft.fillCircle(cx, cy, circleRadius, COLOR_GREEN);
-        tft.drawCircle(cx - 4, cy - 4, circleRadius - 4, COLOR_GREEN_BRIGHT);
+        // Green LED
+        tft.fillRect(10, topStripY + 4, 8, 8, COLOR_GREEN_BRIGHT);
+        tft.drawRect(9, topStripY + 3, 10, 10, COLOR_WHITE);
         
-        for (int t = -3; t <= 3; t++) {
-            tft.drawLine(cx - 14, cy + t, cx - 4, cy + 12 + t, COLOR_TEXT_DARK);
-            tft.drawLine(cx - 4, cy + 12 + t, cx + 16, cy - 10 + t, COLOR_TEXT_DARK);
-        }
-        
-        int successCardY = 138;
-        int successCardH = 50;
-        int successCardW = SCREEN_WIDTH - MARGIN * 2;
-        drawPremiumCard(MARGIN, successCardY, successCardW, successCardH, COLOR_BG_CARD, COLOR_GREEN_DARK);
-        tft.fillRect(MARGIN, successCardY, 5, successCardH, COLOR_GREEN);
-        
-        tft.setTextSize(TEXT_MEDIUM);
+        tft.setTextSize(TEXT_SMALL);
         tft.setTextColor(COLOR_GREEN_BRIGHT);
-        tft.setCursor(MARGIN + 16, successCardY + 10);
-        tft.print(F("Message Sent!"));
+        tft.setCursor(24, topStripY + 4);
+        char unitTag[24];
+        sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
+        tft.print(unitTag);
+        
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(144, topStripY + 4);
+        tft.print(F("BROADCAST CONFIRMED // ACK"));
+        
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(266, topStripY + 4);
+        tft.print(F("STATUS:OK"));
+        
+        // Sub-header Breadcrumb (y = 25)
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(8, 25);
+        tft.print(F("LoRa SPU BASE STATION ACKNOWLEDGED // 2-WAY HANDSHAKE"));
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(252, 25);
+        tft.print(F("SNR:+10dB"));
+        
+        // Hero Tactical Success Reticle & Checkmark Emblem (y = 36 to 116)
+        int cx = SCREEN_WIDTH / 2; // 160
+        int cy = 66;
+        
+        // Crosshairs
+        tft.drawFastHLine(cx - 60, cy, 120, RGB565(15, 45, 30));
+        tft.drawFastVLine(cx, cy - 28, 56, RGB565(15, 45, 30));
+        
+        // Reticle rings
+        tft.drawCircle(cx, cy, 32, RGB565(0, 70, 40));
+        tft.drawCircle(cx, cy, 33, RGB565(0, 90, 50));
+        tft.drawCircle(cx, cy, 24, COLOR_GREEN_DARK);
+        tft.drawCircle(cx, cy, 25, COLOR_GREEN_BRIGHT);
+        
+        // Center Sharp Emerald Badge
+        tft.fillRect(cx - 16, cy - 16, 33, 33, RGB565(8, 42, 24));
+        tft.drawRect(cx - 16, cy - 16, 33, 33, COLOR_GREEN_BRIGHT);
+        tft.drawRect(cx - 15, cy - 15, 31, 31, COLOR_WHITE);
+        
+        // Razor-sharp military checkmark
+        for (int t = -2; t <= 2; t++) {
+            tft.drawLine(cx - 9, cy + t, cx - 3, cy + 7 + t, COLOR_WHITE);
+            tft.drawLine(cx - 3, cy + 7 + t, cx + 10, cy - 7 + t, COLOR_WHITE);
+        }
+        
+        // Headline with shadow
+        tft.setTextSize(TEXT_MEDIUM);
+        tft.setTextColor(RGB565(0, 20, 10));
+        tft.setCursor(cx - 105, 96);
+        tft.print(F("BROADCAST DELIVERED!"));
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(cx - 106, 95);
+        tft.print(F("BROADCAST DELIVERED!"));
         
         tft.setTextSize(TEXT_SMALL);
         tft.setTextColor(COLOR_TEXT_SECONDARY);
-        tft.setCursor(MARGIN + 16, successCardY + 32);
-        tft.print(F("Alert: "));
-        tft.setTextColor(COLOR_TEXT_PRIMARY);
-        tft.print(alertNamesShort[selectedAlertIndex]);
+        tft.setCursor(cx - 96, 111);
+        tft.print(F("EMERGENCY PACKET RECEIVED BY SPU GATEWAY"));
         
-        int autoReturnY = SCREEN_HEIGHT - 38;
-        int autoReturnH = 26;
-        tft.fillRoundRect(MARGIN * 2, autoReturnY, SCREEN_WIDTH - MARGIN * 4, autoReturnH, 4, RGB565(15, 30, 20));
-        drawCenteredText("Returning to menu...", autoReturnY + 9, TEXT_SMALL, COLOR_TEXT_MUTED);
+        // Dispatch Telemetry Card (y = 124 to 178)
+        int sCardY = 124;
+        int sCardH = 54;
+        tft.fillRect(8, sCardY, 304, sCardH, RGB565(10, 24, 18));
+        tft.drawRect(8, sCardY, 304, sCardH, RGB565(25, 65, 45));
+        tft.drawFastHLine(9, sCardY + 1, 302, COLOR_GREEN_DARK);
+        
+        // Left 5px priority bar
+        tft.fillRect(8, sCardY, 5, sCardH, COLOR_GREEN_BRIGHT);
+        
+        // Corner ticks
+        tft.drawFastHLine(8, sCardY, 4, COLOR_WHITE);
+        tft.drawFastVLine(8, sCardY, 4, COLOR_WHITE);
+        tft.drawFastHLine(308, sCardY, 4, COLOR_WHITE);
+        tft.drawFastVLine(311, sCardY, 4, COLOR_WHITE);
+        tft.drawFastHLine(8, sCardY + sCardH - 1, 4, COLOR_WHITE);
+        tft.drawFastVLine(8, sCardY + sCardH - 4, 4, COLOR_WHITE);
+        tft.drawFastHLine(308, sCardY + sCardH - 1, 4, COLOR_WHITE);
+        tft.drawFastVLine(311, sCardY + sCardH - 4, 4, COLOR_WHITE);
+        
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(18, sCardY + 8);
+        tft.print(F("ALERT CONFIRMED: "));
+        tft.setTextColor(COLOR_WHITE);
+        tft.print(alertNames[selectedAlertIndex]);
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(18, sCardY + 23);
+        tft.print(F("GATEWAY ACK ID:  "));
+        tft.setTextColor(COLOR_CYAN_BRIGHT);
+        tft.print(F("BASE-01 (RSSI -74 dBm)"));
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(18, sCardY + 38);
+        tft.print(F("TELEMETRY LOG:   "));
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.print(F("VERIFIED // RETRIES: 0"));
+        
+        // Right code badge
+        int rBadgeW = 38;
+        int rBadgeH = 22;
+        int rBadgeX = 304 - rBadgeW;
+        int rBadgeY = sCardY + 8;
+        tft.fillRect(rBadgeX, rBadgeY, rBadgeW, rBadgeH, RGB565(15, 36, 26));
+        tft.drawRect(rBadgeX, rBadgeY, rBadgeW, rBadgeH, COLOR_GREEN_BRIGHT);
+        tft.setTextSize(TEXT_MEDIUM);
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(rBadgeX + 6, rBadgeY + 3);
+        tft.print('[');
+        tft.print(getAlertCode(selectedAlertIndex));
+        tft.print(']');
+        
+        // Command Deck & Auto-Return Countdown Rail (y = 184 to 232)
+        int autoY = 184;
+        int autoH = 20;
+        tft.fillRect(8, autoY, 304, autoH, RGB565(8, 24, 16));
+        tft.drawRect(8, autoY, 304, autoH, COLOR_GREEN_DARK);
+        
+        int segs = 20;
+        int segW = (304 - 6 - (segs - 1) * 2) / segs;
+        for (int s = 0; s < segs; s++) {
+            tft.fillRect(11 + s * (segW + 2), autoY + 3, segW, autoH - 6, RGB565(0, 140, 75));
+        }
+        
+        int promptY = 208;
+        int promptH = 24;
+        tft.fillRect(8, promptY, 304, promptH, RGB565(10, 26, 18));
+        tft.drawRect(8, promptY, 304, promptH, RGB565(25, 65, 45));
+        
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(14, promptY + 7);
+        tft.print(F("[ANY KEY]"));
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(80, promptY + 7);
+        tft.print(F("RETURN TO MENU (AUTO IN 4s)"));
+        
+        // Signature bottom gradient hairline
+        drawGradientH(6, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 12, 2, COLOR_GREEN_DARK, COLOR_CYAN_DARK);
         
         setLED(LED_GREEN, true);
         setLED(LED_RED, false);
         playSuccessTone();
         
     } else {
-        drawGradientV(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, RGB565(70, 20, 20), COLOR_RED_DARK);
-        drawGradientV(0, HEADER_HEIGHT + 1, SCREEN_WIDTH, SCREEN_HEIGHT - HEADER_HEIGHT - 1, RGB565(45, 15, 15), RGB565(20, 8, 8));
-        tft.drawFastHLine(0, HEADER_HEIGHT - 1, SCREEN_WIDTH, COLOR_RED_BRIGHT);
-        tft.drawFastHLine(0, HEADER_HEIGHT, SCREEN_WIDTH, COLOR_RED);
+        // ═══════════════════════════════════════════════════════════════════════
+        //                      FAILURE RESULT SCREEN
+        // ═══════════════════════════════════════════════════════════════════════
+        tft.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, RGB565(18, 8, 10));
+        
+        // Dual perimeter hairlines
+        tft.drawFastHLine(2, 2, SCREEN_WIDTH - 4, RGB565(55, 20, 25));
+        tft.drawFastHLine(4, 4, SCREEN_WIDTH - 8, RGB565(35, 12, 16));
+        tft.drawFastHLine(2, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 4, RGB565(55, 20, 25));
+        tft.drawFastHLine(4, SCREEN_HEIGHT - 5, SCREEN_WIDTH - 8, RGB565(35, 12, 16));
+        tft.drawFastVLine(2, 2, SCREEN_HEIGHT - 4, RGB565(55, 20, 25));
+        tft.drawFastVLine(SCREEN_WIDTH - 3, 2, SCREEN_HEIGHT - 4, RGB565(55, 20, 25));
+        tft.drawFastVLine(4, 4, SCREEN_HEIGHT - 8, RGB565(35, 12, 16));
+        tft.drawFastVLine(SCREEN_WIDTH - 5, 4, SCREEN_HEIGHT - 8, RGB565(35, 12, 16));
+        
+        // Red Corner Registration Marks
+        int mDist = 8;
+        tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_RED_DARK);
+        tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_RED_DARK);
+        tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_RED_DARK);
+        tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_RED_DARK);
+        tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_RED_DARK);
+        tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_RED_DARK);
+        tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_RED_DARK);
+        tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_RED_DARK);
+        
+        // Top Header Telemetry Strip
+        int topStripY = 6;
+        int topStripH = 16;
+        tft.fillRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(36, 12, 16));
+        tft.drawRect(6, topStripY, SCREEN_WIDTH - 12, topStripH, RGB565(85, 25, 30));
+        tft.drawFastHLine(6, topStripY + topStripH, SCREEN_WIDTH - 12, COLOR_RED);
+        
+        // Red LED
+        tft.fillRect(10, topStripY + 4, 8, 8, COLOR_RED);
+        tft.drawRect(9, topStripY + 3, 10, 10, COLOR_WHITE);
+        
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_RED_BRIGHT);
+        tft.setCursor(24, topStripY + 4);
+        char unitTag[24];
+        sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
+        tft.print(unitTag);
+        
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(144, topStripY + 4);
+        tft.print(F("TRANSMISSION FAILED // NO ACK"));
+        
+        tft.setTextColor(COLOR_RED_BRIGHT);
+        tft.setCursor(266, topStripY + 4);
+        tft.print(F("STATUS:ERR"));
+        
+        // Sub-header Breadcrumb (y = 25)
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_RED_BRIGHT);
+        tft.setCursor(8, 25);
+        tft.print(F("NO SPU BASE STATION ACKNOWLEDGED // RETRY REQUIRED"));
+        tft.setTextColor(COLOR_AMBER);
+        tft.setCursor(248, 25);
+        tft.print(F("TIMEOUT"));
+        
+        // Hero Tactical Hazard Reticle & Cross Emblem (y = 36 to 116)
+        int cx = SCREEN_WIDTH / 2; // 160
+        int cy = 66;
+        
+        // Crosshairs
+        tft.drawFastHLine(cx - 60, cy, 120, RGB565(45, 18, 20));
+        tft.drawFastVLine(cx, cy - 28, 56, RGB565(45, 18, 20));
+        
+        // Reticle rings
+        tft.drawCircle(cx, cy, 32, RGB565(75, 20, 25));
+        tft.drawCircle(cx, cy, 33, RGB565(95, 25, 30));
+        tft.drawCircle(cx, cy, 24, COLOR_RED_DARK);
+        tft.drawCircle(cx, cy, 25, COLOR_RED);
+        
+        // Center Sharp Red Badge
+        tft.fillRect(cx - 16, cy - 16, 33, 33, RGB565(48, 10, 14));
+        tft.drawRect(cx - 16, cy - 16, 33, 33, COLOR_RED);
+        tft.drawRect(cx - 15, cy - 15, 31, 31, COLOR_WHITE);
+        
+        // Razor-sharp military Cross [X]
+        for (int t = -2; t <= 2; t++) {
+            tft.drawLine(cx - 9 + t, cy - 9, cx + 9 + t, cy + 9, COLOR_WHITE);
+            tft.drawLine(cx - 9 + t, cy + 9, cx + 9 + t, cy - 9, COLOR_WHITE);
+        }
+        
+        // Headline with shadow
+        tft.setTextSize(TEXT_MEDIUM);
+        tft.setTextColor(RGB565(25, 5, 8));
+        tft.setCursor(cx - 100, 96);
+        tft.print(F("TRANSMISSION FAILED!"));
+        tft.setTextColor(COLOR_RED_BRIGHT);
+        tft.setCursor(cx - 101, 95);
+        tft.print(F("TRANSMISSION FAILED!"));
+        
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_AMBER);
+        tft.setCursor(cx - 110, 111);
+        tft.print(F("GATEWAY DID NOT ACKNOWLEDGE PACKET BROADCAST"));
+        
+        // Diagnostic & Attempt Card (y = 124 to 178)
+        int fCardY = 124;
+        int fCardH = 54;
+        tft.fillRect(8, fCardY, 304, fCardH, RGB565(26, 14, 18));
+        tft.drawRect(8, fCardY, 304, fCardH, RGB565(75, 25, 30));
+        tft.drawFastHLine(9, fCardY + 1, 302, COLOR_RED_DARK);
+        
+        // Left 5px solid red bar
+        tft.fillRect(8, fCardY, 5, fCardH, COLOR_RED);
+        
+        // Corner ticks
+        tft.drawFastHLine(8, fCardY, 4, COLOR_WHITE);
+        tft.drawFastVLine(8, fCardY, 4, COLOR_WHITE);
+        tft.drawFastHLine(308, fCardY, 4, COLOR_WHITE);
+        tft.drawFastVLine(311, fCardY, 4, COLOR_WHITE);
+        tft.drawFastHLine(8, fCardY + fCardH - 1, 4, COLOR_WHITE);
+        tft.drawFastVLine(8, fCardY + fCardH - 4, 4, COLOR_WHITE);
+        tft.drawFastHLine(308, fCardY + fCardH - 1, 4, COLOR_WHITE);
+        tft.drawFastVLine(311, fCardY + fCardH - 4, 4, COLOR_WHITE);
+        
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(18, fCardY + 8);
+        tft.print(F("ATTEMPT:         "));
+        char attStr[32];
+        sprintf(attStr, "ATTEMPT %d OF %d FAILED", retryCount + 1, MAX_RETRY_ATTEMPTS);
+        tft.setTextColor(COLOR_RED_BRIGHT);
+        tft.print(attStr);
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(18, fCardY + 23);
+        tft.print(F("RF DIAGNOSTIC:   "));
+        tft.setTextColor(COLOR_AMBER);
+        tft.print(F("UPLINK TIMEOUT // NO BASE ACK"));
+        
+        tft.setTextColor(COLOR_TEXT_MUTED);
+        tft.setCursor(18, fCardY + 38);
+        tft.print(F("TACTICAL ADVICE: "));
+        tft.setTextColor(COLOR_WHITE);
+        tft.print(F("EXTEND ANTENNA / MOVE TO HIGHER GROUND"));
+        
+        // Command Deck Action Buttons (y = 184, h = 42)
+        int failBtnY = 184;
+        int failBtnW = 148;
+        int failBtnH = 42;
+        
+        // Left: [* RETRY SEND]
+        int retryBtnX = 8;
+        tft.fillRect(retryBtnX, failBtnY, failBtnW, failBtnH, RGB565(45, 30, 8));
+        tft.drawRect(retryBtnX, failBtnY, failBtnW, failBtnH, COLOR_AMBER_BRIGHT);
+        tft.drawRect(retryBtnX + 1, failBtnY + 1, failBtnW - 2, failBtnH - 2, COLOR_AMBER_DARK);
+        tft.drawFastHLine(retryBtnX + 2, failBtnY + 2, failBtnW - 4, COLOR_WHITE);
+        
+        tft.fillRect(retryBtnX + 8, failBtnY + 16, 8, 8, COLOR_AMBER_BRIGHT);
+        tft.drawRect(retryBtnX + 7, failBtnY + 15, 10, 10, COLOR_WHITE);
         
         tft.setTextSize(TEXT_MEDIUM);
-        tft.setTextColor(COLOR_TEXT_PRIMARY);
-        tft.setCursor(MARGIN, (HEADER_HEIGHT - 14) / 2);
-        tft.print(F("TRANSMISSION FAILED"));
-        
-        int cx = SCREEN_WIDTH / 2;
-        int cy = 88;
-        int circleRadius = 30;
-        
-        for (int g = 4; g > 0; g--) {
-            uint16_t glowColor = RGB565(70 - g*14, 18 - g*3, 18 - g*3);
-            tft.drawCircle(cx, cy, circleRadius + g*3, glowColor);
-        }
-        
-        tft.fillCircle(cx, cy, circleRadius, COLOR_CYAN);
-        
-        int xSize = 14;
-        for (int t = -3; t <= 3; t++) {
-            tft.drawLine(cx - xSize + t, cy - xSize, cx + xSize + t, cy + xSize, COLOR_TEXT_PRIMARY);
-            tft.drawLine(cx + xSize + t, cy - xSize, cx - xSize + t, cy + xSize, COLOR_TEXT_PRIMARY);
-        }
-        
-        drawCenteredText("Send Failed!", 138, TEXT_LARGE, COLOR_CYAN);
-        
-        int retryCardY = 166;
-        int retryCardH = 32;
-        int retryCardW = SCREEN_WIDTH - MARGIN * 2;
-        drawPremiumCard(MARGIN, retryCardY, retryCardW, retryCardH, COLOR_BG_CARD, COLOR_BORDER);
-        
-        char retryStr[32];
-        sprintf(retryStr, "Attempt %d of %d failed", retryCount + 1, MAX_RETRY_ATTEMPTS);
-        drawCenteredText(retryStr, retryCardY + 10, TEXT_SMALL, COLOR_TEXT_SECONDARY);
-        
-        int failBtnY = SCREEN_HEIGHT - 52;
-        int failBtnW = 100;
-        int failBtnH = 36;
-        int failBtnGap = 20;
-        int failBtnTotalW = (failBtnW * 2) + failBtnGap;
-        int failBtnStartX = (SCREEN_WIDTH - failBtnTotalW) / 2;
-        
-        for (int g = 2; g >= 0; g--) {
-            uint16_t glowColor = RGB565(50 - g*15, 40 - g*12, 0);
-            tft.fillRoundRect(failBtnStartX - g, failBtnY - g, failBtnW + g*2, failBtnH + g*2, 5, glowColor);
-        }
-        tft.fillRoundRect(failBtnStartX, failBtnY, failBtnW, failBtnH, 5, COLOR_AMBER);
-        tft.drawFastHLine(failBtnStartX + 6, failBtnY + 3, failBtnW - 12, COLOR_AMBER_BRIGHT);
-        
-        tft.setTextSize(TEXT_MEDIUM);
-        tft.setTextColor(COLOR_TEXT_DARK);
-        int16_t rtx, rty;
-        uint16_t rtw, rth;
-        tft.getTextBounds("* RETRY", 0, 0, &rtx, &rty, &rtw, &rth);
-        tft.setCursor(failBtnStartX + (failBtnW - rtw) / 2, failBtnY + (failBtnH - rth) / 2);
+        tft.setTextColor(RGB565(25, 15, 0));
+        tft.setCursor(retryBtnX + 25, failBtnY + 8);
+        tft.print(F("* RETRY"));
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(retryBtnX + 24, failBtnY + 7);
         tft.print(F("* RETRY"));
         
-        int menuBtnX = failBtnStartX + failBtnW + failBtnGap;
-        tft.fillRoundRect(menuBtnX, failBtnY, failBtnW, failBtnH, 5, COLOR_BG_CARD);
-        tft.drawRoundRect(menuBtnX, failBtnY, failBtnW, failBtnH, 5, COLOR_TEXT_SECONDARY);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.setCursor(retryBtnX + 24, failBtnY + 25);
+        char retrySub[24];
+        sprintf(retrySub, "TRY %d OF %d", min(retryCount + 2, MAX_RETRY_ATTEMPTS), MAX_RETRY_ATTEMPTS);
+        tft.print(retrySub);
         
-        tft.setTextColor(COLOR_TEXT_SECONDARY);
-        tft.getTextBounds("# MENU", 0, 0, &rtx, &rty, &rtw, &rth);
-        tft.setCursor(menuBtnX + (failBtnW - rtw) / 2, failBtnY + (failBtnH - rth) / 2);
+        // Right: [# ABORT / MENU]
+        int menuBtnX = 164;
+        tft.fillRect(menuBtnX, failBtnY, failBtnW, failBtnH, RGB565(18, 24, 34));
+        tft.drawRect(menuBtnX, failBtnY, failBtnW, failBtnH, RGB565(60, 80, 110));
+        tft.drawRect(menuBtnX + 1, failBtnY + 1, failBtnW - 2, failBtnH - 2, RGB565(35, 50, 75));
+        tft.drawFastHLine(menuBtnX + 2, failBtnY + 2, failBtnW - 4, COLOR_WHITE);
+        
+        tft.fillRect(menuBtnX + 8, failBtnY + 16, 8, 8, COLOR_TEXT_MUTED);
+        tft.drawRect(menuBtnX + 7, failBtnY + 15, 10, 10, COLOR_WHITE);
+        
+        tft.setTextSize(TEXT_MEDIUM);
+        tft.setTextColor(RGB565(5, 10, 15));
+        tft.setCursor(menuBtnX + 25, failBtnY + 8);
         tft.print(F("# MENU"));
+        tft.setTextColor(COLOR_WHITE);
+        tft.setCursor(menuBtnX + 24, failBtnY + 7);
+        tft.print(F("# MENU"));
+        
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_TEXT_SECONDARY);
+        tft.setCursor(menuBtnX + 24, failBtnY + 25);
+        tft.print(F("ABORT DISPATCH"));
+        
+        // Signature bottom gradient hairline
+        drawGradientH(6, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 12, 2, COLOR_RED_DARK, COLOR_AMBER_DARK);
         
         setLED(LED_GREEN, false);
         setLED(LED_RED, true);
@@ -1029,7 +1661,7 @@ void drawResultScreen() {
     }
     
     resultStartTime = millis();
-    Serial.printf("[SCREEN] Premium Result: %s\n", lastTransmitSuccess ? "SUCCESS" : "FAILED");
+    Serial.printf("[SCREEN] Tactical Result: %s\n", lastTransmitSuccess ? "SUCCESS" : "FAILED");
 }
 
 void drawSystemInfoScreen() {
