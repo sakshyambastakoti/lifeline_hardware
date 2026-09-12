@@ -91,9 +91,10 @@
        FIT THE WHOLE THING IN ONE SCREEN FRAME (100vh / 100dvh)
        ══════════════════════════════════════════════════════════ */
     html, body {
-      height: 100%;
-      height: 100dvh;
-      overflow: hidden;
+      min-height: 100%;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
       background-color: var(--canvas);
       color: var(--text-main);
       transition: background-color 0.25s ease, color 0.25s ease;
@@ -104,13 +105,13 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 14px 20px;
+      padding: 10px 16px;
     }
 
     .screen-frame {
       width: 100%;
       max-width: 1100px;
-      max-height: 96vh;
+      min-height: 94vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -239,10 +240,10 @@
       border: 1px solid var(--card-border);
       background: var(--card-outer);
       border-radius: 0px;
-      padding: 22px;
+      padding: 16px 20px;
       display: grid;
       grid-template-columns: 1.25fr 1fr;
-      gap: 20px;
+      gap: 16px;
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
     }
 
@@ -251,7 +252,9 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 280px;
+      min-height: 250px;
+      overflow-y: auto;
+      scrollbar-width: thin;
     }
 
     .service-head h2 {
@@ -309,12 +312,12 @@
 
     .input-box {
       width: 100%;
-      padding: 7px 11px;
+      padding: 5px 9px;
       border: 1px solid var(--input-border);
       background: var(--input-bg);
       color: var(--text-main);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
+      font-size: 11px;
       outline: none;
       border-radius: 0px;
     }
@@ -323,21 +326,21 @@
       border-color: var(--text-main);
     }
 
-    /* Compact Wi-Fi Multi-Slots */
+    /* Compact Wi-Fi Multi-Slots (All 3 Slots Fit on 1 Screen) */
     .wifi-slot-mini {
       background: var(--card-inner);
       border: 1px solid var(--card-inner-border);
-      padding: 8px 10px;
-      margin-bottom: 8px;
+      padding: 5px 9px;
+      margin-bottom: 5px;
     }
 
     .wifi-slot-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
       color: var(--text-muted);
     }
@@ -345,7 +348,7 @@
     .slot-row {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
-      gap: 6px;
+      gap: 5px;
     }
 
     /* Upload Zone */
@@ -888,6 +891,7 @@
       const desc = document.getElementById('service_desc');
       const steps = document.getElementById('steps_container');
       const hero = document.getElementById('page_hero_title');
+      const checklist = document.getElementById('service_checklist');
 
       [tabOta, tabWifi, tabApi].forEach(t => t.classList.remove('active'));
       [formOta, formWifi, formApi].forEach(f => f.style.display = 'none');
@@ -895,6 +899,7 @@
       if (service === 'ota') {
         tabOta.classList.add('active');
         formOta.style.display = 'block';
+        if (checklist) checklist.style.display = 'grid';
         title.textContent = 'Wireless OTA Firmware Flash';
         desc.textContent = 'Wireless firmware flashing with dual-partition roll-back safety & LCD sync.';
         hero.textContent = 'Three services. One base station.';
@@ -907,6 +912,7 @@
       } else if (service === 'wifi') {
         tabWifi.classList.add('active');
         formWifi.style.display = 'block';
+        if (checklist) checklist.style.display = 'none';
         title.textContent = 'Tri-Network Wi-Fi Failover';
         desc.textContent = 'Store up to 3 Wi-Fi network credentials for zero-downtime internet telemetry.';
         hero.textContent = 'Triple Redundancy. Continuous Link.';
@@ -919,6 +925,7 @@
       } else {
         tabApi.classList.add('active');
         formApi.style.display = 'block';
+        if (checklist) checklist.style.display = 'none';
         title.textContent = 'Cloud REST API Webhook';
         desc.textContent = 'Configure centralized server endpoint where incoming LoRa packets are forwarded.';
         hero.textContent = 'Cloud Forwarding. Live Ingestion.';
