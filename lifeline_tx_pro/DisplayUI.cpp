@@ -1024,7 +1024,13 @@ void drawConfirmScreen() {
     Serial.println(F("[SCREEN] Tactical Confirm screen displayed"));
 }
 
+static int sendingAnimFrame = 0;
+static unsigned long lastSendingAnimTime = 0;
+
 void drawSendingScreen() {
+    sendingAnimFrame = 0;
+    lastSendingAnimTime = 0;
+    
     // 1. Deep tactical dark background
     tft.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, RGB565(8, 12, 18));
     
@@ -1240,6 +1246,83 @@ void drawSendingScreen() {
     drawGradientH(6, SCREEN_HEIGHT - 3, SCREEN_WIDTH - 12, 2, COLOR_CYAN_DARK, COLOR_PURPLE_DARK);
     
     Serial.println(F("[SCREEN] Tactical Sending screen displayed"));
+}
+
+void updateSendingAnimation() {
+    if (currentScreen != SCREEN_SENDING) return;
+    
+    unsigned long now = millis();
+    if (now - lastSendingAnimTime < 50) return; // ~20 FPS throttle
+    lastSendingAnimTime = now;
+    sendingAnimFrame++;
+
+    int cx = SCREEN_WIDTH / 2; // 160
+    int cy = 80;
+
+    // 1. Radar Sonar Ripple Waves
+    const int ringRadii[] = { 12, 23, 34, 46 };
+    int activeRing = (sendingAnimFrame / 2) % 4;
+    
+    for (int r = 0; r < 4; r++) {
+        uint16_t col;
+        if (r == activeRing) {
+            col = COLOR_WHITE;
+        } else if (r == (activeRing + 3) % 4) {
+            col = COLOR_CYAN_BRIGHT;
+        } else {
+            col = RGB565(0, 35 + r * 15, 60 + r * 20);
+        }
+        tft.drawCircle(cx, cy, ringRadii[r], col);
+        tft.drawCircle(cx, cy, ringRadii[r] + 1, (r == activeRing) ? COLOR_CYAN_BRIGHT : col);
+    }
+
+    // Center Transmitter Beacon Core Pulse
+    if ((sendingAnimFrame % 4) < 2) {
+        tft.fillRect(cx - 4, cy - 4, 9, 9, COLOR_WHITE);
+        tft.drawRect(cx - 5, cy - 5, 11, 11, COLOR_CYAN_BRIGHT);
+    } else {
+        tft.fillRect(cx - 4, cy - 4, 9, 9, COLOR_CYAN_BRIGHT);
+        tft.drawRect(cx - 5, cy - 5, 11, 11, COLOR_WHITE);
+    }
+
+    // Top Header Telemetry Strip Strobe Beacon
+    int topStripY = 6;
+    uint16_t topBeaconCol = (sendingAnimFrame % 2 == 0) ? COLOR_WHITE : COLOR_CYAN_BRIGHT;
+    tft.fillRect(10, topStripY + 4, 8, 8, topBeaconCol);
+
+    // 2. Animated Progress Bar (Moving Wavefront / Continuous Sweep)
+    int progY = 184;
+    int progH = 20;
+    int numSegments = 20;
+    int segSpacing = 2;
+    int totalInnerW = 304 - 6;
+    int segW = (totalInnerW - (numSegments - 1) * segSpacing) / numSegments;
+    
+    // Wave cycles across 0..24 (20 segments + 5 hold frames)
+    int waveCycle = 25;
+    int headPos = sendingAnimFrame % waveCycle;
+
+    for (int s = 0; s < numSegments; s++) {
+        int segX = 11 + s * (segW + segSpacing);
+        uint16_t segCol;
+        
+        if (headPos < numSegments) {
+            if (s < headPos) {
+                // Trailing filled gradient
+                segCol = RGB565(0, 90 + s * 6, 150 + s * 5);
+            } else if (s == headPos) {
+                // Leading bright white tip
+                segCol = COLOR_WHITE;
+            } else {
+                // Empty background slot
+                segCol = RGB565(14, 22, 32);
+            }
+        } else {
+            // Full bar pulse at peak before looping
+            segCol = ((sendingAnimFrame % 2) == 0) ? RGB565(0, 180, 240) : RGB565(0, 140, 200);
+        }
+        tft.fillRect(segX, progY + 3, segW, progH - 6, segCol);
+    }
 }
 
 void drawResultScreen() {

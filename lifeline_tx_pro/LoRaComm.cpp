@@ -181,6 +181,8 @@ static bool waitForDownlinkACK(unsigned long timeoutMs) {
     Serial.printf("[LORA ACK] Listening for downlink ACK window (%lu ms)...\n", timeoutMs);
 
     while (millis() - startTime < timeoutMs) {
+        updateSendingAnimation();
+        updateLEDs();
         int packetSize = LoRa.parsePacket();
         if (packetSize > 0) {
             String ackData = "";
@@ -260,7 +262,12 @@ bool transmitAlertWithAck(int alertIdx) {
             // Collision-avoidance backoff with randomized jitter
             unsigned long backoff = 400 + (attempt * 300) + random(100, 400);
             Serial.printf("[LORA] No ACK. Retrying in %lu ms...\n", backoff);
-            delay(backoff);
+            unsigned long bStart = millis();
+            while (millis() - bStart < backoff) {
+                updateSendingAnimation();
+                updateLEDs();
+                delay(10);
+            }
         }
     }
 

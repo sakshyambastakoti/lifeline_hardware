@@ -38,6 +38,7 @@ void updateMenuSelection(int oldIndex, int newIndex);
 void drawMenuScreen();
 void drawConfirmScreen();
 void drawSendingScreen();
+void updateSendingAnimation();
 void drawResultScreen();
 void drawSystemInfoScreen();
 void drawUserManualScreen();

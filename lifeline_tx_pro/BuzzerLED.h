@@ -6,6 +6,7 @@
 void initBuzzerLED();
 void setLED(uint8_t pin, bool state);
 void clearAllLEDs();
+void updateLEDs();
 
 void playSuccessTone();
 void playErrorTone();

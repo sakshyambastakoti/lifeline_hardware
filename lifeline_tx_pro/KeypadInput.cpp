@@ -1,6 +1,7 @@
 #include "KeypadInput.h"
 #include "OTAManager.h"
 #include "BLEManager.h"
+#include "BuzzerLED.h"
 
 const byte KEYPAD_ROWS = 4;
 const byte KEYPAD_COLS = 4;
@@ -46,6 +47,7 @@ void initKeypad() {
 
 char getKeyWithRepeat() {
     char key = keypad.getKey();
+    updateLEDs();
     static char heldNavKey = '\0';
     static unsigned long holdStartTime = 0;
     static unsigned long lastRepeatTime = 0;

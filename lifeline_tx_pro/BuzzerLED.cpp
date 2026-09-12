@@ -27,13 +27,36 @@ void initBuzzerLED() {
     executeBeep(2500, 50);
 }
 
+static bool stateGreen = false;
+static bool stateRed = false;
+
 void setLED(uint8_t pin, bool state) {
+    if (pin == LED_GREEN) stateGreen = state;
+    if (pin == LED_RED)   stateRed = state;
+    pinMode(pin, OUTPUT);
     digitalWrite(pin, state ? HIGH : LOW);
 }
 
 void clearAllLEDs() {
+    stateGreen = false;
+    stateRed = false;
+    pinMode(LED_GREEN, OUTPUT);
     digitalWrite(LED_GREEN, LOW);
+    pinMode(LED_RED, OUTPUT);
     digitalWrite(LED_RED, LOW);
+}
+
+void updateLEDs() {
+    // Continuously enforce desired LED output state
+    // Prevents matrix keypad scanning on shared/adjacent GPIOs from clearing or floating the LEDs
+    if (stateGreen) {
+        pinMode(LED_GREEN, OUTPUT);
+        digitalWrite(LED_GREEN, HIGH);
+    }
+    if (stateRed) {
+        pinMode(LED_RED, OUTPUT);
+        digitalWrite(LED_RED, HIGH);
+    }
 }
 
 void playSuccessTone() {

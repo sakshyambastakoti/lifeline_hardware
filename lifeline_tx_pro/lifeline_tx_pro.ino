@@ -56,6 +56,7 @@ void setup() {
 }
 
 void loop() {
+    updateLEDs();
     handleOTA();
     updateBLE();
     
@@ -143,6 +144,7 @@ void loop() {
             break;
             
         case SCREEN_SENDING:
+            updateSendingAnimation();
             break;
             
         case SCREEN_RESULT:
