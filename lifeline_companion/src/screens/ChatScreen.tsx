@@ -12,7 +12,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
 import { ChatMessage } from '../constants/ble';
-import { THEME } from '../constants/theme';
 
 const TACTICAL_MACROS = [
   'LANDSLIDE BLOCKING TRAIL',
@@ -22,7 +21,7 @@ const TACTICAL_MACROS = [
 ];
 
 export const ChatScreen: React.FC = () => {
-  const { connectionState, chatMessages, sendChatMessage } = useLifeLine();
+  const { connectionState, chatMessages, sendChatMessage, theme } = useLifeLine();
   const [inputText, setInputText] = useState('');
 
   const handleSend = async () => {
@@ -41,16 +40,23 @@ export const ChatScreen: React.FC = () => {
 
     return (
       <View style={[styles.msgWrapper, isOut ? styles.msgOutWrapper : styles.msgInWrapper]}>
-        <View style={[styles.bubble, isOut ? styles.bubbleOut : styles.bubbleIn]}>
+        <View
+          style={[
+            styles.bubble,
+            isOut
+              ? { backgroundColor: theme.colors.bg3, borderColor: theme.colors.borderStrong }
+              : { backgroundColor: theme.colors.bg2, borderColor: theme.colors.border },
+          ]}
+        >
           <View style={styles.msgHeader}>
-            <Text style={styles.senderText}>{item.sender.toUpperCase()}</Text>
+            <Text style={[styles.senderText, { color: theme.colors.text0 }]}>{item.sender.toUpperCase()}</Text>
             {item.rssi !== undefined && (
-              <Text style={styles.rssiTag}>{item.rssi} DBM</Text>
+              <Text style={[styles.rssiTag, { color: theme.colors.text3 }]}>{item.rssi} DBM</Text>
             )}
           </View>
-          <Text style={styles.msgText}>{item.text}</Text>
+          <Text style={[styles.msgText, { color: theme.colors.text1 }]}>{item.text}</Text>
           <View style={styles.msgFooter}>
-            <Text style={styles.timeText}>
+            <Text style={[styles.timeText, { color: theme.colors.text3 }]}>
               {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
             {isOut && (
@@ -66,9 +72,9 @@ export const ChatScreen: React.FC = () => {
                       : 'alert-circle'
                   }
                   size={12}
-                  color={item.status === 'CONFIRMED' ? THEME.colors.text0 : THEME.colors.text3}
+                  color={item.status === 'CONFIRMED' ? theme.colors.text0 : theme.colors.text3}
                 />
-                <Text style={styles.statusText}>
+                <Text style={[styles.statusText, { color: theme.colors.text2 }]}>
                   {item.status === 'CONFIRMED' ? 'LORA RELAY ACK' : item.status}
                 </Text>
               </View>
@@ -81,10 +87,10 @@ export const ChatScreen: React.FC = () => {
 
   if (connectionState !== 'CONNECTED') {
     return (
-      <View style={styles.disconnectedContainer}>
-        <Ionicons name="chatbubbles-outline" size={40} color={THEME.colors.text3} />
-        <Text style={styles.discTitle}>LORA MESH TERMINAL OFFLINE</Text>
-        <Text style={styles.discSub}>
+      <View style={[styles.disconnectedContainer, { backgroundColor: theme.colors.bg0 }]}>
+        <Ionicons name="chatbubbles-outline" size={40} color={theme.colors.text3} />
+        <Text style={[styles.discTitle, { color: theme.colors.text1 }]}>LORA MESH TERMINAL OFFLINE</Text>
+        <Text style={[styles.discSub, { color: theme.colors.text3 }]}>
           Connect to a LifeLine node via Radar to broadcast tactical text dispatches across mountain terrain.
         </Text>
       </View>
@@ -93,13 +99,13 @@ export const ChatScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.bg0 }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Tactical Sub-Header Strip */}
-      <View style={styles.loraHeader}>
-        <Ionicons name="radio-outline" size={13} color={THEME.colors.text2} />
-        <Text style={styles.loraHeaderText}>
+      <View style={[styles.loraHeader, { backgroundColor: theme.colors.bg1, borderBottomColor: theme.colors.border }]}>
+        <Ionicons name="radio-outline" size={13} color={theme.colors.text2} />
+        <Text style={[styles.loraHeaderText, { color: theme.colors.text2 }]}>
           433 MHZ SX1278 RF RELAY // STORE-AND-FORWARD MESH
         </Text>
       </View>
@@ -112,8 +118,8 @@ export const ChatScreen: React.FC = () => {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>SECURE SESSION INITIALIZED</Text>
-            <Text style={styles.emptySub}>
+            <Text style={[styles.emptyText, { color: theme.colors.text2 }]}>SECURE SESSION INITIALIZED</Text>
+            <Text style={[styles.emptySub, { color: theme.colors.text3 }]}>
               Type a field report or choose a tactical macro below to broadcast via LoRa RF.
             </Text>
           </View>
@@ -121,18 +127,21 @@ export const ChatScreen: React.FC = () => {
       />
 
       {/* Tactical Macro Quick Pills */}
-      <View style={styles.macrosContainer}>
+      <View style={[styles.macrosContainer, { backgroundColor: theme.colors.bg1, borderTopColor: theme.colors.border }]}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={TACTICAL_MACROS}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.macroPill}
+              style={[
+                styles.macroPill,
+                { backgroundColor: theme.colors.bg2, borderColor: theme.colors.borderStrong },
+              ]}
               onPress={() => handleMacroPress(item)}
               activeOpacity={0.7}
             >
-              <Text style={styles.macroText}>{item}</Text>
+              <Text style={[styles.macroText, { color: theme.colors.text1 }]}>{item}</Text>
             </TouchableOpacity>
           )}
           keyExtractor={item => item}
@@ -140,16 +149,27 @@ export const ChatScreen: React.FC = () => {
       </View>
 
       {/* Input Console */}
-      <View style={styles.inputBar}>
+      <View style={[styles.inputBar, { backgroundColor: theme.colors.bg1, borderTopColor: theme.colors.border }]}>
         <TextInput
-          style={styles.textInput}
+          style={[
+            styles.textInput,
+            {
+              backgroundColor: theme.colors.bg0,
+              borderColor: theme.colors.borderStrong,
+              color: theme.colors.text0,
+            },
+          ]}
           value={inputText}
           onChangeText={setInputText}
           placeholder="TYPE TACTICAL SITREP..."
-          placeholderTextColor={THEME.colors.text3}
+          placeholderTextColor={theme.colors.text3}
         />
-        <TouchableOpacity style={styles.sendPill} onPress={handleSend} activeOpacity={0.85}>
-          <Ionicons name="arrow-up" size={16} color={THEME.colors.bg0} />
+        <TouchableOpacity
+          style={[styles.sendPill, { backgroundColor: theme.colors.buttonFill }]}
+          onPress={handleSend}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="arrow-up" size={16} color={theme.colors.buttonText} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -159,24 +179,20 @@ export const ChatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.bg0,
   },
   loraHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: THEME.colors.bg1,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.border,
   },
   loraHeaderText: {
-    color: THEME.colors.text2,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.2,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   listContent: {
     padding: 16,
@@ -195,17 +211,9 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '85%',
-    borderRadius: THEME.geometry.sharp,
+    borderRadius: 0,
     padding: 14,
     borderWidth: 1,
-  },
-  bubbleIn: {
-    backgroundColor: THEME.colors.bg2,
-    borderColor: THEME.colors.border,
-  },
-  bubbleOut: {
-    backgroundColor: THEME.colors.bg3,
-    borderColor: THEME.colors.borderStrong,
   },
   msgHeader: {
     flexDirection: 'row',
@@ -214,19 +222,16 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   senderText: {
-    color: THEME.colors.text0,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   rssiTag: {
-    color: THEME.colors.text3,
     fontSize: 10,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   msgText: {
-    color: THEME.colors.text1,
     fontSize: 13,
     lineHeight: 19,
     letterSpacing: 0.2,
@@ -239,9 +244,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   timeText: {
-    color: THEME.colors.text3,
     fontSize: 10,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   statusIndicator: {
     flexDirection: 'row',
@@ -249,73 +253,59 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statusText: {
-    color: THEME.colors.text2,
     fontSize: 9,
     fontWeight: '800',
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
     letterSpacing: 0.5,
   },
   macrosContainer: {
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: THEME.colors.bg1,
     borderTopWidth: 1,
-    borderTopColor: THEME.colors.border,
   },
   macroPill: {
-    backgroundColor: THEME.colors.bg2,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: THEME.geometry.pill,
+    borderRadius: 9999,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: THEME.colors.borderStrong,
   },
   macroText: {
-    color: THEME.colors.text1,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.8,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   inputBar: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: THEME.colors.bg1,
     borderTopWidth: 1,
-    borderTopColor: THEME.colors.border,
     alignItems: 'center',
     gap: 10,
   },
   textInput: {
     flex: 1,
-    backgroundColor: THEME.colors.bg0,
-    borderRadius: THEME.geometry.sharp,
+    borderRadius: 0,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: THEME.colors.text0,
     fontSize: 13,
     borderWidth: 1,
-    borderColor: THEME.colors.borderStrong,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   sendPill: {
     width: 42,
     height: 42,
-    borderRadius: THEME.geometry.pill,
-    backgroundColor: THEME.colors.text0,
+    borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
   },
   disconnectedContainer: {
     flex: 1,
-    backgroundColor: THEME.colors.bg0,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 28,
   },
   discTitle: {
-    color: THEME.colors.text1,
     fontSize: 14,
     fontWeight: '900',
     letterSpacing: 2,
@@ -323,7 +313,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   discSub: {
-    color: THEME.colors.text3,
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
@@ -335,13 +324,11 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   emptyText: {
-    color: THEME.colors.text2,
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 2,
   },
   emptySub: {
-    color: THEME.colors.text3,
     fontSize: 11,
     textAlign: 'center',
     marginTop: 6,

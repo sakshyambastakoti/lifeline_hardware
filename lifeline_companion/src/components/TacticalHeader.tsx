@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
-import { THEME } from '../constants/theme';
 
 export const TacticalHeader: React.FC = () => {
   const {
@@ -12,63 +11,98 @@ export const TacticalHeader: React.FC = () => {
     isSimulator,
     setIsSimulator,
     disconnectDevice,
+    theme,
+    themeMode,
+    toggleTheme,
   } = useLifeLine();
 
+  const isDark = themeMode === 'dark';
+
   return (
-    <View style={styles.headerContainer}>
+    <View style={[styles.headerContainer, { backgroundColor: theme.colors.bg0, borderBottomColor: theme.colors.border }]}>
       {/* Holographic Ambient Accent Top Bar */}
       <View style={styles.holographicBar}>
-        <View style={[styles.barSegment, { backgroundColor: THEME.colors.electricIndigo }]} />
-        <View style={[styles.barSegment, { backgroundColor: THEME.colors.cyanStream }]} />
-        <View style={[styles.barSegment, { backgroundColor: THEME.colors.digitalViolet }]} />
-        <View style={[styles.barSegment, { backgroundColor: THEME.colors.solarAmber }]} />
+        <View style={[styles.barSegment, { backgroundColor: theme.colors.electricIndigo }]} />
+        <View style={[styles.barSegment, { backgroundColor: theme.colors.cyanStream }]} />
+        <View style={[styles.barSegment, { backgroundColor: theme.colors.digitalViolet }]} />
+        <View style={[styles.barSegment, { backgroundColor: theme.colors.solarAmber }]} />
       </View>
 
       <View style={styles.contentWrap}>
         {/* Brand Bar */}
         <View style={styles.topRow}>
           <View style={styles.brandGroup}>
-            <Ionicons name="radio" size={18} color={THEME.colors.text0} style={styles.radioIcon} />
-            <Text style={styles.brandTitle}>LIFELINE</Text>
-            <View style={styles.brandBadge}>
-              <Text style={styles.brandBadgeText}>TACTICAL</Text>
+            <Ionicons name="radio" size={18} color={theme.colors.text0} style={styles.radioIcon} />
+            <Text style={[styles.brandTitle, { color: theme.colors.text0 }]}>LIFELINE</Text>
+            <View style={[styles.brandBadge, { borderColor: theme.colors.borderStrong }]}>
+              <Text style={[styles.brandBadgeText, { color: theme.colors.text2 }]}>TACTICAL</Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.simPill,
-              isSimulator ? styles.simPillActive : styles.simPillHardware,
-            ]}
-            onPress={() => setIsSimulator(!isSimulator)}
-            activeOpacity={0.8}
-          >
-            <View
+          <View style={styles.rightControls}>
+            {/* Dark / Light Mode Toggle */}
+            <TouchableOpacity
               style={[
-                styles.modeDot,
-                { backgroundColor: isSimulator ? THEME.colors.solarAmber : THEME.colors.success },
+                styles.themeTogglePill,
+                { backgroundColor: theme.colors.bg2, borderColor: theme.colors.borderStrong },
               ]}
-            />
-            <Text style={styles.simPillText}>
-              {isSimulator ? 'SIMULATOR' : 'HARDWARE BLE'}
-            </Text>
-          </TouchableOpacity>
+              onPress={toggleTheme}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name={isDark ? 'sunny-outline' : 'moon-outline'}
+                size={14}
+                color={theme.colors.text0}
+              />
+            </TouchableOpacity>
+
+            {/* Hardware / Simulator Mode Pill */}
+            <TouchableOpacity
+              style={[
+                styles.simPill,
+                {
+                  backgroundColor: isSimulator ? theme.colors.warningBg : theme.colors.successBg,
+                  borderColor: isSimulator ? theme.colors.warning : theme.colors.success,
+                },
+              ]}
+              onPress={() => setIsSimulator(!isSimulator)}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[
+                  styles.modeDot,
+                  { backgroundColor: isSimulator ? theme.colors.solarAmber : theme.colors.success },
+                ]}
+              />
+              <Text style={[styles.simPillText, { color: theme.colors.text0 }]}>
+                {isSimulator ? 'SIM' : 'BLE'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Link Status & Telemetry Strip */}
-        <View style={styles.statusRow}>
+        <View
+          style={[
+            styles.statusRow,
+            {
+              backgroundColor: theme.colors.bg1,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
           <View style={styles.statusGroup}>
             <View
               style={[
                 styles.statusIndicator,
                 connectionState === 'CONNECTED'
-                  ? styles.statusConnected
+                  ? { backgroundColor: theme.colors.success }
                   : connectionState === 'CONNECTING'
-                  ? styles.statusConnecting
-                  : styles.statusDisconnected,
+                  ? { backgroundColor: theme.colors.solarAmber }
+                  : { backgroundColor: theme.colors.text3 },
               ]}
             />
-            <Text style={styles.statusText}>
+            <Text style={[styles.statusText, { color: theme.colors.text1 }]}>
               {connectionState === 'CONNECTED'
                 ? connectedDevice?.name?.toUpperCase() || 'LINK ESTABLISHED'
                 : connectionState === 'CONNECTING'
@@ -90,18 +124,23 @@ export const TacticalHeader: React.FC = () => {
                         : 'battery-dead-outline'
                     }
                     size={14}
-                    color={telemetry.batteryPct > 20 ? THEME.colors.success : THEME.colors.danger}
+                    color={telemetry.batteryPct > 20 ? theme.colors.success : theme.colors.danger}
                   />
-                  <Text style={styles.metricValue}>{telemetry.batteryPct}%</Text>
+                  <Text style={[styles.metricValue, { color: theme.colors.text0 }]}>
+                    {telemetry.batteryPct}%
+                  </Text>
                 </View>
               )}
 
               <TouchableOpacity
                 onPress={disconnectDevice}
-                style={styles.disconnectPill}
+                style={[
+                  styles.disconnectPill,
+                  { backgroundColor: theme.colors.bg2, borderColor: theme.colors.borderStrong },
+                ]}
                 activeOpacity={0.7}
               >
-                <Ionicons name="power-outline" size={13} color={THEME.colors.text2} />
+                <Ionicons name="power-outline" size={13} color={theme.colors.text2} />
               </TouchableOpacity>
             </View>
           )}
@@ -113,9 +152,7 @@ export const TacticalHeader: React.FC = () => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: THEME.colors.bg0,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.border,
   },
   holographicBar: {
     flexDirection: 'row',
@@ -127,15 +164,15 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   contentWrap: {
-    paddingTop: 16,
-    paddingBottom: 14,
-    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   brandGroup: {
     flexDirection: 'row',
@@ -146,41 +183,42 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   brandTitle: {
-    color: THEME.colors.text0,
     fontSize: 16,
     fontWeight: '900',
     letterSpacing: 3,
   },
   brandBadge: {
     borderWidth: 1,
-    borderColor: THEME.colors.borderStrong,
-    paddingHorizontal: 7,
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: THEME.geometry.sharp,
   },
   brandBadgeText: {
-    color: THEME.colors.text2,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1.5,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
+  },
+  rightControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  themeTogglePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 9999,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   simPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: THEME.geometry.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 9999,
     borderWidth: 1,
-  },
-  simPillActive: {
-    backgroundColor: THEME.colors.warningBg,
-    borderColor: THEME.colors.warning,
-  },
-  simPillHardware: {
-    backgroundColor: THEME.colors.successBg,
-    borderColor: THEME.colors.success,
   },
   modeDot: {
     width: 6,
@@ -188,22 +226,18 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   simPillText: {
-    color: THEME.colors.text0,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: THEME.colors.bg1,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: THEME.geometry.sharp,
     borderWidth: 1,
-    borderColor: THEME.colors.border,
   },
   statusGroup: {
     flexDirection: 'row',
@@ -215,21 +249,11 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  statusConnected: {
-    backgroundColor: THEME.colors.success,
-  },
-  statusConnecting: {
-    backgroundColor: THEME.colors.solarAmber,
-  },
-  statusDisconnected: {
-    backgroundColor: THEME.colors.text3,
-  },
   statusText: {
-    color: THEME.colors.text1,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   metricsGroup: {
     flexDirection: 'row',
@@ -242,17 +266,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   metricValue: {
-    color: THEME.colors.text0,
     fontSize: 11,
     fontWeight: '700',
-    fontFamily: THEME.fonts.mono,
+    fontFamily: 'monospace',
   },
   disconnectPill: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: THEME.colors.bg2,
-    borderRadius: THEME.geometry.pill,
+    borderRadius: 9999,
     borderWidth: 1,
-    borderColor: THEME.colors.borderStrong,
   },
 });

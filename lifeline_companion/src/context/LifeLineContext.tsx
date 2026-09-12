@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import {
   ConnectionState,
   LifeLineDevice,
@@ -8,11 +8,15 @@ import {
 } from '../constants/ble';
 import { bleService } from '../services/BleService';
 import { mockBleService } from '../services/MockBleService';
+import { ThemeMode, getTheme, DARK_THEME } from '../constants/theme';
 
 interface LifeLineContextType {
   connectionState: ConnectionState;
   isSimulator: boolean;
   setIsSimulator: (val: boolean) => void;
+  themeMode: ThemeMode;
+  theme: typeof DARK_THEME;
+  toggleTheme: () => void;
   availableDevices: LifeLineDevice[];
   connectedDevice: LifeLineDevice | null;
   telemetry: LifeLineTelemetry | null;
@@ -33,6 +37,7 @@ const LifeLineContext = createContext<LifeLineContextType | undefined>(undefined
 export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Automatically start in simulator mode if native BLE isn't supported in current runtime (e.g. Expo Go)
   const [isSimulator, setIsSimulator] = useState<boolean>(!bleService.isNativeBleSupported());
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [connectionState, setConnectionState] = useState<ConnectionState>('DISCONNECTED');
   const [availableDevices, setAvailableDevices] = useState<LifeLineDevice[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<LifeLineDevice | null>(null);
@@ -52,13 +57,18 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
 
   const activeService = isSimulator ? mockBleService : bleService;
+  const theme = getTheme(themeMode);
+
+  const toggleTheme = () => {
+    setThemeMode(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Packet parser for incoming Nordic UART ASCII streams
   const handleIncomingPacket = (packet: string) => {
     console.log('[LifeLine Packet]:', packet);
     const clean = packet.trim();
 
-    // 1. STATUS packet (e.g., STATUS:DEV=003,BAT=92,LORA=OK,VER=v3.1.0 PRO)
+    // 1. STATUS packet
     if (clean.startsWith('STATUS:')) {
       const dataStr = clean.substring(7);
       const parts = dataStr.split(',');
@@ -82,7 +92,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         gasPpm: prev?.gasPpm,
       }));
     }
-    // 2. TELEMETRY packet (e.g., TELEMETRY:DEV=003,TEMP=21.4,HUM=88.2,LAT=27.717200,LON=85.324000,ALT=1350)
+    // 2. TELEMETRY packet
     else if (clean.startsWith('TELEMETRY:')) {
       const dataStr = clean.substring(10);
       const parts = dataStr.split(',');
@@ -106,7 +116,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         lastUpdated: new Date(),
       }));
     }
-    // 3. CLOSED-LOOP ACK (e.g., ACK_RECV:STATUS=DISPATCHED,BASE=BASE01,NOTE=Rescue en route,RSSI=-68,SNR=9)
+    // 3. CLOSED-LOOP ACK
     else if (clean.startsWith('ACK_RECV:')) {
       const dataStr = clean.substring(9);
       const parts = dataStr.split(',');
@@ -124,12 +134,11 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         ackSnr: map['SNR'] ? parseInt(map['SNR'], 10) : null,
       }));
 
-      // Update any pending outgoing messages
       setChatMessages(prev =>
         prev.map(msg => (msg.status === 'PENDING' ? { ...msg, status: 'CONFIRMED' } : msg))
       );
     }
-    // 4. INCOMING CHAT (e.g., CHAT:DEV=BASE01,TEXT=Landslide blocked road,RSSI=-62)
+    // 4. INCOMING CHAT
     else if (clean.startsWith('CHAT:')) {
       const dataStr = clean.substring(5);
       const parts = dataStr.split(',');
@@ -193,7 +202,6 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         device.id,
         handleIncomingPacket,
         () => {
-          // Disconnected callback
           setConnectedDevice(null);
           setConnectionState('DISCONNECTED');
           setStatusMessage('Device disconnected.');
@@ -287,6 +295,9 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         connectionState,
         isSimulator,
         setIsSimulator,
+        themeMode,
+        theme,
+        toggleTheme,
         availableDevices,
         connectedDevice,
         telemetry,
