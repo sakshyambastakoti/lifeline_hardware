@@ -7,13 +7,10 @@ import {
   SosStatus,
 } from '../constants/ble';
 import { bleService } from '../services/BleService';
-import { mockBleService } from '../services/MockBleService';
 import { ThemeMode, getTheme, DARK_THEME } from '../constants/theme';
 
 interface LifeLineContextType {
   connectionState: ConnectionState;
-  isSimulator: boolean;
-  setIsSimulator: (val: boolean) => void;
   themeMode: ThemeMode;
   theme: typeof DARK_THEME;
   toggleTheme: () => void;
@@ -35,8 +32,6 @@ interface LifeLineContextType {
 const LifeLineContext = createContext<LifeLineContextType | undefined>(undefined);
 
 export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Automatically start in simulator mode if native BLE isn't supported in current runtime (e.g. Expo Go)
-  const [isSimulator, setIsSimulator] = useState<boolean>(!bleService.isNativeBleSupported());
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [connectionState, setConnectionState] = useState<ConnectionState>('DISCONNECTED');
   const [availableDevices, setAvailableDevices] = useState<LifeLineDevice[]>([]);
@@ -56,19 +51,18 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
     ackSnr: null,
   });
 
-  const activeService = isSimulator ? mockBleService : bleService;
   const theme = getTheme(themeMode);
 
   const toggleTheme = () => {
     setThemeMode(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Packet parser for incoming Nordic UART ASCII streams
+  // Packet parser for incoming Nordic UART ASCII streams from real ESP32 hardware
   const handleIncomingPacket = (packet: string) => {
-    console.log('[LifeLine Packet]:', packet);
+    console.log('[LifeLine Hardware Packet]:', packet);
     const clean = packet.trim();
 
-    // 1. STATUS packet
+    // 1. STATUS packet (e.g. STATUS:DEV=003,BAT=92,LORA=OK,VER=v3.1.0 PRO)
     if (clean.startsWith('STATUS:')) {
       const dataStr = clean.substring(7);
       const parts = dataStr.split(',');
@@ -82,7 +76,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         deviceId: map['DEV'] || prev?.deviceId || '001',
         batteryPct: parseInt(map['BAT'] || `${prev?.batteryPct || 90}`, 10),
         loraStatus: map['LORA'] || prev?.loraStatus || 'OK',
-        version: map['VER'] || prev?.version || 'v3.1.0',
+        version: map['VER'] || prev?.version || 'v3.1.0 PRO',
         lastUpdated: new Date(),
         latitude: prev?.latitude,
         longitude: prev?.longitude,
@@ -92,7 +86,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         gasPpm: prev?.gasPpm,
       }));
     }
-    // 2. TELEMETRY packet
+    // 2. TELEMETRY packet (e.g. TELEMETRY:DEV=003,TEMP=21.4,HUM=88.2,LAT=27.717200,LON=85.324000,ALT=1350)
     else if (clean.startsWith('TELEMETRY:')) {
       const dataStr = clean.substring(10);
       const parts = dataStr.split(',');
@@ -116,7 +110,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         lastUpdated: new Date(),
       }));
     }
-    // 3. CLOSED-LOOP ACK
+    // 3. CLOSED-LOOP ACK (e.g. ACK_RECV:STATUS=DISPATCHED,BASE=BASE01,NOTE=Rescue en route,RSSI=-68,SNR=9)
     else if (clean.startsWith('ACK_RECV:')) {
       const dataStr = clean.substring(9);
       const parts = dataStr.split(',');
@@ -138,7 +132,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         prev.map(msg => (msg.status === 'PENDING' ? { ...msg, status: 'CONFIRMED' } : msg))
       );
     }
-    // 4. INCOMING CHAT
+    // 4. INCOMING CHAT (e.g. CHAT:DEV=BASE01,TEXT=Landslide blocked road,RSSI=-62)
     else if (clean.startsWith('CHAT:')) {
       const dataStr = clean.substring(5);
       const parts = dataStr.split(',');
@@ -166,12 +160,14 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const startScan = () => {
+  const startScan = async () => {
     setAvailableDevices([]);
     setConnectionState('SCANNING');
-    setStatusMessage('Scanning for LifeLine emergency radios...');
+    setStatusMessage('Scanning for LifeLine BLE transmitters...');
 
-    activeService.startScan(
+    await bleService.requestPermissions();
+
+    bleService.startScan(
       (device: LifeLineDevice) => {
         setAvailableDevices(prev => {
           if (prev.find(d => d.id === device.id)) return prev;
@@ -181,13 +177,13 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
       (error: any) => {
         console.error('Scan error:', error);
         setConnectionState('DISCONNECTED');
-        setStatusMessage(error.message || 'Scanning failed');
+        setStatusMessage(error.message || 'BLE Scanning failed');
       }
     );
   };
 
   const stopScan = () => {
-    activeService.stopScan();
+    bleService.stopScan();
     if (connectionState === 'SCANNING') {
       setConnectionState('DISCONNECTED');
     }
@@ -198,13 +194,13 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
       setConnectionState('CONNECTING');
       setStatusMessage(`Connecting to ${device.name}...`);
 
-      const connected = await activeService.connect(
+      const connected = await bleService.connect(
         device.id,
         handleIncomingPacket,
         () => {
           setConnectedDevice(null);
           setConnectionState('DISCONNECTED');
-          setStatusMessage('Device disconnected.');
+          setStatusMessage('Field unit disconnected.');
         }
       );
 
@@ -218,7 +214,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const disconnectDevice = async () => {
-    await activeService.disconnect();
+    await bleService.disconnect();
     setConnectedDevice(null);
     setConnectionState('DISCONNECTED');
     setStatusMessage('Disconnected.');
@@ -239,7 +235,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
     setChatMessages(prev => [...prev, newMsg]);
 
     try {
-      await activeService.sendCommand(`MSG:${text}`);
+      await bleService.sendCommand(`MSG:${text}`);
       return true;
     } catch (e) {
       setChatMessages(prev =>
@@ -264,7 +260,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
     });
 
     try {
-      await activeService.sendCommand(`ALERT:${code}`);
+      await bleService.sendCommand(`ALERT:${code}`);
       return true;
     } catch (e) {
       setSosStatus(prev => ({
@@ -293,8 +289,6 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
     <LifeLineContext.Provider
       value={{
         connectionState,
-        isSimulator,
-        setIsSimulator,
         themeMode,
         theme,
         toggleTheme,

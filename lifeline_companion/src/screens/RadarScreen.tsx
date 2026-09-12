@@ -21,7 +21,6 @@ export const RadarScreen: React.FC = () => {
     stopScan,
     connectDevice,
     disconnectDevice,
-    isSimulator,
     theme,
   } = useLifeLine();
 
@@ -109,22 +108,8 @@ export const RadarScreen: React.FC = () => {
         </Text>
 
         <Text style={[styles.statusSub, { color: theme.colors.text2 }]}>
-          {statusMessage?.toUpperCase() || 'STANDBY // READY TO ENGAGE BEACON'}
+          {statusMessage?.toUpperCase() || 'STANDBY // READY TO ENGAGE BLE'}
         </Text>
-
-        {isSimulator && (
-          <View
-            style={[
-              styles.simNoticePill,
-              { backgroundColor: theme.colors.warningBg, borderColor: theme.colors.warning },
-            ]}
-          >
-            <Ionicons name="information-circle-outline" size={13} color={theme.colors.solarAmber} />
-            <Text style={[styles.simNoticeText, { color: theme.colors.solarAmber }]}>
-              HARDWARE SIMULATOR ACTIVE // DUAL-NODE SYNTHESIS
-            </Text>
-          </View>
-        )}
 
         <View style={styles.actionRow}>
           {connectionState === 'SCANNING' ? (
@@ -157,7 +142,7 @@ export const RadarScreen: React.FC = () => {
 
       {/* Discovered Devices Header */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={[styles.sectionHeader, { color: theme.colors.text2 }]}>DETECTED HARDWARE NODES</Text>
+        <Text style={[styles.sectionHeader, { color: theme.colors.text2 }]}>DETECTED BLE HARDWARE NODES</Text>
         <Text style={[styles.counterText, { color: theme.colors.text3 }]}>[{availableDevices.length}]</Text>
       </View>
 
@@ -166,7 +151,7 @@ export const RadarScreen: React.FC = () => {
           <Ionicons name="bluetooth-outline" size={32} color={theme.colors.text3} />
           <Text style={[styles.emptyText, { color: theme.colors.text1 }]}>NO ACTIVE RF NODES DETECTED</Text>
           <Text style={[styles.emptySubText, { color: theme.colors.text3 }]}>
-            Initiate scan to detect LifeLine TX Pro field transmitters or RX Pro base stations.
+            Ensure your LifeLine TX Pro or RX Pro hardware is powered ON and within 10 meters BLE range.
           </Text>
         </View>
       ) : (
@@ -218,22 +203,6 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     textAlign: 'center',
     marginBottom: 16,
-  },
-  simNoticePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 9999,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  simNoticeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    fontFamily: 'monospace',
   },
   actionRow: {
     width: '100%',

@@ -8,8 +8,6 @@ export const TacticalHeader: React.FC = () => {
     connectionState,
     connectedDevice,
     telemetry,
-    isSimulator,
-    setIsSimulator,
     disconnectDevice,
     theme,
     themeMode,
@@ -35,7 +33,7 @@ export const TacticalHeader: React.FC = () => {
             <Ionicons name="radio" size={18} color={theme.colors.text0} style={styles.radioIcon} />
             <Text style={[styles.brandTitle, { color: theme.colors.text0 }]}>LIFELINE</Text>
             <View style={[styles.brandBadge, { borderColor: theme.colors.borderStrong }]}>
-              <Text style={[styles.brandBadgeText, { color: theme.colors.text2 }]}>TACTICAL</Text>
+              <Text style={[styles.brandBadgeText, { color: theme.colors.text2 }]}>BLE GATT</Text>
             </View>
           </View>
 
@@ -54,29 +52,6 @@ export const TacticalHeader: React.FC = () => {
                 size={14}
                 color={theme.colors.text0}
               />
-            </TouchableOpacity>
-
-            {/* Hardware / Simulator Mode Pill */}
-            <TouchableOpacity
-              style={[
-                styles.simPill,
-                {
-                  backgroundColor: isSimulator ? theme.colors.warningBg : theme.colors.successBg,
-                  borderColor: isSimulator ? theme.colors.warning : theme.colors.success,
-                },
-              ]}
-              onPress={() => setIsSimulator(!isSimulator)}
-              activeOpacity={0.8}
-            >
-              <View
-                style={[
-                  styles.modeDot,
-                  { backgroundColor: isSimulator ? theme.colors.solarAmber : theme.colors.success },
-                ]}
-              />
-              <Text style={[styles.simPillText, { color: theme.colors.text0 }]}>
-                {isSimulator ? 'SIM' : 'BLE'}
-              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -106,9 +81,9 @@ export const TacticalHeader: React.FC = () => {
               {connectionState === 'CONNECTED'
                 ? connectedDevice?.name?.toUpperCase() || 'LINK ESTABLISHED'
                 : connectionState === 'CONNECTING'
-                ? 'ACQUIRING LINK...'
+                ? 'ACQUIRING BLE LINK...'
                 : connectionState === 'SCANNING'
-                ? 'SEARCHING 2.4 GHZ RF...'
+                ? 'SCANNING 2.4 GHZ BLE...'
                 : 'STANDBY'}
             </Text>
           </View>
@@ -204,32 +179,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   themeTogglePill: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 9999,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  simPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 9999,
-    borderWidth: 1,
-  },
-  modeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  simPillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-    fontFamily: 'monospace',
   },
   statusRow: {
     flexDirection: 'row',
