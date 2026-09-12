@@ -353,144 +353,227 @@ void handleWiFiPortal() {
     }
 }
 
-// HTML and Endpoint Handlers (Dark Theme, Sharp Edges, Crimson Red & Cyan Aesthetic)
+// HTML and Endpoint Handlers (Bugatti-Inspired Austere Luxury Design System)
 static String getPortalHTML() {
     String currentIP = (wifiConnected && WiFi.status() == WL_CONNECTED) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
-    String currentStatus = (wifiConnected && WiFi.status() == WL_CONNECTED) ? ("ONLINE &bull; " + activeSSID + " (" + String(WiFi.RSSI()) + " dBm)") : "STANDALONE AP SETUP";
+    String currentStatus = (wifiConnected && WiFi.status() == WL_CONNECTED) ? ("ONLINE &bull; " + activeSSID + " (" + String(WiFi.RSSI()) + " dBm)") : "CAPTIVE SOFTAP ACTIVE";
     String freeHeapStr = String(ESP.getFreeHeap() / 1024) + " KB";
 
-    String html = F("<!DOCTYPE html><html><head>"
+    String html = F("<!DOCTYPE html><html lang='en'><head>"
         "<meta charset='UTF-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        "<title>LIFELINE RX // BASE COMMAND DASHBOARD</title>"
+        "<title>LIFELINE RX PRO // COMMAND GATEWAY</title>"
         "<style>"
-        "* { box-sizing: border-box; border-radius: 0px !important; margin: 0; padding: 0; }"
-        "body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #08080c; color: #f4f4f7; padding: 20px 14px; }"
-        ".container { max-width: 480px; margin: 0 auto; background: #121218; padding: 24px 20px; border: 1px solid #ff1e42; box-shadow: 0 0 25px rgba(255, 30, 66, 0.18); }"
-        ".header { border-bottom: 2px solid #ff1e42; padding-bottom: 12px; margin-bottom: 18px; }"
-        "h1 { color: #ffffff; font-size: 21px; font-weight: 800; letter-spacing: 1px; }"
-        ".brand-sub { color: #ff1e42; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }"
-        ".status-badge { background: #1a1a24; border-left: 3px solid #00ff87; padding: 10px 12px; margin-bottom: 20px; font-size: 11.5px; color: #d0d0dc; line-height: 1.5; font-family: monospace; }"
-        ".card { background: #171722; border: 1px solid #28283a; padding: 16px 14px; margin-bottom: 20px; }"
-        "h2 { color: #ffffff; font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #ff1e42; padding-left: 8px; }"
-        "h2.ota { border-left-color: #00d4ff; }"
-        "h2.api { border-left-color: #00ff87; }"
-        "label { display: block; font-size: 11px; color: #9c9cb0; text-transform: uppercase; font-weight: 700; margin: 8px 0 4px 0; letter-spacing: 0.5px; }"
-        "input[type=text], input[type=password], input[type=file] { width: 100%; padding: 11px; margin-bottom: 10px; border: 1px solid #2e2e42; background: #0a0a0f; color: #ffffff; font-size: 13px; font-family: monospace; outline: none; transition: border-color 0.2s; }"
-        "input[type=text]:focus, input[type=password]:focus { border-color: #ff1e42; }"
-        "input[type=file] { padding: 8px; }"
-        "input[type=submit] { width: 100%; padding: 13px; background: #ff1e42; color: #ffffff; border: 1px solid #ff1e42; cursor: pointer; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; transition: background 0.2s, box-shadow 0.2s; }"
-        "input[type=submit]:hover { background: #e01235; box-shadow: 0 0 15px rgba(255, 30, 66, 0.5); }"
-        "input.btn-ota { background: #00a8cc; border-color: #00d4ff; }"
-        "input.btn-ota:hover { background: #00c4ec; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }"
-        "input.btn-api { background: #008744; border-color: #00ff87; }"
-        "input.btn-api:hover { background: #00a855; box-shadow: 0 0 15px rgba(0, 255, 135, 0.5); }"
-        ".desc { font-size: 11.5px; color: #a4a4b8; line-height: 1.4; margin-bottom: 12px; }"
-        ".progress-box { width: 100%; background: #0a0a0f; border: 1px solid #282836; height: 24px; margin: 12px 0 6px; overflow: hidden; display: none; }"
-        ".progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00a8cc, #00ff87); color: #000; font-size: 11px; font-weight: 800; text-align: center; line-height: 24px; transition: width 0.15s ease; }"
-        ".msg { margin-top: 8px; font-size: 12px; font-weight: 600; min-height: 18px; line-height: 1.4; }"
-        "</style></head><body><div class='container'>");
+        ":root{--bg-0:#000000;--bg-1:#0d0d0d;--bg-2:#141414;--bg-3:#1f1f1f;--border:#262626;--border-strong:#3a3a3a;--text-0:#ffffff;--text-1:#cccccc;--text-2:#999999;--text-3:#666666;--danger:#ff1e42;--success:#5fa657;--info:#06b6d4;--indigo:#6366f1;--radius:0px;--radius-btn:9999px;}"
+        "*{box-sizing:border-box;margin:0;padding:0;border-radius:var(--radius);}"
+        "body{background:var(--bg-0);color:var(--text-1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 14px 48px;position:relative;-webkit-font-smoothing:antialiased;}"
+        ".top-rail{position:fixed;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#6366f1,#06b6d4,#8b5cf6,#f59e0b);z-index:999;box-shadow:0 0 12px rgba(6,182,212,0.6);}"
+        ".container{width:100%;max-width:540px;margin:0 auto;position:relative;z-index:1;}"
+        ".card{background:rgba(18,18,24,0.92);border:1px solid var(--border-strong);padding:24px 22px;box-shadow:0 18px 36px -12px rgba(0,0,0,0.8);position:relative;margin-bottom:18px;}"
+        ".card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#06b6d4 0%,#6366f1 100%);}"
+        ".header{border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;}"
+        ".meta-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}"
+        ".brand-tag{font-family:Consolas,Monaco,monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--info);text-transform:uppercase;}"
+        ".badge-mode{font-family:Consolas,Monaco,monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:3px 9px;background:rgba(95,166,87,0.12);border:1px solid rgba(95,166,87,0.4);color:#86efac;border-radius:var(--radius-btn);}"
+        "h1{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:var(--text-0);margin-bottom:4px;}"
+        ".sub{font-size:12px;color:var(--text-2);}"
+        ".tele-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--bg-1);border:1px solid var(--border);padding:10px 12px;margin-bottom:6px;font-family:Consolas,Monaco,monospace;font-size:11px;}"
+        ".tele-cell{display:flex;flex-direction:column;gap:2px;}"
+        ".tele-lbl{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;}"
+        ".tele-val{font-weight:600;color:var(--text-0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}"
+        ".tele-val.cyan{color:#67e8f9;}"
+        ".sec-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}"
+        ".sec-tag{font-family:Consolas,Monaco,monospace;font-size:9px;font-weight:700;padding:2px 6px;border:1px solid var(--border-strong);background:var(--bg-3);color:var(--text-1);}"
+        ".sec-tag.cyan{border-color:rgba(6,182,212,0.4);color:#67e8f9;background:rgba(6,182,212,0.08);}"
+        ".sec-tag.green{border-color:rgba(95,166,87,0.4);color:#86efac;background:rgba(95,166,87,0.08);}"
+        ".sec-tag.indigo{border-color:rgba(99,102,241,0.4);color:#a5b4fc;background:rgba(99,102,241,0.08);}"
+        ".sec-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-0);}"
+        ".sec-desc{font-size:11.5px;color:var(--text-2);line-height:1.4;margin-bottom:14px;}"
+        ".upload-box{border:1px dashed var(--border-strong);background:var(--bg-1);padding:20px 14px;text-align:center;cursor:pointer;position:relative;margin-bottom:10px;transition:border-color 0.2s;}"
+        ".upload-box:hover{border-color:#06b6d4;background:rgba(6,182,212,0.04);}"
+        ".upload-box input[type=file]{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}"
+        ".upload-prompt{font-size:12px;color:var(--text-1);font-weight:500;margin-bottom:2px;}"
+        ".upload-prompt span{color:#06b6d4;text-decoration:underline;}"
+        ".upload-hint{font-family:monospace;font-size:10px;color:var(--text-3);}"
+        ".file-sel{display:none;background:var(--bg-2);border:1px solid var(--border-strong);padding:8px 12px;margin-bottom:10px;justify-content:space-between;font-family:monospace;font-size:11px;color:var(--text-0);}"
+        ".wifi-slot{background:var(--bg-1);border:1px solid var(--border);padding:12px 12px 4px;margin-bottom:10px;}"
+        ".wifi-slot-title{font-family:Consolas,Monaco,monospace;font-size:10px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.8px;display:flex;justify-content:space-between;margin-bottom:8px;}"
+        ".badge-pri{font-size:8px;padding:2px 5px;border-radius:var(--radius-btn);text-transform:uppercase;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;}"
+        ".badge-sec{font-size:8px;padding:2px 5px;border-radius:var(--radius-btn);text-transform:uppercase;background:var(--bg-3);border:1px solid var(--border-strong);color:var(--text-3);}"
+        "label{display:block;font-family:Consolas,Monaco,monospace;font-size:10px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.8px;margin:8px 0 3px;}"
+        "input[type=text],input[type=password]{width:100%;padding:10px 12px;background:var(--bg-1);border:1px solid var(--border);color:var(--text-0);font-family:monospace;font-size:12px;outline:none;transition:border-color 0.2s;margin-bottom:8px;}"
+        "input[type=text]:focus,input[type=password]:focus{border-color:var(--text-0);}"
+        ".btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 18px;font-family:Consolas,Monaco,monospace;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border-radius:var(--radius-btn);cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s ease;border:none;margin-top:8px;}"
+        ".btn-cyan{background:#06b6d4;color:#000;box-shadow:0 4px 14px rgba(6,182,212,0.3);}"
+        ".btn-cyan:hover:not(:disabled){background:#22d3ee;box-shadow:0 6px 20px rgba(6,182,212,0.5);}"
+        ".btn-emerald{background:#10b981;color:#000;box-shadow:0 4px 14px rgba(16,185,129,0.3);}"
+        ".btn-emerald:hover:not(:disabled){background:#34d399;box-shadow:0 6px 20px rgba(16,185,129,0.5);}"
+        ".btn-indigo{background:#6366f1;color:#fff;box-shadow:0 4px 14px rgba(99,102,241,0.3);}"
+        ".btn-indigo:hover:not(:disabled){background:#818cf8;box-shadow:0 6px 20px rgba(99,102,241,0.5);}"
+        ".btn:disabled{opacity:0.45;cursor:not-allowed;}"
+        ".progress-wrap{display:none;margin-top:14px;}"
+        ".progress-meta{display:flex;justify-content:space-between;font-family:monospace;font-size:11px;margin-bottom:5px;color:var(--text-2);}"
+        ".progress-bar-bg{width:100%;height:8px;background:var(--bg-1);border:1px solid var(--border-strong);overflow:hidden;}"
+        ".progress-bar-fill{width:0%;height:100%;background:linear-gradient(90deg,#06b6d4,#6366f1);transition:width 0.1s;}"
+        ".msg{margin-top:12px;padding:10px 12px;font-family:monospace;font-size:11px;line-height:1.4;display:none;border-left:3px solid;}"
+        ".msg.err{background:rgba(255,30,66,0.12);border-color:var(--danger);color:#fca5a5;}"
+        ".msg.ok{background:rgba(95,166,87,0.12);border-color:var(--success);color:#86efac;}"
+        ".footer{margin-top:12px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-family:monospace;font-size:10px;color:var(--text-3);}"
+        "</style></head><body><div class='top-rail'></div><div class='container'>"
 
-    html += "<div class='header'>";
-    html += "<h1>LIFELINE RX PRO</h1>";
-    html += "<div class='brand-sub'>Base Station Gateway // Web Command Dashboard</div>";
-    html += "</div>";
+        "<div class='card'><div class='header'><div class='meta-row'><span class='brand-tag'>LIFELINE RX PRO</span>"
+        "<span class='badge-mode'>GATEWAY READY</span></div>"
+        "<h1>BASE COMMAND CONSOLE</h1><div class='sub'>Disaster Telemetry &amp; LoRa Base Station Gateway</div></div>"
+        "<div class='tele-grid'>"
+        "<div class='tele-cell'><span class='tele-lbl'>IP Address</span><span class='tele-val cyan'>"
+    );
+    html += currentIP;
+    html += F(
+        "</span></div><div class='tele-cell'><span class='tele-lbl'>Firmware</span><span class='tele-val'>v3.1.0 PRO</span></div>"
+        "<div class='tele-cell'><span class='tele-lbl'>Free Heap</span><span class='tele-val'>"
+    );
+    html += freeHeapStr;
+    html += F(
+        "</span></div><div class='tele-cell'><span class='tele-lbl'>LoRa Uplink</span><span class='tele-val'>433MHz SX1278</span></div>"
+        "<div class='tele-cell'><span class='tele-lbl'>Active Link</span><span class='tele-val'>"
+    );
+    html += currentStatus;
+    html += F(
+        "</span></div><div class='tele-cell'><span class='tele-lbl'>Flash Safety</span><span class='tele-val'>Dual Partition</span></div>"
+        "</div></div>"
 
-    html += "<div class='status-badge'>";
-    html += "IP: " + currentIP + "<br>";
-    html += "LINK: " + currentStatus + "<br>";
-    html += "FREE HEAP: " + freeHeapStr + " | FW: v3.1.0 PRO";
-    html += "</div>";
+        // Module 1: Firmware Flash (OTA)
+        "<div class='card'>"
+        "<div class='sec-head'><span class='sec-tag cyan'>01</span><span class='sec-title'>Wireless OTA Firmware Flash</span></div>"
+        "<div class='sec-desc'>Upload compiled firmware .bin file. Dual-partition safety prevents device bricks.</div>"
+        "<form id='ota_form'>"
+        "<div class='upload-box'>"
+        "<input type='file' id='fwFile' name='update' accept='.bin' required>"
+        "<div class='upload-prompt'><span>Browse binary</span> or tap here</div>"
+        "<div class='upload-hint'>ESP32 FIRMWARE (*.bin)</div>"
+        "</div>"
+        "<div class='file-sel' id='rx_file_meta'><span id='rx_file_name'>firmware.bin</span><span id='rx_file_size'>0 KB</span></div>"
+        "<button type='submit' class='btn btn-cyan' id='btn_ota'>FLASH BASE STATION FIRMWARE</button>"
+        "</form>"
+        "<div class='progress-wrap' id='p_box'>"
+        "<div class='progress-meta'><span id='rx_p_status'>Flashing firmware...</span><span id='rx_p_pct'>0%</span></div>"
+        "<div class='progress-bar-bg'><div class='progress-bar-fill' id='p_bar'></div></div>"
+        "</div>"
+        "<div class='msg' id='flash_msg'></div>"
+        "</div>"
 
-    // 1. API Configuration Section
-    html += "<div class='card'>";
-    html += "<h2 class='api'>1. Cloud REST API Configuration</h2>";
-    html += "<div class='desc'>Configure cloud endpoint & API key for forwarding emergency alerts & LoRa telemetry to your dashboard or server.</div>";
-    html += "<form action='/api-save' method='POST'>";
-    html += "<label>REST API Endpoint URL:</label>";
-    html += "<input type='text' name='api_url' value='" + (customApiEndpoint.length() > 0 ? customApiEndpoint : API_ENDPOINT) + "' placeholder='https://...'>";
-    html += "<label>API Key (X-API-Key / Bearer Authentication):</label>";
-    html += "<input type='text' name='api_key' value='" + customApiKey + "' placeholder='Enter API Key (or leave blank if none)'>";
-    html += "<input class='btn-api' type='submit' value='SAVE API CONFIGURATION'>";
-    html += "</form>";
-    html += "</div>";
+        // Module 2: Tri-Network Wi-Fi Multi-Failover
+        "<div class='card'>"
+        "<div class='sec-head'><span class='sec-tag green'>02</span><span class='sec-title'>Tri-Network Wi-Fi Failover Setup</span></div>"
+        "<div class='sec-desc'>Store up to 3 Wi-Fi networks. The base station auto-reconnects with failover redundancy.</div>"
+        "<form action='/save' method='POST'>"
+    );
 
-    // 2. Wireless OTA Firmware Upgrade Section
-    html += "<div class='card'>";
-    html += "<h2 class='ota'>2. Wireless OTA Firmware Upgrade</h2>";
-    html += "<div class='desc'>Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. Live progress displays on both this dashboard and the 16x2 LCD.</div>";
-    html += "<form id='ota_form'>";
-    html += "<label>Select Firmware Binary (.bin):</label>";
-    html += "<input type='file' id='fwFile' name='update' accept='.bin' required>";
-    html += "<input class='btn-ota' id='btn_ota' type='submit' value='FLASH FIRMWARE (OTA)'>";
-    html += "</form>";
-    html += "<div class='progress-box' id='p_box'><div class='progress-bar' id='p_bar'>0%</div></div>";
-    html += "<div class='msg' id='flash_msg'></div>";
-    html += "</div>";
-
-    // 3. Wi-Fi Multi-Network Setup Section
-    html += "<div class='card'>";
-    html += "<h2>3. Wi-Fi Multi-Network Setup</h2>";
-    html += "<div class='desc'>Configure up to 3 local Wi-Fi networks for failover internet connectivity.</div>";
-    html += "<form action='/save' method='POST'>";
     for (int i = 0; i < 3; i++) {
         String numStr = String(i + 1);
         String currentS = (i < networkCount) ? storedNetworks[i].ssid : "";
         String currentP = (i < networkCount) ? storedNetworks[i].password : "";
-        html += "<label>WiFi #" + numStr + " SSID" + (i == 0 ? " (Primary)" : " (Backup)") + ":</label>";
+        html += "<div class='wifi-slot'>";
+        html += "<div class='wifi-slot-title'><span>Network #" + numStr + "</span>";
+        html += (i == 0) ? "<span class='badge-pri'>PRIMARY</span>" : "<span class='badge-sec'>BACKUP</span>";
+        html += "</div>";
+        html += "<label>SSID Name</label>";
         html += "<input type='text' name='ssid" + numStr + "' placeholder='Network SSID' value='" + currentS + "'" + (i == 0 ? " required" : "") + ">";
-        html += "<label>WiFi #" + numStr + " Password:</label>";
+        html += "<label>WPA2 Password</label>";
         html += "<input type='password' name='pass" + numStr + "' placeholder='Password' value='" + currentP + "'>";
+        html += "</div>";
     }
-    html += "<input type='submit' value='SAVE & RECONNECT WI-FI'>";
-    html += "</form>";
-    html += "</div>";
 
-    html += "</div>";
-    html += "<script>"
-            "var f=document.getElementById('ota_form');"
-            "if(f){f.onsubmit=function(e){"
-            "e.preventDefault();"
-            "var fi=document.getElementById('fwFile');"
-            "if(!fi||!fi.files.length)return false;"
-            "var file=fi.files[0];"
-            "var pb=document.getElementById('p_box');"
-            "var pr=document.getElementById('p_bar');"
-            "var btn=document.getElementById('btn_ota');"
-            "var msg=document.getElementById('flash_msg');"
-            "pb.style.display='block';"
-            "pr.style.width='0%';"
-            "pr.innerText='0%';"
-            "btn.disabled=true;btn.style.opacity='0.5';"
-            "msg.innerHTML='<span style=\"color:#00d4ff;\">Flashing firmware... Do NOT power off</span>';"
-            "var xhr=new XMLHttpRequest();"
-            "xhr.open('POST','/update?size='+file.size,true);"
-            "xhr.upload.onprogress=function(ev){"
-            "if(ev.lengthComputable){"
-            "var p=Math.round((ev.loaded/ev.total)*100);"
-            "if(p>99)p=99;"
-            "pr.style.width=p+'%';"
-            "pr.innerText=p+'%';"
-            "}};"
-            "xhr.onload=function(){"
-            "if(xhr.status>=200&&xhr.status<300){"
-            "pr.style.width='100%';"
-            "pr.innerText='100%';"
-            "msg.innerHTML='<span style=\"color:#00ff87;\">UPDATE COMPLETE! Base Station Rebooting...</span>';"
-            "setTimeout(function(){location.reload();},6000);"
-            "}else{"
-            "msg.innerHTML='<span style=\"color:#ff1e42;\">UPDATE FAILED ('+xhr.status+')</span>';"
-            "btn.disabled=false;btn.style.opacity='1';"
-            "}};"
-            "xhr.onerror=function(){"
-            "msg.innerHTML='<span style=\"color:#00ff87;\">Transfer complete. Rebooting...</span>';"
-            "setTimeout(function(){location.reload();},6000);"
-            "};"
-            "var d=new FormData();d.append('update',file);"
-            "xhr.send(d);"
-            "return false;"
-            "};}"
-            "</script></body></html>";
+    html += F(
+        "<button type='submit' class='btn btn-emerald'>SAVE &amp; RECONNECT WI-FI</button>"
+        "</form>"
+        "</div>"
+
+        // Module 3: Cloud REST API Setup
+        "<div class='card'>"
+        "<div class='sec-head'><span class='sec-tag indigo'>03</span><span class='sec-title'>Cloud REST API Webhook</span></div>"
+        "<div class='sec-desc'>Centralized server endpoint where emergency distress packets and GPS fixes are forwarded.</div>"
+        "<form action='/api-save' method='POST'>"
+        "<label>REST API Endpoint URL</label>"
+        "<input type='text' name='api_url' value='"
+    );
+    html += (customApiEndpoint.length() > 0 ? customApiEndpoint : API_ENDPOINT);
+    html += F(
+        "' placeholder='https://...'>"
+        "<label>API Key / Bearer Secret</label>"
+        "<input type='password' name='api_key' value='"
+    );
+    html += customApiKey;
+    html += F(
+        "' placeholder='Enter API Key (optional)'>"
+        "<button type='submit' class='btn btn-indigo'>SAVE API CONFIGURATION</button>"
+        "</form>"
+        "</div>"
+
+        "<div class='footer'><span>LIFELINE COMMAND // PROTOCOL v3.1</span><span>SYS: ESP32 + SX1278</span></div>"
+        "</div>"
+
+        "<script>"
+        "var fi=document.getElementById('fwFile');"
+        "fi.onchange=function(){"
+        "  if(this.files&&this.files[0]){"
+        "    document.getElementById('rx_file_name').innerText=this.files[0].name;"
+        "    document.getElementById('rx_file_size').innerText=Math.round(this.files[0].size/1024)+' KB';"
+        "    document.getElementById('rx_file_meta').style.display='flex';"
+        "  }"
+        "};"
+        "var f=document.getElementById('ota_form');"
+        "if(f){f.onsubmit=function(e){"
+        "  e.preventDefault();"
+        "  if(!fi||!fi.files.length)return false;"
+        "  var file=fi.files[0];"
+        "  var pb=document.getElementById('p_box');"
+        "  var pr=document.getElementById('p_bar');"
+        "  var pctLbl=document.getElementById('rx_p_pct');"
+        "  var statLbl=document.getElementById('rx_p_status');"
+        "  var btn=document.getElementById('btn_ota');"
+        "  var msg=document.getElementById('flash_msg');"
+        "  pb.style.display='block';pr.style.width='0%';pctLbl.innerText='0%';"
+        "  btn.disabled=true;msg.style.display='none';"
+        "  statLbl.innerText='Streaming Blocks to Flash Partition...';"
+        "  var xhr=new XMLHttpRequest();"
+        "  xhr.open('POST','/update?size='+file.size,true);"
+        "  xhr.upload.onprogress=function(ev){"
+        "    if(ev.lengthComputable){"
+        "      var p=Math.round((ev.loaded/ev.total)*100);"
+        "      if(p>99)p=99;"
+        "      pr.style.width=p+'%';"
+        "      pctLbl.innerText=p+'%';"
+        "      statLbl.innerText='Writing Flash: '+p+'% ('+Math.round(ev.loaded/1024)+' KB)';"
+        "    }"
+        "  };"
+        "  xhr.onload=function(){"
+        "    if(xhr.status>=200&&xhr.status<300){"
+        "      pr.style.width='100%';"
+        "      pr.style.background='#10b981';"
+        "      pctLbl.innerText='100%';"
+        "      msg.className='msg ok';msg.style.display='block';"
+        "      msg.innerHTML='<strong>UPDATE COMPLETE:</strong> Base Station is rebooting now...';"
+        "      setTimeout(function(){location.reload();},6000);"
+        "    }else{"
+        "      msg.className='msg err';msg.style.display='block';"
+        "      msg.innerHTML='<strong>UPDATE FAILED ('+xhr.status+')</strong>';"
+        "      btn.disabled=false;"
+        "    }"
+        "  };"
+        "  xhr.onerror=function(){"
+        "    pr.style.width='100%';"
+        "    pr.style.background='#10b981';"
+        "    msg.className='msg ok';msg.style.display='block';"
+        "    msg.innerHTML='<strong>TRANSFER COMPLETE:</strong> Base Station rebooting...';"
+        "    setTimeout(function(){location.reload();},6000);"
+        "  };"
+        "  var d=new FormData();d.append('update',file);"
+        "  xhr.send(d);"
+        "  return false;"
+        "};}"
+        "</script></body></html>"
+    );
     return html;
 }
 
@@ -508,16 +591,19 @@ static void handleAPISave() {
     
     saveAPICredentials(newKey, newUrl);
     
-    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>LIFELINE RX - API SAVED</title>";
-    html += "<style>* { box-sizing: border-box; border-radius: 0px !important; } body{font-family:'Segoe UI',sans-serif;background:#08080c;color:#fff;text-align:center;padding:50px 15px;}";
-    html += ".card{background:#121218;border:1px solid #00ff87;padding:30px 20px;max-width:440px;margin:0 auto;box-shadow:0 0 25px rgba(0,255,135,0.2);}";
-    html += "h2{color:#00ff87;font-size:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;} p{color:#b3b3c2;font-size:13px;line-height:1.6;}";
-    html += "code{background:#0a0a0f;padding:4px 8px;border:1px solid #282836;color:#00d4ff;display:block;margin:10px 0;word-break:break-all;}";
-    html += "a{display:inline-block;margin-top:20px;padding:12px 24px;background:#ff1e42;color:#fff;text-decoration:none;font-weight:bold;letter-spacing:1px;}</style></head><body>";
-    html += "<div class='card'><h2>API SETTINGS SAVED</h2>";
-    html += "<p>API Key:</p><code>" + (newKey.length() > 0 ? newKey : "(None / Cleared)") + "</code>";
-    html += "<p>Endpoint URL:</p><code>" + newUrl + "</code>";
-    html += "<a href='/'>RETURN TO DASHBOARD</a></div></body></html>";
+    String html = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>LIFELINE RX // API SAVED</title>";
+    html += "<style>:root{--bg-0:#000000;--bg-1:#0d0d0d;--border:#262626;--border-strong:#3a3a3a;--success:#5fa657;--radius-btn:9999px;}"
+            "*{box-sizing:border-box;margin:0;padding:0;border-radius:0px;}"
+            "body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-0);color:#ccc;text-align:center;padding:50px 16px;}"
+            ".card{background:rgba(18,18,24,0.92);border:1px solid var(--border-strong);padding:32px 24px;max-width:440px;margin:0 auto;box-shadow:0 20px 40px -15px rgba(0,0,0,0.8);position:relative;}"
+            ".card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:#10b981;}"
+            "h2{color:#fff;font-size:18px;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;} p{color:#999;font-size:12px;line-height:1.5;margin-top:10px;}"
+            "code{background:var(--bg-1);padding:6px 10px;border:1px solid var(--border);color:#67e8f9;display:block;margin:6px 0 12px;word-break:break-all;font-family:monospace;font-size:11px;}"
+            ".btn{display:inline-block;margin-top:20px;padding:12px 24px;background:#fff;color:#000;text-decoration:none;font-weight:700;font-family:monospace;font-size:11px;letter-spacing:1px;border-radius:var(--radius-btn);text-transform:uppercase;}</style></head><body>";
+    html += "<div class='card'><h2>API SETTINGS COMMITTED</h2>";
+    html += "<p>Ingestion Endpoint URL:</p><code>" + newUrl + "</code>";
+    html += "<p>Authentication Secret:</p><code>" + (newKey.length() > 0 ? newKey : "(None / Cleared)") + "</code>";
+    html += "<a class='btn' href='/'>RETURN TO COMMAND CONSOLE</a></div></body></html>";
     
     wifiServer.send(200, "text/html", html);
 }
@@ -540,16 +626,20 @@ static void handlePortalSave() {
     
     saveWiFiCredentialsList(newNets, count);
     
-    String html = "<!DOCTYPE html><html><head>";
+    String html = "<!DOCTYPE html><html lang='en'><head>";
     html += "<meta charset='UTF-8'>";
     html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
-    html += "<title>LIFELINE RX - SAVED</title>";
-    html += "<style>* { box-sizing: border-box; border-radius: 0px !important; } body{font-family:'Segoe UI',sans-serif;background:#08080c;color:#fff;text-align:center;padding:50px 15px;}";
-    html += ".card{background:#121218;border:1px solid #ff1e42;padding:30px 20px;max-width:420px;margin:0 auto;box-shadow:0 0 25px rgba(255,30,66,0.2);}";
-    html += "h2{color:#ff1e42;font-size:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;} p{color:#b3b3c2;font-size:13px;}</style></head><body>";
-    html += "<div class='card'><h2>CONFIG SAVED</h2>";
-    html += "<p>Successfully saved " + String(count) + " network(s).</p>";
-    html += "<p>Device is restarting and connecting...</p></div>";
+    html += "<title>LIFELINE RX // CONFIG SAVED</title>";
+    html += "<style>:root{--bg-0:#000000;--bg-1:#0d0d0d;--border-strong:#3a3a3a;--radius-btn:9999px;}"
+            "*{box-sizing:border-box;margin:0;padding:0;border-radius:0px;}"
+            "body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-0);color:#ccc;text-align:center;padding:50px 16px;}"
+            ".card{background:rgba(18,18,24,0.92);border:1px solid var(--border-strong);padding:32px 24px;max-width:440px;margin:0 auto;box-shadow:0 20px 40px -15px rgba(0,0,0,0.8);position:relative;}"
+            ".card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:#06b6d4;}"
+            "h2{color:#fff;font-size:18px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}"
+            "p{color:#999;font-size:12px;line-height:1.6;}</style></head><body>";
+    html += "<div class='card'><h2>WI-FI REDUNDANCY SAVED</h2>";
+    html += "<p>Successfully stored <strong>" + String(count) + "</strong> failover network profile(s).</p>";
+    html += "<p>Base Station is restarting now to connect to primary network...</p></div>";
     html += "</body></html>";
     
     wifiServer.send(200, "text/html", html);

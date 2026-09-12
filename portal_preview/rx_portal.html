@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFELINE RX PRO // BASE STATION COMMAND DASHBOARD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-0: #000000;
+      --bg-1: #0d0d0d;
+      --bg-2: #141414;
+      --bg-3: #1f1f1f;
+      --bg-4: #262626;
+      --border: #262626;
+      --border-strong: #3a3a3a;
+      --border-accent: rgba(255, 255, 255, 0.25);
+      --text-0: #ffffff;
+      --text-1: #cccccc;
+      --text-2: #999999;
+      --text-3: #666666;
+      --accent: #ffffff;
+      --accent-dim: #cccccc;
+      --danger: #ff1e42;
+      --danger-dim: rgba(255, 30, 66, 0.15);
+      --success: #5fa657;
+      --success-dim: rgba(95, 166, 87, 0.15);
+      --warning: #d4a017;
+      --warning-dim: rgba(212, 160, 23, 0.15);
+      --info: #06b6d4;
+      --info-dim: rgba(6, 182, 212, 0.15);
+      --indigo: #6366f1;
+      --violet: #8b5cf6;
+      --radius: 0px;
+      --radius-btn: 9999px;
+      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: var(--radius);
+    }
+
+    body {
+      background-color: var(--bg-0);
+      color: var(--text-1);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 64px;
+      position: relative;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Atmosphere */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -160px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 750px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.10) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Fixed Scroll / Ambient Top Rail */
+    .top-progress-rail {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #06b6d4, #8b5cf6, #f59e0b);
+      z-index: 999;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.6);
+    }
+
+    /* Standalone Browser Preview Indicator */
+    .preview-pill {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 6px 14px;
+      border-radius: var(--radius-btn);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #67e8f9;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+      z-index: 1;
+    }
+    .preview-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #06b6d4;
+      box-shadow: 0 0 8px #06b6d4;
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 580px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header Container */
+    .header-card {
+      background: rgba(18, 18, 24, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      padding: 28px 26px 22px;
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.8);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .header-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%);
+    }
+
+    .brand-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--info);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-status {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      background: rgba(95, 166, 87, 0.12);
+      border: 1px solid rgba(95, 166, 87, 0.4);
+      color: #86efac;
+      border-radius: var(--radius-btn);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .badge-status .status-circle {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #4ade80;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-0);
+      margin-bottom: 4px;
+    }
+
+    .sub-title {
+      font-size: 12px;
+      color: var(--text-2);
+      letter-spacing: 0.3px;
+      margin-bottom: 18px;
+    }
+
+    /* Telemetry Grid */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+    }
+
+    .tele-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .tele-cell-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .tele-cell-val {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-0);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tele-cell-val.cyan {
+      color: #67e8f9;
+    }
+
+    /* Navigation Quick Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 18px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-2);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 9px 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-0);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-3);
+      color: var(--text-0);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Functional Module Card */
+    .module-card {
+      background: rgba(18, 18, 24, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      padding: 26px 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .module-card.active-tab-content {
+      display: block;
+    }
+
+    .module-card.hidden {
+      display: none;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      background: var(--bg-3);
+      border: 1px solid var(--border-strong);
+      color: var(--text-1);
+    }
+
+    .section-tag.cyan {
+      border-color: rgba(6, 182, 212, 0.4);
+      color: #67e8f9;
+      background: rgba(6, 182, 212, 0.08);
+    }
+
+    .section-tag.green {
+      border-color: rgba(95, 166, 87, 0.4);
+      color: #86efac;
+      background: rgba(95, 166, 87, 0.08);
+    }
+
+    .section-tag.indigo {
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-0);
+    }
+
+    .section-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      color: var(--text-0);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--text-0);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-toggle-pwd {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px;
+    }
+
+    .btn-toggle-pwd:hover {
+      color: var(--text-0);
+    }
+
+    /* Pill Action Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 13px 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      border: none;
+      margin-top: 6px;
+    }
+
+    .btn-cyan {
+      background: #06b6d4;
+      color: #000000;
+      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.35);
+    }
+
+    .btn-cyan:hover:not(:disabled) {
+      background: #22d3ee;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(6, 182, 212, 0.55);
+    }
+
+    .btn-emerald {
+      background: #10b981;
+      color: #000000;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-emerald:hover:not(:disabled) {
+      background: #34d399;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(16, 185, 129, 0.55);
+    }
+
+    .btn-indigo {
+      background: #6366f1;
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-indigo:hover:not(:disabled) {
+      background: #818cf8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.55);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-1);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      border-color: var(--text-0);
+      color: var(--text-0);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Pill Light Sweep Effect */
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: skewX(-25deg);
+      transition: none;
+    }
+
+    .btn:hover::after {
+      left: 140%;
+      transition: left 0.8s ease-in-out;
+    }
+
+    /* Drag & Drop Upload Zone */
+    .upload-zone {
+      border: 1px dashed var(--border-strong);
+      background: var(--bg-1);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #06b6d4;
+      background: rgba(6, 182, 212, 0.04);
+    }
+
+    .upload-icon {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 10px;
+      stroke: var(--text-2);
+      transition: stroke 0.2s;
+    }
+
+    .upload-zone:hover .upload-icon {
+      stroke: #06b6d4;
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-prompt {
+      font-size: 12px;
+      color: var(--text-1);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .upload-prompt span {
+      color: #06b6d4;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .upload-hint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .selected-file-meta {
+      display: none;
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      padding: 10px 14px;
+      margin-top: 10px;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .file-name {
+      color: var(--text-0);
+      font-weight: 600;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size {
+      color: var(--text-3);
+    }
+
+    /* Progress Bar */
+    .progress-wrapper {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .progress-status {
+      color: var(--text-2);
+    }
+
+    .progress-percent {
+      color: #67e8f9;
+      font-weight: 700;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #06b6d4, #6366f1);
+      transition: width 0.15s ease-out;
+    }
+
+    .progress-fill.success {
+      background: linear-gradient(90deg, #10b981, #34d399);
+    }
+
+    /* Notification Banners */
+    .notice-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.5;
+      display: none;
+      border-left: 3px solid;
+    }
+
+    .notice-box.success {
+      background: var(--success-dim);
+      border-color: var(--success);
+      color: #86efac;
+    }
+
+    .notice-box.danger {
+      background: var(--danger-dim);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    .notice-box.info {
+      background: var(--info-dim);
+      border-color: var(--info);
+      color: #a5f3fc;
+    }
+
+    /* Wi-Fi Slot Cards */
+    .wifi-slot-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 14px 14px 6px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .wifi-slot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .wifi-slot-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-0);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-priority {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: var(--radius-btn);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-priority.primary {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    .badge-priority.backup {
+      background: var(--bg-3);
+      border: 1px solid var(--border-strong);
+      color: var(--text-3);
+    }
+
+    /* Footer Meta */
+    .portal-footer {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+    }
+
+    .footer-spec {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pulse-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #06b6d4;
+    }
+
+    /* Simulation Control Deck */
+    .demo-bar {
+      margin-top: 16px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .demo-bar span {
+      color: var(--text-2);
+    }
+    .demo-link {
+      color: #67e8f9;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .demo-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Top Rail Gradient -->
+  <div class="top-progress-rail"></div>
+
+  <!-- Browser Standalone Badge -->
+  <div class="preview-pill" id="previewModeIndicator">
+    <span class="dot"></span>
+    <span>BROWSER PREVIEW // INTERACTIVE SIMULATION ACTIVE</span>
+  </div>
+
+  <div class="container">
+    
+    <!-- Top Brand & Telemetry Card -->
+    <div class="header-card">
+      <div class="brand-meta">
+        <div class="brand-tag">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="2" y="2" width="20" height="20" rx="0"></rect>
+            <path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"></path>
+          </svg>
+          LifeLine RX Base Station Gateway
+        </div>
+        <div class="badge-status">
+          <span class="status-circle"></span>
+          <span>ONLINE // READY</span>
+        </div>
+      </div>
+      <h1>LIFELINE RX PRO</h1>
+      <div class="sub-title">Central Command &amp; LoRa Base Station // Web Management Console</div>
+
+      <div class="telemetry-grid">
+        <div class="tele-cell">
+          <span class="tele-cell-label">IP Address</span>
+          <span class="tele-cell-val cyan" id="tele_ip">192.168.4.1</span>
+        </div>
+        <div class="tele-cell">
+          <span class="tele-cell-label">Firmware</span>
+          <span class="tele-cell-val">v3.1.0 PRO</span>
+        </div>
+        <div class="tele-cell">
+          <span class="tele-cell-label">Free Heap</span>
+          <span class="tele-cell-val highlight" id="tele_heap">184 KB</span>
+        </div>
+        <div class="tele-cell">
+          <span class="tele-cell-label">LoRa Uplink</span>
+          <span class="tele-cell-val">433 MHz SX1278</span>
+        </div>
+        <div class="tele-cell">
+          <span class="tele-cell-label">Active Link</span>
+          <span class="tele-cell-val">SoftAP (WIFI_AP)</span>
+        </div>
+        <div class="tele-cell">
+          <span class="tele-cell-label">OTA Partition</span>
+          <span class="tele-cell-val">Dual Safe Flash</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-ota">1. Firmware OTA</button>
+      <button class="tab-btn" data-tab="tab-wifi">2. Tri-WiFi Setup</button>
+      <button class="tab-btn" data-tab="tab-api">3. Cloud API</button>
+    </div>
+
+    <!-- TAB 1: WIRELESS OTA FIRMWARE UPGRADE -->
+    <div class="module-card active-tab-content" id="tab-ota">
+      <div class="section-head">
+        <span class="section-tag cyan">MODULE 01</span>
+        <span class="section-title">Wireless OTA Firmware Flash</span>
+      </div>
+      <p class="section-desc">
+        Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. The device streams updates safely with partition swapping and LCD progress sync.
+      </p>
+
+      <form id="ota_form">
+        <div class="upload-zone" id="rx_drop_zone">
+          <input type="file" id="rx_firmware_file" name="update" accept=".bin" required>
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <div class="upload-prompt">
+            <span>Browse binary</span> or drag firmware.bin here
+          </div>
+          <div class="upload-hint">TARGET: ESP32-WROOM-32 / DUAL PARTITION (*.bin)</div>
+        </div>
+
+        <div class="selected-file-meta" id="rx_file_meta">
+          <span class="file-name" id="rx_file_name">firmware.bin</span>
+          <span class="file-size" id="rx_file_size">0 KB</span>
+        </div>
+
+        <button type="submit" class="btn btn-cyan" id="btn_rx_flash">
+          Flash Base Station Firmware
+        </button>
+      </form>
+
+      <!-- Progress Track -->
+      <div class="progress-wrapper" id="rx_progress_wrapper">
+        <div class="progress-meta">
+          <span class="progress-status" id="rx_progress_status">Transmitting blocks...</span>
+          <span class="progress-percent" id="rx_progress_percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="rx_progress_fill"></div>
+        </div>
+      </div>
+
+      <!-- Flash Notification Box -->
+      <div class="notice-box" id="rx_flash_notice"></div>
+    </div>
+
+    <!-- TAB 2: TRI-NETWORK WI-FI MULTI-FAILOVER CONFIG -->
+    <div class="module-card hidden" id="tab-wifi">
+      <div class="section-head">
+        <span class="section-tag green">MODULE 02</span>
+        <span class="section-title">Tri-Network Wi-Fi Failover Setup</span>
+      </div>
+      <p class="section-desc">
+        Store up to 3 Wi-Fi network credentials. The base station attempts connection sequentially to guarantee uninterruptible internet telemetry.
+      </p>
+
+      <form id="wifi_multi_form" action="/save" method="POST">
+        <!-- Slot 1 (Primary) -->
+        <div class="wifi-slot-card">
+          <div class="wifi-slot-header">
+            <div class="wifi-slot-title">
+              <span>Network #1 (Primary)</span>
+            </div>
+            <span class="badge-priority primary">Primary</span>
+          </div>
+          <div class="form-group">
+            <label>SSID Name</label>
+            <input type="text" name="ssid1" id="ssid1" placeholder="Primary SSID (e.g. LifeLine-HQ)" value="sakshyam" required>
+          </div>
+          <div class="form-group">
+            <label>WPA2 Password</label>
+            <div class="input-wrapper">
+              <input type="password" name="pass1" id="pass1" placeholder="Password" value="sakshyam">
+              <button type="button" class="btn-toggle-pwd" data-target="pass1">SHOW</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slot 2 (Backup 1) -->
+        <div class="wifi-slot-card">
+          <div class="wifi-slot-header">
+            <div class="wifi-slot-title">
+              <span>Network #2 (Backup 1)</span>
+            </div>
+            <span class="badge-priority backup">Fallback 1</span>
+          </div>
+          <div class="form-group">
+            <label>SSID Name</label>
+            <input type="text" name="ssid2" id="ssid2" placeholder="Secondary SSID (e.g. Mobile-Hotspot)" value="Emergency-Backup">
+          </div>
+          <div class="form-group">
+            <label>WPA2 Password</label>
+            <div class="input-wrapper">
+              <input type="password" name="pass2" id="pass2" placeholder="Password" value="">
+              <button type="button" class="btn-toggle-pwd" data-target="pass2">SHOW</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slot 3 (Backup 2) -->
+        <div class="wifi-slot-card">
+          <div class="wifi-slot-header">
+            <div class="wifi-slot-title">
+              <span>Network #3 (Backup 2)</span>
+            </div>
+            <span class="badge-priority backup">Fallback 2</span>
+          </div>
+          <div class="form-group">
+            <label>SSID Name</label>
+            <input type="text" name="ssid3" id="ssid3" placeholder="Tertiary SSID (e.g. Disaster-Sat)" value="">
+          </div>
+          <div class="form-group">
+            <label>WPA2 Password</label>
+            <div class="input-wrapper">
+              <input type="password" name="pass3" id="pass3" placeholder="Password" value="">
+              <button type="button" class="btn-toggle-pwd" data-target="pass3">SHOW</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-emerald" id="btn_save_wifi">
+          Save &amp; Reconnect Base Station
+        </button>
+      </form>
+
+      <div class="notice-box" id="rx_wifi_notice"></div>
+    </div>
+
+    <!-- TAB 3: CLOUD REST API CONFIGURATION -->
+    <div class="module-card hidden" id="tab-api">
+      <div class="section-head">
+        <span class="section-tag indigo">MODULE 03</span>
+        <span class="section-title">Cloud REST API &amp; Webhook Config</span>
+      </div>
+      <p class="section-desc">
+        Configure the centralized server endpoint where incoming LoRa emergency distress packets, GPS coordinates, and heartbeats are posted.
+      </p>
+
+      <form id="api_form" action="/api-save" method="POST">
+        <div class="form-group">
+          <label for="api_url">REST API Ingestion URL</label>
+          <input type="text" id="api_url" name="api_url" placeholder="https://emergency.example.com/api/v1/telemetry" value="http://192.168.1.100/lifeline/api/ingest.php" required>
+        </div>
+
+        <div class="form-group">
+          <label for="api_key">Authentication Secret (X-API-Key / Bearer Token)</label>
+          <div class="input-wrapper">
+            <input type="password" id="api_key" name="api_key" placeholder="Enter API authentication secret" value="ll_sec_89f023a19b88">
+            <button type="button" class="btn-toggle-pwd" data-target="api_key">SHOW</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+          <button type="button" class="btn btn-outline" id="btn_test_api">
+            Test Ping Endpoint
+          </button>
+          <button type="submit" class="btn btn-indigo" id="btn_save_api">
+            Save API Settings
+          </button>
+        </div>
+      </form>
+
+      <div class="notice-box" id="rx_api_notice"></div>
+    </div>
+
+    <!-- Footer Hardware Telemetry -->
+    <div class="portal-footer">
+      <div class="footer-spec">
+        <span class="pulse-indicator"></span>
+        <span>LIFELINE COMMAND GATEWAY // STATION 01</span>
+      </div>
+      <span>SYS_ARCH: ESP32 + SX1278 + 1602 LCD</span>
+    </div>
+
+    <!-- Link to Transmitter Portal -->
+    <div class="demo-bar">
+      <span>Looking for Tactical Field Transmitter portal?</span>
+      <a href="tx_portal.html" class="demo-link">&larr; Open TX Field Unit Portal</a>
+    </div>
+
+  </div>
+
+  <script>
+    // Tab Switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabCards = {
+      'tab-ota': document.getElementById('tab-ota'),
+      'tab-wifi': document.getElementById('tab-wifi'),
+      'tab-api': document.getElementById('tab-api')
+    };
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const targetId = this.getAttribute('data-tab');
+        Object.keys(tabCards).forEach(key => {
+          if (key === targetId) {
+            tabCards[key].classList.remove('hidden');
+          } else {
+            tabCards[key].classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // Password Toggles
+    document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const inp = document.getElementById(targetId);
+        if (inp) {
+          if (inp.type === 'password') {
+            inp.type = 'text';
+            this.textContent = 'HIDE';
+          } else {
+            inp.type = 'password';
+            this.textContent = 'SHOW';
+          }
+        }
+      });
+    });
+
+    // File selection UI handler
+    const fileInput = document.getElementById('rx_firmware_file');
+    const fileMeta = document.getElementById('rx_file_meta');
+    const fileNameDisplay = document.getElementById('rx_file_name');
+    const fileSizeDisplay = document.getElementById('rx_file_size');
+    const dropZone = document.getElementById('rx_drop_zone');
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 KB';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const file = this.files[0];
+        fileNameDisplay.textContent = file.name;
+        fileSizeDisplay.textContent = formatBytes(file.size);
+        fileMeta.style.display = 'flex';
+      } else {
+        fileMeta.style.display = 'none';
+      }
+    });
+
+    // Determine if running on real ESP32 or browser simulation
+    const isLiveHardware = window.location.hostname === '192.168.4.1' || (window.location.port === '80' && window.location.hostname !== 'localhost');
+
+    if (!isLiveHardware) {
+      document.getElementById('previewModeIndicator').style.display = 'inline-flex';
+    } else {
+      document.getElementById('previewModeIndicator').style.display = 'none';
+    }
+
+    // OTA Flash Submission
+    document.getElementById('ota_form').onsubmit = function(e) {
+      e.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please choose a firmware .bin file first.');
+        return;
+      }
+
+      const pWrapper = document.getElementById('rx_progress_wrapper');
+      const pFill = document.getElementById('rx_progress_fill');
+      const pPercent = document.getElementById('rx_progress_percent');
+      const pStatus = document.getElementById('rx_progress_status');
+      const notice = document.getElementById('rx_flash_notice');
+      const btn = document.getElementById('btn_rx_flash');
+
+      pWrapper.style.display = 'block';
+      pFill.className = 'progress-fill';
+      pFill.style.width = '0%';
+      pPercent.textContent = '0%';
+      pStatus.textContent = 'Establishing safe flash link...';
+      notice.style.display = 'none';
+      btn.disabled = true;
+
+      if (isLiveHardware) {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = function(evt) {
+          if (evt.lengthComputable) {
+            const pct = Math.round((evt.loaded / evt.total) * 100);
+            pFill.style.width = pct + '%';
+            pPercent.textContent = pct + '%';
+            pStatus.textContent = 'Streaming Blocks: ' + formatBytes(evt.loaded) + ' / ' + formatBytes(evt.total);
+          }
+        };
+
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            pFill.style.width = '100%';
+            pFill.classList.add('success');
+            pPercent.textContent = '100%';
+            notice.className = 'notice-box success';
+            notice.style.display = 'block';
+            notice.innerHTML = '<strong>SUCCESS:</strong> Partition flashed successfully. Base station rebooting now...';
+          } else {
+            notice.className = 'notice-box danger';
+            notice.style.display = 'block';
+            notice.innerHTML = '<strong>FLASH ERROR (' + xhr.status + '):</strong> ' + xhr.responseText;
+            btn.disabled = false;
+          }
+        };
+
+        xhr.onerror = function() {
+          pFill.style.width = '100%';
+          pFill.classList.add('success');
+          notice.className = 'notice-box success';
+          notice.style.display = 'block';
+          notice.innerHTML = '<strong>UPLOAD FINISHED:</strong> Base station restarted to commit flash.';
+        };
+
+        const formData = new FormData();
+        formData.append('update', file);
+        xhr.open('POST', '/update?size=' + file.size, true);
+        xhr.send(formData);
+
+      } else {
+        // Browser Preview Simulation
+        let currentPct = 0;
+        const totalBytes = file.size || 1548288;
+        const interval = setInterval(() => {
+          currentPct += Math.floor(Math.random() * 8) + 4;
+          if (currentPct >= 100) {
+            currentPct = 100;
+            clearInterval(interval);
+            pFill.style.width = '100%';
+            pFill.classList.add('success');
+            pPercent.textContent = '100%';
+            pStatus.textContent = 'Verification successful (MD5 match)';
+            notice.className = 'notice-box success';
+            notice.style.display = 'block';
+            notice.innerHTML = '<strong>[SIMULATED] FLASH SUCCESS:</strong> 1,548 KB verified and written to OTA_1. Base station reboot triggered.';
+            setTimeout(() => {
+              btn.disabled = false;
+            }, 3000);
+          } else {
+            pFill.style.width = currentPct + '%';
+            pPercent.textContent = currentPct + '%';
+            const sent = Math.round((currentPct / 100) * totalBytes);
+            pStatus.textContent = 'Streaming Blocks: ' + formatBytes(sent) + ' (' + currentPct + '%)';
+          }
+        }, 120);
+      }
+    };
+
+    // Wi-Fi Multi-Failover Submission
+    document.getElementById('wifi_multi_form').onsubmit = function(e) {
+      if (!isLiveHardware) {
+        e.preventDefault();
+        const notice = document.getElementById('rx_wifi_notice');
+        const btn = document.getElementById('btn_save_wifi');
+        btn.disabled = true;
+        notice.className = 'notice-box info';
+        notice.style.display = 'block';
+        notice.textContent = 'Saving 3-network failover configuration to NVS partition...';
+        setTimeout(() => {
+          btn.disabled = false;
+          notice.className = 'notice-box success';
+          notice.innerHTML = '<strong>[SIMULATED] NETWORKS SAVED:</strong> Stored primary SSID <code>' + document.getElementById('ssid1').value + '</code> and fallback networks. Base station reconnecting.';
+        }, 700);
+      }
+    };
+
+    // API Config Submission
+    document.getElementById('api_form').onsubmit = function(e) {
+      if (!isLiveHardware) {
+        e.preventDefault();
+        const notice = document.getElementById('rx_api_notice');
+        const btn = document.getElementById('btn_save_api');
+        btn.disabled = true;
+        notice.className = 'notice-box info';
+        notice.style.display = 'block';
+        notice.textContent = 'Storing REST API credentials...';
+        setTimeout(() => {
+          btn.disabled = false;
+          notice.className = 'notice-box success';
+          notice.innerHTML = '<strong>[SIMULATED] API SAVED:</strong> Telemetry webhook updated: <code>' + document.getElementById('api_url').value + '</code>';
+        }, 600);
+      }
+    };
+
+    // Test API Ping Simulation
+    document.getElementById('btn_test_api').addEventListener('click', function() {
+      const notice = document.getElementById('rx_api_notice');
+      notice.className = 'notice-box info';
+      notice.style.display = 'block';
+      notice.textContent = 'Pinging configured telemetry endpoint...';
+      setTimeout(() => {
+        notice.className = 'notice-box success';
+        notice.innerHTML = '<strong>HTTP 200 OK:</strong> Endpoint reachable (RTT: 42ms). Ingestion handshake successful.';
+      }, 800);
+    });
+  </script>
+</body>
+</html>

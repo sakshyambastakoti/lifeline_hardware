@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFELINE TX PRO // OTA & WI-FI GATEWAY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-0: #000000;
+      --bg-1: #0d0d0d;
+      --bg-2: #141414;
+      --bg-3: #1f1f1f;
+      --bg-4: #262626;
+      --border: #262626;
+      --border-strong: #3a3a3a;
+      --border-accent: rgba(255, 255, 255, 0.25);
+      --text-0: #ffffff;
+      --text-1: #cccccc;
+      --text-2: #999999;
+      --text-3: #666666;
+      --accent: #ffffff;
+      --accent-dim: #cccccc;
+      --danger: #ff1e42;
+      --danger-dim: rgba(255, 30, 66, 0.15);
+      --success: #5fa657;
+      --success-dim: rgba(95, 166, 87, 0.15);
+      --warning: #d4a017;
+      --info: #06b6d4;
+      --indigo: #6366f1;
+      --violet: #8b5cf6;
+      --radius: 0px;
+      --radius-btn: 9999px;
+      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: var(--radius);
+    }
+
+    body {
+      background-color: var(--bg-0);
+      color: var(--text-1);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 48px;
+      position: relative;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Background Atmosphere */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(255, 30, 66, 0.05) 50%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Holographic Top Bar */
+    .top-progress-rail {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #06b6d4, #8b5cf6, #ff1e42);
+      z-index: 999;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+    }
+
+    /* Simulation Ribbon for Standalone Browser Preview */
+    .preview-pill {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 6px 14px;
+      border-radius: var(--radius-btn);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #a5b4fc;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+      z-index: 1;
+    }
+    .preview-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #6366f1;
+      box-shadow: 0 0 8px #6366f1;
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Main Card Frame with Austere Geometry */
+    .portal-card {
+      background: rgba(18, 18, 24, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      padding: 32px 28px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8),
+                  0 0 0 1px rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--danger) 0%, #6366f1 100%);
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-mode {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 9px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text-2);
+      border-radius: var(--radius-btn);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-0);
+      margin-bottom: 4px;
+    }
+
+    .sub-title {
+      font-size: 12px;
+      color: var(--text-2);
+      letter-spacing: 0.3px;
+    }
+
+    /* Telemetry Info Strip */
+    .telemetry-strip {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .tele-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .tele-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .tele-val {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+
+    .tele-val.highlight {
+      color: #6ee7b7;
+    }
+
+    /* Section Divider & Titles */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 28px 0 14px 0;
+    }
+
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--bg-0);
+      background: var(--text-0);
+      padding: 2px 6px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-0);
+    }
+
+    .section-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    /* Drag & Drop File Upload Area */
+    .upload-zone {
+      border: 1px dashed var(--border-strong);
+      background: var(--bg-1);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--danger);
+      background: rgba(255, 30, 66, 0.04);
+    }
+
+    .upload-icon {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 10px;
+      stroke: var(--text-2);
+      transition: stroke 0.2s;
+    }
+
+    .upload-zone:hover .upload-icon {
+      stroke: var(--danger);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-prompt {
+      font-size: 12px;
+      color: var(--text-1);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .upload-prompt span {
+      color: var(--danger);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .upload-hint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .selected-file-meta {
+      display: none;
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      padding: 12px 14px;
+      margin-top: 10px;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .file-name {
+      color: var(--text-0);
+      font-weight: 600;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size {
+      color: var(--text-3);
+    }
+
+    /* Modern Pill Action Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 13px 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      margin-top: 12px;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--text-0);
+      color: var(--bg-0);
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(255, 30, 66, 0.35);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #ff3355;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(255, 30, 66, 0.55);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Pill Button Magnetic Light Sweep Animation */
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: skewX(-25deg);
+      transition: none;
+    }
+
+    .btn:hover::after {
+      left: 140%;
+      transition: left 0.8s ease-in-out;
+    }
+
+    /* Progress Architecture */
+    .progress-wrapper {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .progress-status {
+      color: var(--text-2);
+    }
+
+    .progress-percent {
+      color: var(--text-0);
+      font-weight: 700;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff1e42, #ff6b81);
+      transition: width 0.15s ease-out;
+      position: relative;
+    }
+
+    .progress-fill.success {
+      background: linear-gradient(90deg, #10b981, #34d399);
+    }
+
+    /* Inputs */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      color: var(--text-0);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--text-0);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-toggle-pwd {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px;
+    }
+
+    .btn-toggle-pwd:hover {
+      color: var(--text-0);
+    }
+
+    /* Status Notifications */
+    .notice-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.5;
+      display: none;
+      border-left: 3px solid;
+    }
+
+    .notice-box.success {
+      background: var(--success-dim);
+      border-color: var(--success);
+      color: #86efac;
+    }
+
+    .notice-box.danger {
+      background: var(--danger-dim);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    .notice-box.info {
+      background: rgba(6, 182, 212, 0.1);
+      border-color: var(--info);
+      color: #a5f3fc;
+    }
+
+    /* Footer Meta */
+    .portal-footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+    }
+
+    .footer-spec {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pulse-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    /* Simulation Control Deck */
+    .demo-bar {
+      margin-top: 16px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .demo-bar span {
+      color: var(--text-2);
+    }
+    .demo-link {
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .demo-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Top Rail Gradient -->
+  <div class="top-progress-rail"></div>
+
+  <!-- Browser Standalone Badge -->
+  <div class="preview-pill" id="previewModeIndicator">
+    <span class="dot"></span>
+    <span>BROWSER PREVIEW // INTERACTIVE SIMULATION ACTIVE</span>
+  </div>
+
+  <div class="container">
+    <div class="portal-card">
+      
+      <!-- Brand & Mode Header -->
+      <div class="header">
+        <div class="brand-meta">
+          <div class="brand-tag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            LifeLine Hardware v3.1
+          </div>
+          <div class="badge-mode" id="badgeMode">LOCAL AP ACTIVE</div>
+        </div>
+        <h1>LIFELINE TX PRO</h1>
+        <div class="sub-title">Tactical Field Transmitter // Wireless OTA &amp; Network Gateway</div>
+      </div>
+
+      <!-- Live Hardware Telemetry Strip -->
+      <div class="telemetry-strip">
+        <div class="tele-item">
+          <span class="tele-label">Access Point IP</span>
+          <span class="tele-val highlight" id="teleIp">192.168.4.1</span>
+        </div>
+        <div class="tele-item">
+          <span class="tele-label">Gateway SSID</span>
+          <span class="tele-val" id="teleSsid">LifeLine-TX-OTA</span>
+        </div>
+        <div class="tele-item">
+          <span class="tele-label">Radio Uplink</span>
+          <span class="tele-val">SX1278 // 433 MHz</span>
+        </div>
+        <div class="tele-item">
+          <span class="tele-label">Exit Control</span>
+          <span class="tele-val">Press '#' on Keypad</span>
+        </div>
+      </div>
+
+      <!-- SECTION 1: FIRMWARE FLASH (OTA) -->
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="section-title">Firmware Flash (OTA)</span>
+      </div>
+      <p class="section-desc">
+        Select or drag a compiled <code>firmware.bin</code> image. Flash writes directly to partition OTA_0 with automated checksum validation.
+      </p>
+
+      <form id="flash_form">
+        <div class="upload-zone" id="drop_zone">
+          <input type="file" id="firmware_file" name="update" accept=".bin" required>
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <div class="upload-prompt">
+            <span>Browse file</span> or drag binary here
+          </div>
+          <div class="upload-hint">TARGET: ESP32-WROOM-32 BINARY ONLY (*.bin)</div>
+        </div>
+
+        <div class="selected-file-meta" id="file_meta">
+          <span class="file-name" id="file_name_display">firmware.bin</span>
+          <span class="file-size" id="file_size_display">0 KB</span>
+        </div>
+
+        <button type="submit" class="btn btn-danger" id="btn_flash">
+          Upload &amp; Flash Firmware
+        </button>
+      </form>
+
+      <!-- Live Progress Bar -->
+      <div class="progress-wrapper" id="progress_wrapper">
+        <div class="progress-meta">
+          <span class="progress-status" id="progress_status">Writing blocks to flash...</span>
+          <span class="progress-percent" id="progress_percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress_fill"></div>
+        </div>
+      </div>
+
+      <!-- Flash Notification Box -->
+      <div class="notice-box" id="flash_notice"></div>
+
+      <!-- SECTION 2: WI-FI CREDENTIALS CONFIG -->
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="section-title">Wi-Fi Field Uplink Config</span>
+      </div>
+      <p class="section-desc">
+        Configure client Wi-Fi credentials. When rebooted into Network OTA mode, the field unit joins this AP to permit over-the-network diagnostics.
+      </p>
+
+      <form id="wifi_form">
+        <div class="form-group">
+          <label for="wifi_ssid">Target Wi-Fi SSID</label>
+          <input type="text" id="wifi_ssid" name="ssid" placeholder="e.g. LifeLine-Tactical-Net" value="sakshyam" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="wifi_pass">WPA2 Pre-Shared Key</label>
+          <div class="input-wrapper">
+            <input type="password" id="wifi_pass" name="pass" placeholder="Enter Network Passkey" value="sakshyam" autocomplete="off">
+            <button type="button" class="btn-toggle-pwd" id="btn_toggle_pwd">SHOW</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn_save_wifi">
+          Save Wi-Fi Credentials
+        </button>
+      </form>
+
+      <!-- Wi-Fi Notice Box -->
+      <div class="notice-box" id="wifi_notice"></div>
+
+      <!-- Footer Hardware Specs -->
+      <div class="portal-footer">
+        <div class="footer-spec">
+          <span class="pulse-indicator"></span>
+          <span>MIL-SPEC TELEMETRY // UNIT 01-TX</span>
+        </div>
+        <span>SECURITY: WPA2-PSK</span>
+      </div>
+
+    </div>
+
+    <!-- Interactive Showroom Switcher Link -->
+    <div class="demo-bar">
+      <span>Looking for Base Station Receiver portal?</span>
+      <a href="rx_portal.html" class="demo-link">Open RX Command Portal &rarr;</a>
+    </div>
+  </div>
+
+  <script>
+    // File selection UI handler
+    const fileInput = document.getElementById('firmware_file');
+    const fileMeta = document.getElementById('file_meta');
+    const fileNameDisplay = document.getElementById('file_name_display');
+    const fileSizeDisplay = document.getElementById('file_size_display');
+    const dropZone = document.getElementById('drop_zone');
+    const btnTogglePwd = document.getElementById('btn_toggle_pwd');
+    const wifiPass = document.getElementById('wifi_pass');
+
+    // Drag-over styling
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 KB';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const file = this.files[0];
+        fileNameDisplay.textContent = file.name;
+        fileSizeDisplay.textContent = formatBytes(file.size);
+        fileMeta.style.display = 'flex';
+      } else {
+        fileMeta.style.display = 'none';
+      }
+    });
+
+    // Password Toggle
+    btnTogglePwd.addEventListener('click', function() {
+      if (wifiPass.type === 'password') {
+        wifiPass.type = 'text';
+        this.textContent = 'HIDE';
+      } else {
+        wifiPass.type = 'password';
+        this.textContent = 'SHOW';
+      }
+    });
+
+    // Determine if running directly on ESP32 or standalone browser preview
+    const isLiveHardware = window.location.hostname === '192.168.4.1' || window.location.port === '80';
+
+    if (!isLiveHardware) {
+      document.getElementById('previewModeIndicator').style.display = 'inline-flex';
+    } else {
+      document.getElementById('previewModeIndicator').style.display = 'none';
+    }
+
+    // Flash Form Submission
+    document.getElementById('flash_form').onsubmit = function(e) {
+      e.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please choose a firmware .bin file first.');
+        return;
+      }
+
+      const pWrapper = document.getElementById('progress_wrapper');
+      const pFill = document.getElementById('progress_fill');
+      const pPercent = document.getElementById('progress_percent');
+      const pStatus = document.getElementById('progress_status');
+      const notice = document.getElementById('flash_notice');
+      const btn = document.getElementById('btn_flash');
+
+      pWrapper.style.display = 'block';
+      pFill.className = 'progress-fill';
+      pFill.style.width = '0%';
+      pPercent.textContent = '0%';
+      pStatus.textContent = 'Initializing wireless stream...';
+      notice.style.display = 'none';
+      btn.disabled = true;
+
+      // Real ESP32 Hardware Path
+      if (isLiveHardware) {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = function(evt) {
+          if (evt.lengthComputable) {
+            const pct = Math.round((evt.loaded / evt.total) * 100);
+            pFill.style.width = pct + '%';
+            pPercent.textContent = pct + '%';
+            pStatus.textContent = 'Writing Flash Blocks: ' + formatBytes(evt.loaded) + ' / ' + formatBytes(evt.total);
+          }
+        };
+
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            pFill.style.width = '100%';
+            pFill.classList.add('success');
+            pPercent.textContent = '100%';
+            notice.className = 'notice-box success';
+            notice.style.display = 'block';
+            notice.innerHTML = '<strong>SUCCESS:</strong> Firmware partition written successfully. Tactical Transmitter is rebooting...';
+          } else {
+            notice.className = 'notice-box danger';
+            notice.style.display = 'block';
+            notice.innerHTML = '<strong>FLASH ERROR (' + xhr.status + '):</strong> ' + xhr.responseText;
+            btn.disabled = false;
+          }
+        };
+
+        xhr.onerror = function() {
+          pFill.style.width = '100%';
+          pFill.classList.add('success');
+          notice.className = 'notice-box success';
+          notice.style.display = 'block';
+          notice.innerHTML = '<strong>STREAM COMPLETED:</strong> Device disconnected to apply update. Rebooting...';
+        };
+
+        const formData = new FormData();
+        formData.append('update', file);
+        xhr.open('POST', '/update?size=' + file.size, true);
+        xhr.send(formData);
+
+      } else {
+        // Standalone Browser Preview Simulation Mode
+        let currentPct = 0;
+        const totalBytes = file.size || 1420544;
+        const interval = setInterval(() => {
+          currentPct += Math.floor(Math.random() * 8) + 3;
+          if (currentPct >= 100) {
+            currentPct = 100;
+            clearInterval(interval);
+            pFill.style.width = '100%';
+            pFill.classList.add('success');
+            pPercent.textContent = '100%';
+            pStatus.textContent = 'Checksum verified (MD5 OK)';
+            notice.className = 'notice-box success';
+            notice.style.display = 'block';
+            notice.innerHTML = '<strong>[SIMULATED] FLASH COMPLETE:</strong> 1,420 KB written in 4.2s. Unit reboot initiated.';
+            setTimeout(() => {
+              btn.disabled = false;
+            }, 3000);
+          } else {
+            pFill.style.width = currentPct + '%';
+            pPercent.textContent = currentPct + '%';
+            const sent = Math.round((currentPct / 100) * totalBytes);
+            pStatus.textContent = 'Streaming Blocks: ' + formatBytes(sent) + ' (' + currentPct + '%)';
+          }
+        }, 120);
+      }
+    };
+
+    // Wi-Fi Configuration Submission
+    document.getElementById('wifi_form').onsubmit = function(e) {
+      e.preventDefault();
+      const ssid = document.getElementById('wifi_ssid').value.trim();
+      const pass = document.getElementById('wifi_pass').value;
+      const notice = document.getElementById('wifi_notice');
+      const btn = document.getElementById('btn_save_wifi');
+
+      btn.disabled = true;
+      notice.className = 'notice-box info';
+      notice.style.display = 'block';
+      notice.textContent = 'Saving Wi-Fi credentials to NVS storage...';
+
+      if (isLiveHardware) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/save_wifi', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+          btn.disabled = false;
+          if (xhr.status === 200) {
+            notice.className = 'notice-box success';
+            notice.innerHTML = '<strong>SAVED:</strong> Credentials for <code>' + ssid + '</code> written. When in Network OTA mode, TX will auto-connect.';
+          } else {
+            notice.className = 'notice-box danger';
+            notice.textContent = 'Error saving credentials (' + xhr.status + ').';
+          }
+        };
+        xhr.onerror = function() {
+          btn.disabled = false;
+          notice.className = 'notice-box danger';
+          notice.textContent = 'Network transport error.';
+        };
+        xhr.send('ssid=' + encodeURIComponent(ssid) + '&pass=' + encodeURIComponent(pass));
+      } else {
+        // Browser Preview Simulation
+        setTimeout(() => {
+          btn.disabled = false;
+          notice.className = 'notice-box success';
+          notice.innerHTML = '<strong>[SIMULATED] SAVED:</strong> Wi-Fi parameters stored to ESP32 Flash partition: <code>SSID: ' + ssid + '</code>';
+        }, 600);
+      }
+    };
+  </script>
+</body>
+</html>

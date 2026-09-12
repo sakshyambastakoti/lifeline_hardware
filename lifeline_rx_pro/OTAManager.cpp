@@ -195,81 +195,276 @@ const char* rx_ota_ap_pass = "12345678";
 const char rxServerIndex[] PROGMEM = 
 R"rawliteral(
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>LifeLine RX Base Station OTA Firmware Update</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LIFELINE RX // LOCAL OTA PORTAL</title>
   <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #08080c; color: #fff; text-align: center; padding: 30px; margin: 0; }
-    .card { background: #121218; border: 2px solid #ff1e42; padding: 25px; max-width: 440px; margin: 0 auto; box-shadow: 0 0 25px rgba(255, 30, 66, 0.2); }
-    h1 { color: #ff1e42; margin-bottom: 5px; font-size: 22px; }
-    h3 { color: #a3b1c6; font-weight: 300; margin-top: 0; font-size: 14px; }
-    input[type=file] { margin: 20px 0; padding: 10px; background: #1b1b24; color: #fff; border: 1px solid #405070; width: 90%; }
-    input[type=submit], button { background: #ff1e42; color: #fff; font-weight: bold; border: none; padding: 12px 28px; cursor: pointer; font-size: 15px; width: 90%; }
-    input[type=submit]:hover, button:hover { background: #d01030; }
-    .progress-box { height: 22px; background: #0a0a0f; border: 1px solid #282836; margin-top: 15px; display: none; overflow: hidden; }
-    .progress-bar { height: 100%; width: 0%; background: #ff1e42; text-align: right; padding-right: 6px; line-height: 22px; font-size: 12px; font-weight: bold; color: #fff; }
-    .msg { margin-top: 12px; font-size: 12px; color: #00ff87; display: none; font-family: monospace; }
+    :root {
+      --bg-0: #000000;
+      --bg-1: #0d0d0d;
+      --bg-2: #141414;
+      --border-strong: #3a3a3a;
+      --border: #262626;
+      --text-0: #ffffff;
+      --text-1: #cccccc;
+      --text-2: #999999;
+      --text-3: #666666;
+      --cyan: #06b6d4;
+      --radius-btn: 9999px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0px; }
+    body {
+      background: var(--bg-0);
+      color: var(--text-1);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 14px 48px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .top-rail {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 3px;
+      background: linear-gradient(90deg, #6366f1, #06b6d4, #8b5cf6, #f59e0b);
+      z-index: 999;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+    }
+    .container { width: 100%; max-width: 460px; margin: 0 auto; position: relative; }
+    .card {
+      background: rgba(18, 18, 24, 0.92);
+      border: 1px solid var(--border-strong);
+      padding: 28px 24px;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 4px; height: 100%;
+      background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%);
+    }
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .brand-tag {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+    .badge-mode {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 9px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text-2);
+      border-radius: var(--radius-btn);
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-0);
+      margin-bottom: 4px;
+    }
+    .sub { font-size: 12px; color: var(--text-2); }
+    .tele-strip {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 11px;
+    }
+    .tele-lbl { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px; display: block; }
+    .tele-val { font-weight: 600; color: var(--text-0); }
+    .tele-val.cyan { color: #67e8f9; }
+    .sec-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 14px; }
+    .upload-box {
+      border: 1px dashed var(--border-strong);
+      background: var(--bg-1);
+      padding: 22px 14px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+    .upload-box:hover { border-color: var(--cyan); background: rgba(6, 182, 212, 0.04); }
+    .upload-box input[type=file] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-prompt { font-size: 12px; color: var(--text-1); font-weight: 500; margin-bottom: 2px; }
+    .upload-prompt span { color: var(--cyan); text-decoration: underline; }
+    .upload-hint { font-family: monospace; font-size: 10px; color: var(--text-3); }
+    .file-sel {
+      display: none;
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      justify-content: space-between;
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--text-0);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 13px 18px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      border: none;
+      margin-top: 10px;
+      background: var(--cyan);
+      color: #000;
+      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.35);
+    }
+    .btn:hover:not(:disabled) { background: #22d3ee; box-shadow: 0 6px 24px rgba(6, 182, 212, 0.55); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .progress-wrap { display: none; margin-top: 14px; }
+    .progress-meta { display: flex; justify-content: space-between; font-family: monospace; font-size: 11px; margin-bottom: 5px; color: var(--text-2); }
+    .progress-bar-bg { width: 100%; height: 8px; background: var(--bg-1); border: 1px solid var(--border-strong); overflow: hidden; }
+    .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #06b6d4, #6366f1); transition: width 0.1s; }
+    .msg { margin-top: 12px; padding: 10px 12px; font-family: monospace; font-size: 11px; line-height: 1.4; display: none; border-left: 3px solid; }
+    .msg.err { background: rgba(255, 30, 66, 0.12); border-color: #ff1e42; color: #fca5a5; }
+    .msg.ok { background: rgba(95, 166, 87, 0.12); border-color: #5fa657; color: #86efac; }
+    .footer { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-family: monospace; font-size: 10px; color: var(--text-3); }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>LIFELINE RX BASE STATION</h1>
-    <h3>Wireless OTA Firmware Portal</h3>
-    <p>Select firmware <b>.bin</b> file to update base station:</p>
-    <form id='flash_form' method='POST' action='/update' enctype='multipart/form-data'>
-      <input type='file' id='firmware_file' name='update' accept='.bin' required><br>
-      <button type='submit' id='btn_flash'>Flash Firmware</button>
-    </form>
-    <div class='progress-box' id='p_box'><div class='progress-bar' id='p_bar'>0%</div></div>
-    <div class='msg' id='flash_msg'></div>
+  <div class="top-rail"></div>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="meta-row">
+          <span class="brand-tag">LIFELINE RX PRO</span>
+          <span class="badge-mode">LOCAL OTA MODE</span>
+        </div>
+        <h1>BASE STATION GATEWAY</h1>
+        <div class="sub">Direct Wireless Firmware Flash Portal</div>
+      </div>
+      <div class="tele-strip">
+        <div><span class="tele-lbl">AP Address</span><span class="tele-val cyan">192.168.4.1</span></div>
+        <div><span class="tele-lbl">AP SSID</span><span class="tele-val">LifeLine-RX-OTA</span></div>
+        <div><span class="tele-lbl">Hardware</span><span class="tele-val">ESP32 + SX1278</span></div>
+        <div><span class="tele-lbl">Exit OTA</span><span class="tele-val">1-Click Wi-Fi Button</span></div>
+      </div>
+      <p class="sec-desc">Select compiled firmware <b>.bin</b> file to update base station partition:</p>
+      <form id="flash_form">
+        <div class="upload-box" id="drop_zone">
+          <input type="file" id="firmware_file" name="update" accept=".bin" required>
+          <div class="upload-prompt"><span>Browse binary</span> or tap here</div>
+          <div class="upload-hint">ESP32-WROOM-32 (*.bin)</div>
+        </div>
+        <div class="file-sel" id="file_meta">
+          <span id="file_name">firmware.bin</span>
+          <span id="file_size">0 KB</span>
+        </div>
+        <button type="submit" class="btn" id="btn_flash">FLASH FIRMWARE</button>
+      </form>
+      <div class="progress-wrap" id="p_box">
+        <div class="progress-meta">
+          <span id="p_stat">Uploading to Base Station...</span>
+          <span id="p_pct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="p_bar"></div>
+        </div>
+      </div>
+      <div class="msg" id="flash_msg"></div>
+      <div class="footer">
+        <span>LIFELINE COMMAND BASE // RX</span>
+        <span>PARTITION: OTA_0/1 SAFE</span>
+      </div>
+    </div>
   </div>
   <script>
-  document.getElementById('flash_form').onsubmit = function(e) {
-    e.preventDefault();
-    var file = document.getElementById('firmware_file').files[0];
-    if (!file) return;
-    var pBox = document.getElementById('p_box');
-    var pBar = document.getElementById('p_bar');
-    var msg = document.getElementById('flash_msg');
-    var btn = document.getElementById('btn_flash');
-    pBox.style.display = 'block';
-    msg.style.display = 'block';
-    msg.style.color = '#ff1e42';
-    msg.innerText = 'Uploading to Base Station...';
-    btn.disabled = true; btn.style.opacity = '0.5';
-    var xhr = new XMLHttpRequest();
-    xhr.upload.onprogress = function(evt) {
-      if (evt.lengthComputable) {
-        var pct = Math.round((evt.loaded / evt.total) * 100);
-        pBar.style.width = pct + '%';
-        pBar.innerText = pct + '%';
-        msg.innerText = 'Flashing Base Station: ' + pct + '%';
+    var fi = document.getElementById('firmware_file');
+    fi.onchange = function() {
+      if (this.files && this.files[0]) {
+        document.getElementById('file_name').innerText = this.files[0].name;
+        document.getElementById('file_size').innerText = Math.round(this.files[0].size / 1024) + ' KB';
+        document.getElementById('file_meta').style.display = 'flex';
       }
     };
-    xhr.onload = function() {
-      if (xhr.status == 200) {
+    document.getElementById('flash_form').onsubmit = function(e) {
+      e.preventDefault();
+      var file = fi.files[0];
+      if (!file) return;
+      var pBox = document.getElementById('p_box');
+      var pBar = document.getElementById('p_bar');
+      var pPct = document.getElementById('p_pct');
+      var pStat = document.getElementById('p_stat');
+      var msg = document.getElementById('flash_msg');
+      var btn = document.getElementById('btn_flash');
+      pBox.style.display = 'block';
+      msg.style.display = 'none';
+      btn.disabled = true;
+      var xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = function(evt) {
+        if (evt.lengthComputable) {
+          var pct = Math.round((evt.loaded / evt.total) * 100);
+          pBar.style.width = pct + '%';
+          pPct.innerText = pct + '%';
+          pStat.innerText = 'Writing Flash: ' + pct + '% (' + Math.round(evt.loaded / 1024) + ' KB)';
+        }
+      };
+      xhr.onload = function() {
+        if (xhr.status == 200) {
+          pBar.style.width = '100%';
+          pBar.style.background = '#10b981';
+          pPct.innerText = '100%';
+          msg.className = 'msg ok';
+          msg.style.display = 'block';
+          msg.innerHTML = '<strong>SUCCESS:</strong> Base Station flashed! Rebooting...';
+        } else {
+          msg.className = 'msg err';
+          msg.style.display = 'block';
+          msg.innerHTML = '<strong>UPLOAD FAILED (' + xhr.status + ')</strong>';
+          btn.disabled = false;
+        }
+      };
+      xhr.onerror = function() {
         pBar.style.width = '100%';
-        pBar.innerText = '100%';
-        pBar.style.background = '#00ff87';
-        msg.style.color = '#00ff87';
-        msg.innerText = 'SUCCESS! Base Station is rebooting...';
-      } else {
-        msg.style.color = '#ff1e42';
-        msg.innerText = 'Upload failed (' + xhr.status + ')';
-        btn.disabled = false; btn.style.opacity = '1';
-      }
+        pBar.style.background = '#10b981';
+        msg.className = 'msg ok';
+        msg.style.display = 'block';
+        msg.innerHTML = '<strong>COMPLETE:</strong> Transfer finished. Base Station rebooting...';
+      };
+      var data = new FormData();
+      data.append('update', file);
+      xhr.open('POST', '/update?size=' + file.size);
+      xhr.send(data);
     };
-    xhr.onerror = function() {
-      pBar.style.background = '#00ff87';
-      msg.style.color = '#00ff87';
-      msg.innerText = 'Upload complete! Base Station is rebooting...';
-    };
-    var data = new FormData();
-    data.append('update', file);
-    xhr.open('POST', '/update?size=' + file.size);
-    xhr.send(data);
-  };
   </script>
 </body>
 </html>
