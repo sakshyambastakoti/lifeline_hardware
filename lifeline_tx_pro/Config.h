@@ -42,8 +42,12 @@
 #define LED_GREEN   21      // Success indicator (active HIGH)
 #define LED_RED     13      // Failure indicator (active HIGH)
 
+// LED Wiring Polarity (Set to true if LED Cathode connects to GND, set to false if LED Anode connects to 3.3V)
+#define LED_GREEN_ACTIVE_HIGH  true
+#define LED_RED_ACTIVE_HIGH    true
+
 // Audio Feedback
-#define BUZZER_PIN            12      // Buzzer
+#define BUZZER_PIN            22      // Buzzer (GPIO 22 - Dedicated output pin, adjacent to Green LED GPIO 21)
 #define BUZZER_IS_PASSIVE     true    // Set to true for passive buzzer (PWM tone), false for active buzzer (DC pulse)
 
 // SPU Telemetry Receiver Pin (Hardware Serial2 RX)

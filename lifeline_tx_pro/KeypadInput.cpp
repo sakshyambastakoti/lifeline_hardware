@@ -18,8 +18,9 @@ char keypadLayout[KEYPAD_ROWS][KEYPAD_COLS] = {
 byte rowPins[KEYPAD_ROWS] = {32, 33, 25, 26};  // Connect to keypad rows
 byte colPins[KEYPAD_COLS] = {14, 12, 13, 15};  // Connect to keypad columns
 
+
 // Keypad instance definition
-Keypad keypad = Keypad(makeKeymap(keypadLayout), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
+SharedKeypad keypad = SharedKeypad(makeKeymap(keypadLayout), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 void keypadEventListener(KeypadEvent key) {
     if (keypad.getState() == HOLD) {

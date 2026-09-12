@@ -27,23 +27,32 @@ void initBuzzerLED() {
     executeBeep(2500, 50);
 }
 
-static bool stateGreen = false;
-static bool stateRed = false;
+bool stateGreen = false;
+bool stateRed = false;
 
 void setLED(uint8_t pin, bool state) {
-    if (pin == LED_GREEN) stateGreen = state;
-    if (pin == LED_RED)   stateRed = state;
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, state ? HIGH : LOW);
+    if (pin == LED_GREEN) {
+        stateGreen = state;
+        pinMode(LED_GREEN, OUTPUT);
+        uint8_t lvl = (LED_GREEN_ACTIVE_HIGH ? (state ? HIGH : LOW) : (state ? LOW : HIGH));
+        digitalWrite(LED_GREEN, lvl);
+    }
+    if (pin == LED_RED) {
+        stateRed = state;
+        pinMode(LED_RED, OUTPUT);
+        uint8_t lvl = (LED_RED_ACTIVE_HIGH ? (state ? HIGH : LOW) : (state ? LOW : HIGH));
+        digitalWrite(LED_RED, lvl);
+        Serial.printf("[LED] Red LED (GPIO %d) set to %s (level: %s)\n", LED_RED, state ? "ON" : "OFF", lvl == HIGH ? "HIGH" : "LOW");
+    }
 }
 
 void clearAllLEDs() {
     stateGreen = false;
     stateRed = false;
     pinMode(LED_GREEN, OUTPUT);
-    digitalWrite(LED_GREEN, LOW);
+    digitalWrite(LED_GREEN, LED_GREEN_ACTIVE_HIGH ? LOW : HIGH);
     pinMode(LED_RED, OUTPUT);
-    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_RED, LED_RED_ACTIVE_HIGH ? LOW : HIGH);
 }
 
 void updateLEDs() {
@@ -51,11 +60,11 @@ void updateLEDs() {
     // Prevents matrix keypad scanning on shared/adjacent GPIOs from clearing or floating the LEDs
     if (stateGreen) {
         pinMode(LED_GREEN, OUTPUT);
-        digitalWrite(LED_GREEN, HIGH);
+        digitalWrite(LED_GREEN, LED_GREEN_ACTIVE_HIGH ? HIGH : LOW);
     }
     if (stateRed) {
         pinMode(LED_RED, OUTPUT);
-        digitalWrite(LED_RED, HIGH);
+        digitalWrite(LED_RED, LED_RED_ACTIVE_HIGH ? HIGH : LOW);
     }
 }
 

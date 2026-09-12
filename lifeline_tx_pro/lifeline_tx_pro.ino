@@ -46,9 +46,16 @@ void setup() {
     currentScreen = SCREEN_BOOT;
     drawBootScreen();
     
-    // LED flash
+    // Visual Boot Status LED Diagnostic Sequence (Confirms hardware wiring on startup)
+    Serial.println(F("[INIT] Testing Status LEDs (Green GPIO 21, Red GPIO 13)..."));
     setLED(LED_GREEN, true);
+    delay(300);
+    setLED(LED_GREEN, false);
+    delay(100);
+    
     setLED(LED_RED, true);
+    delay(600);
+    setLED(LED_RED, false);
     clearAllLEDs();
     
     Serial.println(F("[INIT] Ready"));

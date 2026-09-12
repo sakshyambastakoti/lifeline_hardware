@@ -7,6 +7,7 @@ extern bool portalActive;
 extern ScreenState currentScreen;
 
 static unsigned long rxBlinkEndTime = 0;
+static unsigned long rxBlinkStartTime = 0;
 static unsigned long lastWiFiBlinkTime = 0;
 static bool wifiBlinkState = false;
 
@@ -82,13 +83,14 @@ void playRxBeep() {
 void triggerRxBlink() {
     uint8_t dataOnState = LED_DATA_ACTIVE_HIGH ? HIGH : LOW;
     digitalWrite(LED_DATA, dataOnState);
-    rxBlinkEndTime = millis() + RX_BLINK_DURATION_MS;
+    rxBlinkStartTime = millis();
+    rxBlinkEndTime = rxBlinkStartTime + RX_BLINK_DURATION_MS;
     
-    // Immediately sound loud buzzer alert synchronously with the LED glow
+    // Immediately sound first chime of tactical alert sequence synchronously with LED glow
 #if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
     digitalWrite(BUZZER_PIN, HIGH);
 #else
-    tone(BUZZER_PIN, 2500);
+    tone(BUZZER_PIN, 2200);
 #endif
 }
 
@@ -125,10 +127,62 @@ void updateLEDs() {
         digitalWrite(LED_WIFI, wifiOffState);
     }
 
-    // 2. Data RX LED & Buzzer alert timeout check
+    // 2. Data RX LED & Professional Tactical Alert Cadence
     if (rxBlinkEndTime > 0) {
-        if (millis() < rxBlinkEndTime) {
+        unsigned long currentMillis = millis();
+        if (currentMillis < rxBlinkEndTime) {
             digitalWrite(LED_DATA, dataOnState);
+            
+            // Professional 3-tone ascending tactical dispatch cadence (600 ms repeating cycle)
+            unsigned long elapsed = currentMillis - rxBlinkStartTime;
+            uint32_t cyclePos = elapsed % 600;
+            
+            if (cyclePos < 90) {
+                // Tone 1: 2200 Hz
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+                digitalWrite(BUZZER_PIN, HIGH);
+#else
+                tone(BUZZER_PIN, 2200);
+#endif
+            } else if (cyclePos < 130) {
+                // Inter-tone gap (40 ms)
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+                digitalWrite(BUZZER_PIN, LOW);
+#else
+                noTone(BUZZER_PIN);
+                digitalWrite(BUZZER_PIN, LOW);
+#endif
+            } else if (cyclePos < 220) {
+                // Tone 2: 2500 Hz
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+                digitalWrite(BUZZER_PIN, HIGH);
+#else
+                tone(BUZZER_PIN, 2500);
+#endif
+            } else if (cyclePos < 260) {
+                // Inter-tone gap (40 ms)
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+                digitalWrite(BUZZER_PIN, LOW);
+#else
+                noTone(BUZZER_PIN);
+                digitalWrite(BUZZER_PIN, LOW);
+#endif
+            } else if (cyclePos < 380) {
+                // Tone 3: 2800 Hz (emphasis chime)
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+                digitalWrite(BUZZER_PIN, HIGH);
+#else
+                tone(BUZZER_PIN, 2800);
+#endif
+            } else {
+                // Cadence rest pause (380 ms to 600 ms = 220 ms clean pause)
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+                digitalWrite(BUZZER_PIN, LOW);
+#else
+                noTone(BUZZER_PIN);
+                digitalWrite(BUZZER_PIN, LOW);
+#endif
+            }
         } else {
             digitalWrite(LED_DATA, dataOffState);
 #if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
@@ -138,6 +192,7 @@ void updateLEDs() {
             digitalWrite(BUZZER_PIN, LOW);
 #endif
             rxBlinkEndTime = 0;
+            rxBlinkStartTime = 0;
         }
     } else {
         digitalWrite(LED_DATA, dataOffState);
