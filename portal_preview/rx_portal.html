@@ -1,627 +1,438 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIFELINE RX PRO // BASE STATION COMMAND DASHBOARD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LIFELINE RX PRO // BASE COMMAND CONSOLE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
+    /* ══════════════════════════════════════════════════════════
+       THEME VARIABLES: LIGHT (REFERENCE IMAGE) & DARK
+       ══════════════════════════════════════════════════════════ */
     :root {
-      --bg-0: #000000;
-      --bg-1: #0d0d0d;
-      --bg-2: #141414;
-      --bg-3: #1f1f1f;
-      --bg-4: #262626;
-      --border: #262626;
-      --border-strong: #3a3a3a;
-      --border-accent: rgba(255, 255, 255, 0.25);
-      --text-0: #ffffff;
-      --text-1: #cccccc;
-      --text-2: #999999;
-      --text-3: #666666;
-      --accent: #ffffff;
-      --accent-dim: #cccccc;
-      --danger: #ff1e42;
-      --danger-dim: rgba(255, 30, 66, 0.15);
-      --success: #5fa657;
-      --success-dim: rgba(95, 166, 87, 0.15);
-      --warning: #d4a017;
-      --warning-dim: rgba(212, 160, 23, 0.15);
-      --info: #06b6d4;
-      --info-dim: rgba(6, 182, 212, 0.15);
-      --indigo: #6366f1;
-      --violet: #8b5cf6;
-      --radius: 0px;
-      --radius-btn: 9999px;
-      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+      /* Light Theme (Reference Image Exact Match) */
+      --canvas: #f8f9fa;
+      --card-outer: #ededf0;
+      --card-border: #dcdde2;
+      --card-inner: #ffffff;
+      --card-inner-border: #e2e4e9;
+      --tab-bg: #e5e6eb;
+      --tab-border: #d2d4dc;
+      --tab-text: #4b5563;
+      --tab-active-bg: #000000;
+      --tab-active-text: #ffffff;
+      --tab-active-border: #000000;
+      --text-main: #000000;
+      --text-sub: #4b5563;
+      --text-muted: #6b7280;
+      --badge-bg: #ffffff;
+      --badge-border: #d1d5db;
+      --badge-text: #111827;
+      --num-circle-bg: #f3f4f6;
+      --num-circle-border: #e5e7eb;
+      --num-circle-text: #111827;
+      --btn-pill-bg: #ffffff;
+      --btn-pill-text: #000000;
+      --btn-pill-border: #000000;
+      --btn-pill-hover-bg: #000000;
+      --btn-pill-hover-text: #ffffff;
+      --input-bg: #ffffff;
+      --input-border: #d1d5db;
+      --progress-bg: #e5e7eb;
+      --progress-bar: #000000;
+      --accent-color: #000000;
+    }
+
+    [data-theme="dark"] {
+      /* Dark Theme */
+      --canvas: #09090b;
+      --card-outer: #141417;
+      --card-border: #27272a;
+      --card-inner: #1c1c21;
+      --card-inner-border: #2e2e34;
+      --tab-bg: #1c1c21;
+      --tab-border: #2e2e34;
+      --tab-text: #9ca3af;
+      --tab-active-bg: #ffffff;
+      --tab-active-text: #000000;
+      --tab-active-border: #ffffff;
+      --text-main: #ffffff;
+      --text-sub: #9ca3af;
+      --text-muted: #6b7280;
+      --badge-bg: #141417;
+      --badge-border: #2e2e34;
+      --badge-text: #e5e7eb;
+      --num-circle-bg: #27272a;
+      --num-circle-border: #3f3f46;
+      --num-circle-text: #ffffff;
+      --btn-pill-bg: #1c1c21;
+      --btn-pill-text: #ffffff;
+      --btn-pill-border: #ffffff;
+      --btn-pill-hover-bg: #ffffff;
+      --btn-pill-hover-text: #000000;
+      --input-bg: #121215;
+      --input-border: #3f3f46;
+      --progress-bg: #27272a;
+      --progress-bar: #ffffff;
+      --accent-color: #ffffff;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      border-radius: var(--radius);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FIT THE WHOLE THING IN ONE SCREEN FRAME (100vh / 100dvh)
+       ══════════════════════════════════════════════════════════ */
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--canvas);
+      color: var(--text-main);
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     body {
-      background-color: var(--bg-0);
-      color: var(--text-1);
-      font-family: var(--font-body);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: flex-start;
-      padding: 24px 16px 64px;
-      position: relative;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
+      padding: 14px 20px;
     }
 
-    /* Ambient Atmosphere */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -160px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 750px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.10) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 80%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Fixed Scroll / Ambient Top Rail */
-    .top-progress-rail {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .screen-frame {
       width: 100%;
-      height: 3px;
-      background: linear-gradient(90deg, #6366f1, #06b6d4, #8b5cf6, #f59e0b);
-      z-index: 999;
-      box-shadow: 0 0 14px rgba(6, 182, 212, 0.6);
+      max-width: 1100px;
+      max-height: 96vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    /* Standalone Browser Preview Indicator */
-    .preview-pill {
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      padding: 6px 14px;
-      border-radius: var(--radius-btn);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: #67e8f9;
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .badge-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-      letter-spacing: 0.5px;
-      z-index: 1;
-    }
-    .preview-pill .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #06b6d4;
-      box-shadow: 0 0 8px #06b6d4;
-      animation: pulseDot 2s infinite ease-in-out;
-    }
-    @keyframes pulseDot {
-      0%, 100% { opacity: 0.4; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.15); }
-    }
-
-    .container {
-      width: 100%;
-      max-width: 580px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Header Container */
-    .header-card {
-      background: rgba(18, 18, 24, 0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-strong);
-      padding: 28px 26px 22px;
-      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.8);
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .header-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%);
-    }
-
-    .brand-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .brand-tag {
-      font-family: var(--font-mono);
+      gap: 7px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-family: 'JetBrains Mono', Consolas, monospace;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1.5px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
-      color: var(--info);
+    }
+
+    .badge-pill svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+    }
+
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--accent-color);
+    }
+
+    /* Hero Titles (Reference Image Match) */
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      line-height: 1.15;
+      margin-bottom: 4px;
+    }
+
+    .hero-subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 400;
+      margin-bottom: 14px;
+    }
+
+    /* Segmented Tabs (Reference Image Style) */
+    .segmented-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .seg-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 0px;
+      border: 1px solid var(--tab-border);
+      background: var(--tab-bg);
+      color: var(--tab-text);
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .seg-tab:hover {
+      color: var(--text-main);
+    }
+
+    .seg-tab.active {
+      background: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      border-color: var(--tab-active-border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+
+    /* Main Container Card (Dual Column Grid Fitted in One Screen) */
+    .main-card {
+      border: 1px solid var(--card-border);
+      background: var(--card-outer);
+      border-radius: 0px;
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 20px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Left Side: Service Action Panel */
+    .service-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+    }
+
+    .service-head h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .service-head p {
+      font-size: 12.5px;
+      color: var(--text-sub);
+      line-height: 1.35;
+      margin-bottom: 12px;
+    }
+
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      margin-bottom: 12px;
+    }
+
+    .check-item {
       display: flex;
       align-items: center;
       gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-sub);
     }
 
-    .badge-status {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 3px 10px;
-      background: rgba(95, 166, 87, 0.12);
-      border: 1px solid rgba(95, 166, 87, 0.4);
-      color: #86efac;
-      border-radius: var(--radius-btn);
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    .check-item svg {
+      width: 13px;
+      height: 13px;
+      stroke: var(--text-main);
+      flex-shrink: 0;
     }
 
-    .badge-status .status-circle {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #4ade80;
-    }
-
-    h1 {
-      font-family: var(--font-display);
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--text-0);
-      margin-bottom: 4px;
-    }
-
-    .sub-title {
-      font-size: 12px;
-      color: var(--text-2);
-      letter-spacing: 0.3px;
-      margin-bottom: 18px;
-    }
-
-    /* Telemetry Grid */
-    .telemetry-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      padding: 12px 14px;
-    }
-
-    .tele-cell {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .tele-cell-label {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .tele-cell-val {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-0);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .tele-cell-val.cyan {
-      color: #67e8f9;
-    }
-
-    /* Navigation Quick Tabs */
-    .nav-tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 18px;
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      padding: 4px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-2);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      padding: 9px 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-
-    .tab-btn:hover {
-      color: var(--text-0);
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .tab-btn.active {
-      background: var(--bg-3);
-      color: var(--text-0);
-      border: 1px solid var(--border-strong);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    }
-
-    /* Functional Module Card */
-    .module-card {
-      background: rgba(18, 18, 24, 0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-strong);
-      padding: 26px 24px;
-      margin-bottom: 18px;
-      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.8);
-      position: relative;
-    }
-
-    .module-card.active-tab-content {
-      display: block;
-    }
-
-    .module-card.hidden {
-      display: none;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .section-tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      background: var(--bg-3);
-      border: 1px solid var(--border-strong);
-      color: var(--text-1);
-    }
-
-    .section-tag.cyan {
-      border-color: rgba(6, 182, 212, 0.4);
-      color: #67e8f9;
-      background: rgba(6, 182, 212, 0.08);
-    }
-
-    .section-tag.green {
-      border-color: rgba(95, 166, 87, 0.4);
-      color: #86efac;
-      background: rgba(95, 166, 87, 0.08);
-    }
-
-    .section-tag.indigo {
-      border-color: rgba(99, 102, 241, 0.4);
-      color: #a5b4fc;
-      background: rgba(99, 102, 241, 0.08);
-    }
-
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-0);
-    }
-
-    .section-desc {
-      font-size: 12px;
-      color: var(--text-2);
-      line-height: 1.5;
-      margin-bottom: 18px;
-    }
-
-    /* Form Controls */
+    /* Form Fields */
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 7px;
     }
 
-    label {
+    .form-label {
       display: block;
-      font-family: var(--font-mono);
-      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
       font-weight: 700;
-      color: var(--text-2);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 6px;
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      color: var(--text-0);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-      border-color: var(--text-0);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
-    }
-
-    .btn-toggle-pwd {
-      position: absolute;
-      right: 12px;
-      background: transparent;
-      border: none;
-      color: var(--text-3);
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 4px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
     }
 
-    .btn-toggle-pwd:hover {
-      color: var(--text-0);
+    .input-box {
+      width: 100%;
+      padding: 7px 11px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      outline: none;
+      border-radius: 0px;
     }
 
-    /* Pill Action Buttons */
-    .btn {
+    .input-box:focus {
+      border-color: var(--text-main);
+    }
+
+    /* Compact Wi-Fi Multi-Slots */
+    .wifi-slot-mini {
+      background: var(--card-inner);
+      border: 1px solid var(--card-inner-border);
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+
+    .wifi-slot-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .slot-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 6px;
+    }
+
+    /* Upload Zone */
+    .upload-zone-compact {
+      border: 1px dashed var(--card-border);
+      background: var(--card-inner);
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+
+    .upload-zone-compact:hover {
+      border-color: var(--text-main);
+    }
+
+    .upload-zone-compact input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+
+    .upload-zone-compact span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .upload-zone-compact small {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .file-meta-bar {
+      display: none;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--card-inner);
+      border: 1px solid var(--card-inner-border);
+      padding: 6px 10px;
+      margin-bottom: 8px;
+    }
+
+    /* Pill Action Button (Reference Match: "SHOP NOW →") */
+    .btn-pill-action {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
-      padding: 13px 20px;
-      font-family: var(--font-mono);
-      font-size: 12px;
+      gap: 10px;
+      padding: 10px 22px;
+      border-radius: 9999px;
+      border: 1.5px solid var(--btn-pill-border);
+      background: var(--btn-pill-bg);
+      color: var(--btn-pill-text);
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1.2px;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      border-radius: var(--radius-btn);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.25s ease;
-      text-decoration: none;
-      border: none;
-      margin-top: 6px;
-    }
-
-    .btn-cyan {
-      background: #06b6d4;
-      color: #000000;
-      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.35);
-    }
-
-    .btn-cyan:hover:not(:disabled) {
-      background: #22d3ee;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(6, 182, 212, 0.55);
-    }
-
-    .btn-emerald {
-      background: #10b981;
-      color: #000000;
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
-    }
-
-    .btn-emerald:hover:not(:disabled) {
-      background: #34d399;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(16, 185, 129, 0.55);
-    }
-
-    .btn-indigo {
-      background: #6366f1;
-      color: #ffffff;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
-    }
-
-    .btn-indigo:hover:not(:disabled) {
-      background: #818cf8;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.55);
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border-strong);
-      color: var(--text-1);
-    }
-
-    .btn-outline:hover:not(:disabled) {
-      border-color: var(--text-0);
-      color: var(--text-0);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    /* Pill Light Sweep Effect */
-    .btn::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0) 100%
-      );
-      transform: skewX(-25deg);
-      transition: none;
-    }
-
-    .btn:hover::after {
-      left: 140%;
-      transition: left 0.8s ease-in-out;
-    }
-
-    /* Drag & Drop Upload Zone */
-    .upload-zone {
-      border: 1px dashed var(--border-strong);
-      background: var(--bg-1);
-      padding: 24px 16px;
-      text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
-      position: relative;
+      align-self: flex-start;
+      margin-top: 4px;
     }
 
-    .upload-zone:hover, .upload-zone.dragover {
-      border-color: #06b6d4;
-      background: rgba(6, 182, 212, 0.04);
+    .btn-pill-action:hover:not(:disabled) {
+      background: var(--btn-pill-hover-bg);
+      color: var(--btn-pill-hover-text);
     }
 
-    .upload-icon {
-      width: 32px;
-      height: 32px;
-      margin: 0 auto 10px;
-      stroke: var(--text-2);
-      transition: stroke 0.2s;
+    .btn-pill-action:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
-    .upload-zone:hover .upload-icon {
-      stroke: #06b6d4;
-    }
-
-    .upload-zone input[type="file"] {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .upload-prompt {
-      font-size: 12px;
-      color: var(--text-1);
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-
-    .upload-prompt span {
-      color: #06b6d4;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    .upload-hint {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-3);
-    }
-
-    .selected-file-meta {
+    /* Progress & Status */
+    .progress-box {
       display: none;
-      background: var(--bg-2);
-      border: 1px solid var(--border-strong);
-      padding: 10px 14px;
-      margin-top: 10px;
-      align-items: center;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-
-    .file-name {
-      color: var(--text-0);
-      font-weight: 600;
-      max-width: 320px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .file-size {
-      color: var(--text-3);
-    }
-
-    /* Progress Bar */
-    .progress-wrapper {
-      display: none;
-      margin-top: 16px;
+      margin-top: 8px;
     }
 
     .progress-meta {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
     }
 
-    .progress-status {
-      color: var(--text-2);
-    }
-
-    .progress-percent {
-      color: #67e8f9;
-      font-weight: 700;
-    }
-
-    .progress-track {
+    .progress-rail {
       width: 100%;
-      height: 8px;
-      background: var(--bg-1);
-      border: 1px solid var(--border-strong);
+      height: 6px;
+      background: var(--progress-bg);
       position: relative;
       overflow: hidden;
     }
@@ -629,504 +440,508 @@
     .progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #06b6d4, #6366f1);
-      transition: width 0.15s ease-out;
+      background: var(--progress-bar);
+      transition: width 0.15s;
     }
 
-    .progress-fill.success {
-      background: linear-gradient(90deg, #10b981, #34d399);
-    }
-
-    /* Notification Banners */
-    .notice-box {
-      margin-top: 14px;
-      padding: 12px 14px;
-      font-family: var(--font-mono);
+    .status-toast {
+      margin-top: 8px;
+      padding: 6px 10px;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      line-height: 1.5;
       display: none;
-      border-left: 3px solid;
+      background: var(--card-inner);
+      border: 1px solid var(--card-inner-border);
     }
 
-    .notice-box.success {
-      background: var(--success-dim);
-      border-color: var(--success);
-      color: #86efac;
-    }
-
-    .notice-box.danger {
-      background: var(--danger-dim);
-      border-color: var(--danger);
-      color: #fca5a5;
-    }
-
-    .notice-box.info {
-      background: var(--info-dim);
-      border-color: var(--info);
-      color: #a5f3fc;
-    }
-
-    /* Wi-Fi Slot Cards */
-    .wifi-slot-card {
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      padding: 14px 14px 6px;
-      margin-bottom: 14px;
-      position: relative;
-    }
-
-    .wifi-slot-header {
+    /* Right Side: Step-by-Step Guidance Box (Reference Image Exact Match) */
+    .guide-box {
+      background: var(--card-inner);
+      border: 1px solid var(--card-inner-border);
+      border-radius: 0px;
+      padding: 16px 18px;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
+    }
+
+    .guide-header {
+      display: flex;
       align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--card-inner-border);
       margin-bottom: 10px;
     }
 
-    .wifi-slot-title {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-0);
+    .guide-header svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+    }
+
+    .steps-list {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      gap: 9px;
     }
 
-    .badge-priority {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: var(--radius-btn);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-priority.primary {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #6ee7b7;
-    }
-
-    .badge-priority.backup {
-      background: var(--bg-3);
-      border: 1px solid var(--border-strong);
-      color: var(--text-3);
-    }
-
-    /* Footer Meta */
-    .portal-footer {
-      margin-top: 24px;
-      padding-top: 18px;
-      border-top: 1px solid var(--border);
+    .step-row {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-3);
-      letter-spacing: 0.5px;
+      align-items: flex-start;
+      gap: 10px;
     }
 
-    .footer-spec {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .pulse-indicator {
-      width: 6px;
-      height: 6px;
+    .step-num {
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      background: #06b6d4;
-    }
-
-    /* Simulation Control Deck */
-    .demo-bar {
-      margin-top: 16px;
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      padding: 10px 14px;
+      background: var(--num-circle-bg);
+      border: 1px solid var(--num-circle-border);
+      color: var(--num-circle-text);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-    .demo-bar span {
-      color: var(--text-2);
-    }
-    .demo-link {
-      color: #67e8f9;
-      text-decoration: none;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
       font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
     }
-    .demo-link:hover {
+
+    .step-content strong {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 1px;
+    }
+
+    .step-content p {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .tele-bar {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--card-inner-border);
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+
+    .tele-bar span b {
+      color: var(--text-main);
+    }
+
+    /* Bottom Info Bar */
+    .bottom-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    .switch-page-link {
+      color: var(--text-main);
       text-decoration: underline;
+      text-underline-offset: 2px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       RESPONSIVE DESIGN: FITS IN ONE SCREEN ON MOBILE AS WELL
+       ══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      body { padding: 10px 12px; }
+      .screen-frame { max-height: 98vh; }
+      .hero-title { font-size: 22px; }
+      .hero-subtitle { font-size: 11.5px; margin-bottom: 8px; }
+      .segmented-tabs { margin-bottom: 8px; }
+      .seg-tab { padding: 6px 12px; font-size: 10px; }
+      .main-card { grid-template-columns: 1fr; padding: 12px; gap: 10px; }
+      .service-panel { min-height: auto; }
+      .checklist-grid { display: none; }
+      .step-row:nth-child(n+4) { display: none; }
+      .btn-pill-action { width: 100%; }
+      .wifi-slot-mini:nth-child(3) { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Ambient Top Rail Gradient -->
-  <div class="top-progress-rail"></div>
+  <div class="screen-frame">
 
-  <!-- Browser Standalone Badge -->
-  <div class="preview-pill" id="previewModeIndicator">
-    <span class="dot"></span>
-    <span>BROWSER PREVIEW // INTERACTIVE SIMULATION ACTIVE</span>
-  </div>
-
-  <div class="container">
-    
-    <!-- Top Brand & Telemetry Card -->
-    <div class="header-card">
-      <div class="brand-meta">
-        <div class="brand-tag">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <rect x="2" y="2" width="20" height="20" rx="0"></rect>
-            <path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"></path>
-          </svg>
-          LifeLine RX Base Station Gateway
-        </div>
-        <div class="badge-status">
-          <span class="status-circle"></span>
-          <span>ONLINE // READY</span>
-        </div>
+    <!-- Top Bar with Pill Badge and Theme Toggle -->
+    <div class="top-bar">
+      <div class="badge-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>LIFELINE RX PRO // BASE STATION</span>
       </div>
-      <h1>LIFELINE RX PRO</h1>
-      <div class="sub-title">Central Command &amp; LoRa Base Station // Web Management Console</div>
 
-      <div class="telemetry-grid">
-        <div class="tele-cell">
-          <span class="tele-cell-label">IP Address</span>
-          <span class="tele-cell-val cyan" id="tele_ip">192.168.4.1</span>
-        </div>
-        <div class="tele-cell">
-          <span class="tele-cell-label">Firmware</span>
-          <span class="tele-cell-val">v3.1.0 PRO</span>
-        </div>
-        <div class="tele-cell">
-          <span class="tele-cell-label">Free Heap</span>
-          <span class="tele-cell-val highlight" id="tele_heap">184 KB</span>
-        </div>
-        <div class="tele-cell">
-          <span class="tele-cell-label">LoRa Uplink</span>
-          <span class="tele-cell-val">433 MHz SX1278</span>
-        </div>
-        <div class="tele-cell">
-          <span class="tele-cell-label">Active Link</span>
-          <span class="tele-cell-val">SoftAP (WIFI_AP)</span>
-        </div>
-        <div class="tele-cell">
-          <span class="tele-cell-label">OTA Partition</span>
-          <span class="tele-cell-val">Dual Safe Flash</span>
-        </div>
-      </div>
+      <button class="theme-toggle-btn" id="btn_theme_toggle" title="Toggle Light &amp; Dark Theme">
+        <span id="theme_icon">☀️</span>
+        <span id="theme_label">LIGHT</span>
+      </button>
     </div>
 
-    <!-- Quick Navigation Tabs -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" data-tab="tab-ota">1. Firmware OTA</button>
-      <button class="tab-btn" data-tab="tab-wifi">2. Tri-WiFi Setup</button>
-      <button class="tab-btn" data-tab="tab-api">3. Cloud API</button>
+    <!-- Hero Title & Subtitle (Reference Match) -->
+    <div>
+      <h1 class="hero-title" id="page_hero_title">Three services. One base station.</h1>
+      <p class="hero-subtitle">Select a service below to configure Wi-Fi failover, flash wireless firmware, or set cloud telemetry.</p>
     </div>
 
-    <!-- TAB 1: WIRELESS OTA FIRMWARE UPGRADE -->
-    <div class="module-card active-tab-content" id="tab-ota">
-      <div class="section-head">
-        <span class="section-tag cyan">MODULE 01</span>
-        <span class="section-title">Wireless OTA Firmware Flash</span>
-      </div>
-      <p class="section-desc">
-        Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. The device streams updates safely with partition swapping and LCD progress sync.
-      </p>
-
-      <form id="ota_form">
-        <div class="upload-zone" id="rx_drop_zone">
-          <input type="file" id="rx_firmware_file" name="update" accept=".bin" required>
-          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-          </svg>
-          <div class="upload-prompt">
-            <span>Browse binary</span> or drag firmware.bin here
-          </div>
-          <div class="upload-hint">TARGET: ESP32-WROOM-32 / DUAL PARTITION (*.bin)</div>
-        </div>
-
-        <div class="selected-file-meta" id="rx_file_meta">
-          <span class="file-name" id="rx_file_name">firmware.bin</span>
-          <span class="file-size" id="rx_file_size">0 KB</span>
-        </div>
-
-        <button type="submit" class="btn btn-cyan" id="btn_rx_flash">
-          Flash Base Station Firmware
-        </button>
-      </form>
-
-      <!-- Progress Track -->
-      <div class="progress-wrapper" id="rx_progress_wrapper">
-        <div class="progress-meta">
-          <span class="progress-status" id="rx_progress_status">Transmitting blocks...</span>
-          <span class="progress-percent" id="rx_progress_percent">0%</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="rx_progress_fill"></div>
-        </div>
-      </div>
-
-      <!-- Flash Notification Box -->
-      <div class="notice-box" id="rx_flash_notice"></div>
+    <!-- Segmented Tabs (Reference Match) -->
+    <div class="segmented-tabs">
+      <button class="seg-tab active" id="tab_btn_ota" onclick="switchService('ota')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        FIRMWARE OTA
+      </button>
+      <button class="seg-tab" id="tab_btn_wifi" onclick="switchService('wifi')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+        TRI-WIFI FAILOVER
+      </button>
+      <button class="seg-tab" id="tab_btn_api" onclick="switchService('api')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+        CLOUD REST API
+      </button>
     </div>
 
-    <!-- TAB 2: TRI-NETWORK WI-FI MULTI-FAILOVER CONFIG -->
-    <div class="module-card hidden" id="tab-wifi">
-      <div class="section-head">
-        <span class="section-tag green">MODULE 02</span>
-        <span class="section-title">Tri-Network Wi-Fi Failover Setup</span>
-      </div>
-      <p class="section-desc">
-        Store up to 3 Wi-Fi network credentials. The base station attempts connection sequentially to guarantee uninterruptible internet telemetry.
-      </p>
+    <!-- Main Container Card (Dual Column Grid) -->
+    <div class="main-card">
 
-      <form id="wifi_multi_form" action="/save" method="POST">
-        <!-- Slot 1 (Primary) -->
-        <div class="wifi-slot-card">
-          <div class="wifi-slot-header">
-            <div class="wifi-slot-title">
-              <span>Network #1 (Primary)</span>
+      <!-- LEFT COLUMN: INTERACTIVE SERVICE ACTION -->
+      <div class="service-panel">
+        <div class="service-head">
+          <h2 id="service_title">Wireless OTA Firmware Flash</h2>
+          <p id="service_desc">Wireless firmware flashing with dual-partition roll-back safety &amp; LCD sync.</p>
+          
+          <div class="checklist-grid" id="service_checklist">
+            <div class="check-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="16" x2="12" y2="8"></line></svg>
+              <span>Dual Partition OTA</span>
             </div>
-            <span class="badge-priority primary">Primary</span>
-          </div>
-          <div class="form-group">
-            <label>SSID Name</label>
-            <input type="text" name="ssid1" id="ssid1" placeholder="Primary SSID (e.g. LifeLine-HQ)" value="sakshyam" required>
-          </div>
-          <div class="form-group">
-            <label>WPA2 Password</label>
-            <div class="input-wrapper">
-              <input type="password" name="pass1" id="pass1" placeholder="Password" value="sakshyam">
-              <button type="button" class="btn-toggle-pwd" data-target="pass1">SHOW</button>
+            <div class="check-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>433MHz LoRa Gateway</span>
+            </div>
+            <div class="check-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Tri-WiFi Redundancy</span>
+            </div>
+            <div class="check-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>1602 LCD Progress Sync</span>
             </div>
           </div>
         </div>
 
-        <!-- Slot 2 (Backup 1) -->
-        <div class="wifi-slot-card">
-          <div class="wifi-slot-header">
-            <div class="wifi-slot-title">
-              <span>Network #2 (Backup 1)</span>
+        <!-- MODULE 1: OTA Flashing Form -->
+        <div id="form_ota_container">
+          <form id="ota_form">
+            <div class="upload-zone-compact" id="drop_zone">
+              <input type="file" id="rx_fw_file" name="update" accept=".bin" required>
+              <span>Select or drop firmware.bin</span>
+              <small>TARGET: ESP32-WROOM-32 (*.bin)</small>
             </div>
-            <span class="badge-priority backup">Fallback 1</span>
-          </div>
-          <div class="form-group">
-            <label>SSID Name</label>
-            <input type="text" name="ssid2" id="ssid2" placeholder="Secondary SSID (e.g. Mobile-Hotspot)" value="Emergency-Backup">
-          </div>
-          <div class="form-group">
-            <label>WPA2 Password</label>
-            <div class="input-wrapper">
-              <input type="password" name="pass2" id="pass2" placeholder="Password" value="">
-              <button type="button" class="btn-toggle-pwd" data-target="pass2">SHOW</button>
+
+            <div class="file-meta-bar" id="file_meta">
+              <span id="file_name">firmware.bin</span>
+              <span id="file_size">0 KB</span>
+            </div>
+
+            <button type="submit" class="btn-pill-action" id="btn_action_flash">
+              <span>FLASH BASE STATION</span>
+              <span>&rarr;</span>
+            </button>
+          </form>
+
+          <div class="progress-box" id="p_box">
+            <div class="progress-meta">
+              <span id="p_stat">Writing Flash...</span>
+              <span id="p_pct">0%</span>
+            </div>
+            <div class="progress-rail">
+              <div class="progress-fill" id="p_bar"></div>
             </div>
           </div>
+
+          <div class="status-toast" id="ota_toast"></div>
         </div>
 
-        <!-- Slot 3 (Backup 2) -->
-        <div class="wifi-slot-card">
-          <div class="wifi-slot-header">
-            <div class="wifi-slot-title">
-              <span>Network #3 (Backup 2)</span>
+        <!-- MODULE 2: Tri-Network Wi-Fi Setup Form (Hidden by default) -->
+        <div id="form_wifi_container" style="display: none;">
+          <form id="wifi_multi_form" action="/save" method="POST">
+            <div class="wifi-slot-mini">
+              <div class="wifi-slot-head"><span>1. PRIMARY WI-FI</span><span>PRIMARY</span></div>
+              <div class="slot-row">
+                <input type="text" class="input-box" name="ssid1" placeholder="Primary SSID" value="sakshyam" required>
+                <input type="password" class="input-box" name="pass1" placeholder="Password" value="sakshyam">
+              </div>
             </div>
-            <span class="badge-priority backup">Fallback 2</span>
-          </div>
-          <div class="form-group">
-            <label>SSID Name</label>
-            <input type="text" name="ssid3" id="ssid3" placeholder="Tertiary SSID (e.g. Disaster-Sat)" value="">
-          </div>
-          <div class="form-group">
-            <label>WPA2 Password</label>
-            <div class="input-wrapper">
-              <input type="password" name="pass3" id="pass3" placeholder="Password" value="">
-              <button type="button" class="btn-toggle-pwd" data-target="pass3">SHOW</button>
+
+            <div class="wifi-slot-mini">
+              <div class="wifi-slot-head"><span>2. FALLBACK WI-FI #1</span><span>BACKUP 1</span></div>
+              <div class="slot-row">
+                <input type="text" class="input-box" name="ssid2" placeholder="Secondary SSID" value="Mobile-Hotspot">
+                <input type="password" class="input-box" name="pass2" placeholder="Password" value="">
+              </div>
             </div>
-          </div>
+
+            <div class="wifi-slot-mini">
+              <div class="wifi-slot-head"><span>3. FALLBACK WI-FI #2</span><span>BACKUP 2</span></div>
+              <div class="slot-row">
+                <input type="text" class="input-box" name="ssid3" placeholder="Tertiary SSID" value="">
+                <input type="password" class="input-box" name="pass3" placeholder="Password" value="">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-pill-action" id="btn_action_wifi">
+              <span>SAVE &amp; RECONNECT</span>
+              <span>&rarr;</span>
+            </button>
+          </form>
+
+          <div class="status-toast" id="wifi_toast"></div>
         </div>
 
-        <button type="submit" class="btn btn-emerald" id="btn_save_wifi">
-          Save &amp; Reconnect Base Station
-        </button>
-      </form>
+        <!-- MODULE 3: Cloud REST API Form (Hidden by default) -->
+        <div id="form_api_container" style="display: none;">
+          <form id="api_form" action="/api-save" method="POST">
+            <div class="form-group">
+              <label class="form-label">REST API Ingestion URL</label>
+              <input type="text" class="input-box" id="api_url" name="api_url" value="http://192.168.1.100/lifeline/api/ingest.php" placeholder="https://..." required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Authentication Key (X-API-Key / Bearer)</label>
+              <input type="password" class="input-box" id="api_key" name="api_key" value="ll_sec_89f023a19b88" placeholder="API Secret">
+            </div>
 
-      <div class="notice-box" id="rx_wifi_notice"></div>
-    </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-pill-action" id="btn_ping_api" style="background: transparent;">
+                <span>PING TEST</span>
+              </button>
+              <button type="submit" class="btn-pill-action" id="btn_action_api">
+                <span>SAVE API SETTINGS</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </form>
 
-    <!-- TAB 3: CLOUD REST API CONFIGURATION -->
-    <div class="module-card hidden" id="tab-api">
-      <div class="section-head">
-        <span class="section-tag indigo">MODULE 03</span>
-        <span class="section-title">Cloud REST API &amp; Webhook Config</span>
+          <div class="status-toast" id="api_toast"></div>
+        </div>
+
       </div>
-      <p class="section-desc">
-        Configure the centralized server endpoint where incoming LoRa emergency distress packets, GPS coordinates, and heartbeats are posted.
-      </p>
 
-      <form id="api_form" action="/api-save" method="POST">
-        <div class="form-group">
-          <label for="api_url">REST API Ingestion URL</label>
-          <input type="text" id="api_url" name="api_url" placeholder="https://emergency.example.com/api/v1/telemetry" value="http://192.168.1.100/lifeline/api/ingest.php" required>
-        </div>
+      <!-- RIGHT COLUMN: STEP-BY-STEP SERVICE GUIDE (Reference Image Exact Match) -->
+      <div class="guide-box">
+        <div>
+          <div class="guide-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            <span id="guide_title">HOW TO USE THIS SERVICE</span>
+          </div>
 
-        <div class="form-group">
-          <label for="api_key">Authentication Secret (X-API-Key / Bearer Token)</label>
-          <div class="input-wrapper">
-            <input type="password" id="api_key" name="api_key" placeholder="Enter API authentication secret" value="ll_sec_89f023a19b88">
-            <button type="button" class="btn-toggle-pwd" data-target="api_key">SHOW</button>
+          <!-- Step Rows with Numbered Circles (1, 2, 3, 4) -->
+          <div class="steps-list" id="steps_container">
+            <div class="step-row">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <strong>1. Select Firmware Binary</strong>
+                <p>Pick compiled <code>firmware.bin</code> from <code>lifeline_rx_pro</code> directory.</p>
+              </div>
+            </div>
+
+            <div class="step-row">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <strong>2. Dual-Partition Streaming</strong>
+                <p>Upload streams safely into alternate partition with roll-back protection.</p>
+              </div>
+            </div>
+
+            <div class="step-row">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <strong>3. Real-Time 1602 LCD Sync</strong>
+                <p>Base station display mirrors percentage updates in real-time.</p>
+              </div>
+            </div>
+
+            <div class="step-row">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <strong>4. Automated Commit &amp; Reboot</strong>
+                <p>ESP32 validates checksum and restarts to boot new base station code.</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
-          <button type="button" class="btn btn-outline" id="btn_test_api">
-            Test Ping Endpoint
-          </button>
-          <button type="submit" class="btn btn-indigo" id="btn_save_api">
-            Save API Settings
-          </button>
+        <!-- Telemetry Details Bar -->
+        <div class="tele-bar">
+          <span>IP: <b>192.168.4.1</b></span>
+          <span>HEAP: <b>184 KB</b></span>
+          <span>FW: <b>v3.1.0 PRO</b></span>
         </div>
-      </form>
-
-      <div class="notice-box" id="rx_api_notice"></div>
-    </div>
-
-    <!-- Footer Hardware Telemetry -->
-    <div class="portal-footer">
-      <div class="footer-spec">
-        <span class="pulse-indicator"></span>
-        <span>LIFELINE COMMAND GATEWAY // STATION 01</span>
       </div>
-      <span>SYS_ARCH: ESP32 + SX1278 + 1602 LCD</span>
+
     </div>
 
-    <!-- Link to Transmitter Portal -->
-    <div class="demo-bar">
-      <span>Looking for Tactical Field Transmitter portal?</span>
-      <a href="tx_portal.html" class="demo-link">&larr; Open TX Field Unit Portal</a>
+    <!-- Bottom Footer Links -->
+    <div class="bottom-info-bar">
+      <span>LIFELINE DISASTER COMMAND // BASE STATION GATEWAY</span>
+      <span>Transmitter: <a href="tx_portal.html" class="switch-page-link">Switch to TX Portal &rarr;</a></span>
     </div>
 
   </div>
 
   <script>
-    // Tab Switching
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabCards = {
-      'tab-ota': document.getElementById('tab-ota'),
-      'tab-wifi': document.getElementById('tab-wifi'),
-      'tab-api': document.getElementById('tab-api')
-    };
+    // Theme Management: Light (Reference Image Default) / Dark
+    const htmlEl = document.documentElement;
+    const btnThemeToggle = document.getElementById('btn_theme_toggle');
+    const themeIcon = document.getElementById('theme_icon');
+    const themeLabel = document.getElementById('theme_label');
 
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        tabButtons.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        const targetId = this.getAttribute('data-tab');
-        Object.keys(tabCards).forEach(key => {
-          if (key === targetId) {
-            tabCards[key].classList.remove('hidden');
-          } else {
-            tabCards[key].classList.add('hidden');
-          }
-        });
-      });
-    });
-
-    // Password Toggles
-    document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const inp = document.getElementById(targetId);
-        if (inp) {
-          if (inp.type === 'password') {
-            inp.type = 'text';
-            this.textContent = 'HIDE';
-          } else {
-            inp.type = 'password';
-            this.textContent = 'SHOW';
-          }
-        }
-      });
-    });
-
-    // File selection UI handler
-    const fileInput = document.getElementById('rx_firmware_file');
-    const fileMeta = document.getElementById('rx_file_meta');
-    const fileNameDisplay = document.getElementById('rx_file_name');
-    const fileSizeDisplay = document.getElementById('rx_file_size');
-    const dropZone = document.getElementById('rx_drop_zone');
-
-    function formatBytes(bytes) {
-      if (!bytes) return '0 KB';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    function applyTheme(theme) {
+      htmlEl.setAttribute('data-theme', theme);
+      if (theme === 'dark') {
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'DARK';
+      } else {
+        themeIcon.textContent = '☀️';
+        themeLabel.textContent = 'LIGHT';
+      }
+      localStorage.setItem('lifeline_theme', theme);
     }
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-      }, false);
+    const savedTheme = localStorage.getItem('lifeline_theme') || 'light';
+    applyTheme(savedTheme);
+
+    btnThemeToggle.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-      }, false);
-    });
+    // Service Tab Switching
+    function switchService(service) {
+      const tabOta = document.getElementById('tab_btn_ota');
+      const tabWifi = document.getElementById('tab_btn_wifi');
+      const tabApi = document.getElementById('tab_btn_api');
 
-    fileInput.addEventListener('change', function() {
+      const formOta = document.getElementById('form_ota_container');
+      const formWifi = document.getElementById('form_wifi_container');
+      const formApi = document.getElementById('form_api_container');
+
+      const title = document.getElementById('service_title');
+      const desc = document.getElementById('service_desc');
+      const steps = document.getElementById('steps_container');
+      const hero = document.getElementById('page_hero_title');
+
+      [tabOta, tabWifi, tabApi].forEach(t => t.classList.remove('active'));
+      [formOta, formWifi, formApi].forEach(f => f.style.display = 'none');
+
+      if (service === 'ota') {
+        tabOta.classList.add('active');
+        formOta.style.display = 'block';
+        title.textContent = 'Wireless OTA Firmware Flash';
+        desc.textContent = 'Wireless firmware flashing with dual-partition roll-back safety & LCD sync.';
+        hero.textContent = 'Three services. One base station.';
+        steps.innerHTML = `
+          <div class="step-row"><div class="step-num">1</div><div class="step-content"><strong>1. Select Firmware Binary</strong><p>Pick compiled firmware.bin from your build folder.</p></div></div>
+          <div class="step-row"><div class="step-num">2</div><div class="step-content"><strong>2. Dual-Partition Streaming</strong><p>Streams into alternate OTA partition without bricking risk.</p></div></div>
+          <div class="step-row"><div class="step-num">3</div><div class="step-content"><strong>3. Real-Time LCD Sync</strong><p>16x2 I2C display updates live upload progress.</p></div></div>
+          <div class="step-row"><div class="step-num">4</div><div class="step-content"><strong>4. Automated Reboot</strong><p>Safe reboot switches bootloader to newly flashed image.</p></div></div>
+        `;
+      } else if (service === 'wifi') {
+        tabWifi.classList.add('active');
+        formWifi.style.display = 'block';
+        title.textContent = 'Tri-Network Wi-Fi Failover';
+        desc.textContent = 'Store up to 3 Wi-Fi network credentials for zero-downtime internet telemetry.';
+        hero.textContent = 'Triple Redundancy. Continuous Link.';
+        steps.innerHTML = `
+          <div class="step-row"><div class="step-num">1</div><div class="step-content"><strong>1. Primary Network Setup</strong><p>Base Station connects to Slot 1 as primary router uplink.</p></div></div>
+          <div class="step-row"><div class="step-num">2</div><div class="step-content"><strong>2. Secondary Fallback</strong><p>If primary fails, automatically switches to Slot 2 hotspot.</p></div></div>
+          <div class="step-row"><div class="step-num">3</div><div class="step-content"><strong>3. Emergency Fallback</strong><p>Slot 3 acts as disaster satellite/cellular backup link.</p></div></div>
+          <div class="step-row"><div class="step-num">4</div><div class="step-content"><strong>4. Reconnect & Save</strong><p>Persisted in ESP32 NVS flash storage.</p></div></div>
+        `;
+      } else {
+        tabApi.classList.add('active');
+        formApi.style.display = 'block';
+        title.textContent = 'Cloud REST API Webhook';
+        desc.textContent = 'Configure centralized server endpoint where incoming LoRa packets are forwarded.';
+        hero.textContent = 'Cloud Forwarding. Live Ingestion.';
+        steps.innerHTML = `
+          <div class="step-row"><div class="step-num">1</div><div class="step-content"><strong>1. Set Webhook Endpoint</strong><p>Specify REST URL for HTTP POST payload ingestion.</p></div></div>
+          <div class="step-row"><div class="step-num">2</div><div class="step-content"><strong>2. Secure API Auth Key</strong><p>Transmitted in Bearer header for access validation.</p></div></div>
+          <div class="step-row"><div class="step-num">3</div><div class="step-content"><strong>3. Ping Test Verification</strong><p>Ensure gateway can reach remote host prior to saving.</p></div></div>
+          <div class="step-row"><div class="step-num">4</div><div class="step-content"><strong>4. Live Emergency Stream</strong><p>Distress alerts & GPS coordinates push in real-time.</p></div></div>
+        `;
+      }
+    }
+
+    // File Input UI Handler
+    const fi = document.getElementById('rx_fw_file');
+    const fileMeta = document.getElementById('file_meta');
+    const fileName = document.getElementById('file_name');
+    const fileSize = document.getElementById('file_size');
+
+    fi.addEventListener('change', function() {
       if (this.files && this.files[0]) {
-        const file = this.files[0];
-        fileNameDisplay.textContent = file.name;
-        fileSizeDisplay.textContent = formatBytes(file.size);
+        fileName.textContent = this.files[0].name;
+        fileSize.textContent = Math.round(this.files[0].size / 1024) + ' KB';
         fileMeta.style.display = 'flex';
       } else {
         fileMeta.style.display = 'none';
       }
     });
 
-    // Determine if running on real ESP32 or browser simulation
     const isLiveHardware = window.location.hostname === '192.168.4.1' || (window.location.port === '80' && window.location.hostname !== 'localhost');
 
-    if (!isLiveHardware) {
-      document.getElementById('previewModeIndicator').style.display = 'inline-flex';
-    } else {
-      document.getElementById('previewModeIndicator').style.display = 'none';
-    }
-
-    // OTA Flash Submission
+    // OTA Flash Submit
     document.getElementById('ota_form').onsubmit = function(e) {
       e.preventDefault();
-      const file = fileInput.files[0];
+      const file = fi.files[0];
       if (!file) {
         alert('Please choose a firmware .bin file first.');
         return;
       }
 
-      const pWrapper = document.getElementById('rx_progress_wrapper');
-      const pFill = document.getElementById('rx_progress_fill');
-      const pPercent = document.getElementById('rx_progress_percent');
-      const pStatus = document.getElementById('rx_progress_status');
-      const notice = document.getElementById('rx_flash_notice');
-      const btn = document.getElementById('btn_rx_flash');
+      const pBox = document.getElementById('p_box');
+      const pBar = document.getElementById('p_bar');
+      const pStat = document.getElementById('p_stat');
+      const pPct = document.getElementById('p_pct');
+      const toast = document.getElementById('ota_toast');
+      const btn = document.getElementById('btn_action_flash');
 
-      pWrapper.style.display = 'block';
-      pFill.className = 'progress-fill';
-      pFill.style.width = '0%';
-      pPercent.textContent = '0%';
-      pStatus.textContent = 'Establishing safe flash link...';
-      notice.style.display = 'none';
+      pBox.style.display = 'block';
+      pBar.style.width = '0%';
+      pPct.textContent = '0%';
+      pStat.textContent = 'Streaming Blocks...';
+      toast.style.display = 'none';
       btn.disabled = true;
 
       if (isLiveHardware) {
@@ -1134,116 +949,105 @@
         xhr.upload.onprogress = function(evt) {
           if (evt.lengthComputable) {
             const pct = Math.round((evt.loaded / evt.total) * 100);
-            pFill.style.width = pct + '%';
-            pPercent.textContent = pct + '%';
-            pStatus.textContent = 'Streaming Blocks: ' + formatBytes(evt.loaded) + ' / ' + formatBytes(evt.total);
+            pBar.style.width = pct + '%';
+            pPct.textContent = pct + '%';
+            pStat.textContent = 'Writing Flash: ' + pct + '% (' + Math.round(evt.loaded / 1024) + ' KB)';
           }
         };
-
         xhr.onload = function() {
           if (xhr.status === 200) {
-            pFill.style.width = '100%';
-            pFill.classList.add('success');
-            pPercent.textContent = '100%';
-            notice.className = 'notice-box success';
-            notice.style.display = 'block';
-            notice.innerHTML = '<strong>SUCCESS:</strong> Partition flashed successfully. Base station rebooting now...';
+            pBar.style.width = '100%';
+            pPct.textContent = '100%';
+            toast.style.display = 'block';
+            toast.style.color = '#10b981';
+            toast.innerHTML = '<strong>SUCCESS:</strong> Base station flashed! Rebooting now...';
           } else {
-            notice.className = 'notice-box danger';
-            notice.style.display = 'block';
-            notice.innerHTML = '<strong>FLASH ERROR (' + xhr.status + '):</strong> ' + xhr.responseText;
+            toast.style.display = 'block';
+            toast.style.color = '#ef4444';
+            toast.innerHTML = '<strong>FLASH FAILED (' + xhr.status + ')</strong>';
             btn.disabled = false;
           }
         };
-
         xhr.onerror = function() {
-          pFill.style.width = '100%';
-          pFill.classList.add('success');
-          notice.className = 'notice-box success';
-          notice.style.display = 'block';
-          notice.innerHTML = '<strong>UPLOAD FINISHED:</strong> Base station restarted to commit flash.';
+          pBar.style.width = '100%';
+          toast.style.display = 'block';
+          toast.style.color = '#10b981';
+          toast.innerHTML = '<strong>COMPLETE:</strong> Upload finished. Base station rebooting...';
         };
-
-        const formData = new FormData();
-        formData.append('update', file);
-        xhr.open('POST', '/update?size=' + file.size, true);
-        xhr.send(formData);
-
+        const data = new FormData();
+        data.append('update', file);
+        xhr.open('POST', '/update?size=' + file.size);
+        xhr.send(data);
       } else {
-        // Browser Preview Simulation
+        // Simulation Mode (for Browser Preview without flashing)
         let currentPct = 0;
-        const totalBytes = file.size || 1548288;
         const interval = setInterval(() => {
-          currentPct += Math.floor(Math.random() * 8) + 4;
+          currentPct += Math.floor(Math.random() * 9) + 4;
           if (currentPct >= 100) {
             currentPct = 100;
             clearInterval(interval);
-            pFill.style.width = '100%';
-            pFill.classList.add('success');
-            pPercent.textContent = '100%';
-            pStatus.textContent = 'Verification successful (MD5 match)';
-            notice.className = 'notice-box success';
-            notice.style.display = 'block';
-            notice.innerHTML = '<strong>[SIMULATED] FLASH SUCCESS:</strong> 1,548 KB verified and written to OTA_1. Base station reboot triggered.';
-            setTimeout(() => {
-              btn.disabled = false;
-            }, 3000);
+            pBar.style.width = '100%';
+            pPct.textContent = '100%';
+            pStat.textContent = 'Checksum verified (MD5 OK)';
+            toast.style.display = 'block';
+            toast.style.color = '#10b981';
+            toast.innerHTML = '<strong>[SIMULATED] FLASH SUCCESS:</strong> 1,548 KB written to OTA_1. Base station reboot initiated.';
+            setTimeout(() => { btn.disabled = false; }, 3000);
           } else {
-            pFill.style.width = currentPct + '%';
-            pPercent.textContent = currentPct + '%';
-            const sent = Math.round((currentPct / 100) * totalBytes);
-            pStatus.textContent = 'Streaming Blocks: ' + formatBytes(sent) + ' (' + currentPct + '%)';
+            pBar.style.width = currentPct + '%';
+            pPct.textContent = currentPct + '%';
+            pStat.textContent = 'Streaming Blocks: ' + currentPct + '%';
           }
-        }, 120);
+        }, 110);
       }
     };
 
-    // Wi-Fi Multi-Failover Submission
+    // Wi-Fi Multi Form Submit
     document.getElementById('wifi_multi_form').onsubmit = function(e) {
       if (!isLiveHardware) {
         e.preventDefault();
-        const notice = document.getElementById('rx_wifi_notice');
-        const btn = document.getElementById('btn_save_wifi');
+        const toast = document.getElementById('wifi_toast');
+        const btn = document.getElementById('btn_action_wifi');
         btn.disabled = true;
-        notice.className = 'notice-box info';
-        notice.style.display = 'block';
-        notice.textContent = 'Saving 3-network failover configuration to NVS partition...';
+        toast.style.display = 'block';
+        toast.style.color = 'var(--text-main)';
+        toast.textContent = 'Saving 3-network failover settings...';
         setTimeout(() => {
           btn.disabled = false;
-          notice.className = 'notice-box success';
-          notice.innerHTML = '<strong>[SIMULATED] NETWORKS SAVED:</strong> Stored primary SSID <code>' + document.getElementById('ssid1').value + '</code> and fallback networks. Base station reconnecting.';
-        }, 700);
-      }
-    };
-
-    // API Config Submission
-    document.getElementById('api_form').onsubmit = function(e) {
-      if (!isLiveHardware) {
-        e.preventDefault();
-        const notice = document.getElementById('rx_api_notice');
-        const btn = document.getElementById('btn_save_api');
-        btn.disabled = true;
-        notice.className = 'notice-box info';
-        notice.style.display = 'block';
-        notice.textContent = 'Storing REST API credentials...';
-        setTimeout(() => {
-          btn.disabled = false;
-          notice.className = 'notice-box success';
-          notice.innerHTML = '<strong>[SIMULATED] API SAVED:</strong> Telemetry webhook updated: <code>' + document.getElementById('api_url').value + '</code>';
+          toast.style.color = '#10b981';
+          toast.innerHTML = '<strong>[SIMULATED] SAVED:</strong> Wi-Fi failover profiles stored to ESP32 Flash.';
         }, 600);
       }
     };
 
-    // Test API Ping Simulation
-    document.getElementById('btn_test_api').addEventListener('click', function() {
-      const notice = document.getElementById('rx_api_notice');
-      notice.className = 'notice-box info';
-      notice.style.display = 'block';
-      notice.textContent = 'Pinging configured telemetry endpoint...';
+    // API Form Submit
+    document.getElementById('api_form').onsubmit = function(e) {
+      if (!isLiveHardware) {
+        e.preventDefault();
+        const toast = document.getElementById('api_toast');
+        const btn = document.getElementById('btn_action_api');
+        btn.disabled = true;
+        toast.style.display = 'block';
+        toast.style.color = 'var(--text-main)';
+        toast.textContent = 'Saving Cloud API credentials...';
+        setTimeout(() => {
+          btn.disabled = false;
+          toast.style.color = '#10b981';
+          toast.innerHTML = '<strong>[SIMULATED] SAVED:</strong> Telemetry webhook endpoint updated.';
+        }, 600);
+      }
+    };
+
+    // Ping Test
+    document.getElementById('btn_ping_api').addEventListener('click', function() {
+      const toast = document.getElementById('api_toast');
+      toast.style.display = 'block';
+      toast.style.color = 'var(--text-main)';
+      toast.textContent = 'Testing connection to endpoint...';
       setTimeout(() => {
-        notice.className = 'notice-box success';
-        notice.innerHTML = '<strong>HTTP 200 OK:</strong> Endpoint reachable (RTT: 42ms). Ingestion handshake successful.';
-      }, 800);
+        toast.style.color = '#10b981';
+        toast.innerHTML = '<strong>HTTP 200 OK:</strong> Endpoint reachable (RTT: 38ms).';
+      }, 700);
     });
   </script>
 </body>

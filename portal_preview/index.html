@@ -1,237 +1,245 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LifeLine Hardware // Web Portal Design System Showroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LifeLine Hardware // Portal Design Showroom</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-0: #000000;
-      --bg-1: #0d0d0d;
-      --bg-2: #141414;
-      --bg-3: #1f1f1f;
-      --bg-4: #262626;
-      --border: #262626;
-      --border-strong: #3a3a3a;
-      --text-0: #ffffff;
-      --text-1: #cccccc;
-      --text-2: #999999;
-      --text-3: #666666;
-      --radius: 0px;
-      --radius-btn: 9999px;
-      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --canvas: #f8f9fa;
+      --card-outer: #ededf0;
+      --card-border: #dcdde2;
+      --tab-bg: #e5e6eb;
+      --tab-border: #d2d4dc;
+      --tab-text: #4b5563;
+      --tab-active-bg: #000000;
+      --tab-active-text: #ffffff;
+      --tab-active-border: #000000;
+      --text-main: #000000;
+      --text-sub: #4b5563;
+      --text-muted: #6b7280;
+      --badge-bg: #ffffff;
+      --badge-border: #d1d5db;
+      --badge-text: #111827;
+      --frame-border: #d1d5db;
+      --accent-color: #000000;
+    }
+
+    [data-theme="dark"] {
+      --canvas: #09090b;
+      --card-outer: #141417;
+      --card-border: #27272a;
+      --tab-bg: #1c1c21;
+      --tab-border: #2e2e34;
+      --tab-text: #9ca3af;
+      --tab-active-bg: #ffffff;
+      --tab-active-text: #000000;
+      --tab-active-border: #ffffff;
+      --text-main: #ffffff;
+      --text-sub: #9ca3af;
+      --text-muted: #6b7280;
+      --badge-bg: #141417;
+      --badge-border: #2e2e34;
+      --badge-text: #e5e7eb;
+      --frame-border: #333338;
+      --accent-color: #ffffff;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      border-radius: var(--radius);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--canvas);
+      color: var(--text-main);
+      transition: background 0.25s, color 0.25s;
     }
 
     body {
-      background: var(--bg-0);
-      color: var(--text-1);
-      font-family: var(--font-body);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
+      align-items: center;
+      padding: 12px 20px;
     }
 
-    /* Fixed Top Ambient Rail */
-    .top-progress-rail {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .cockpit-container {
       width: 100%;
-      height: 3px;
-      background: linear-gradient(90deg, #6366f1, #06b6d4, #8b5cf6, #f59e0b);
-      z-index: 1000;
-      box-shadow: 0 0 16px rgba(99, 102, 241, 0.7);
-    }
-
-    /* Top Cockpit Bar */
-    .cockpit-header {
-      background: rgba(13, 13, 13, 0.92);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
+      max-width: 1240px;
+      height: 100%;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 500;
     }
 
-    .cockpit-brand {
+    /* Top Bar */
+    .top-header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      margin-bottom: 8px;
     }
 
-    .cockpit-logo-badge {
-      width: 32px;
-      height: 32px;
-      background: #ffffff;
-      color: #000000;
-      display: flex;
+    .badge-pill {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-      font-weight: 800;
-      font-size: 14px;
-    }
-
-    .cockpit-title-box h1 {
-      font-family: var(--font-display);
-      font-size: 16px;
+      gap: 7px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: -0.3px;
-      color: var(--text-0);
-    }
-
-    .cockpit-title-box .sub {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-3);
       letter-spacing: 0.8px;
       text-transform: uppercase;
     }
 
-    /* Control Groups in Header */
-    .control-deck {
+    .header-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 8px;
     }
 
-    .switch-group {
-      display: flex;
-      background: var(--bg-1);
-      border: 1px solid var(--border-strong);
-      padding: 3px;
-    }
-
-    .switch-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-2);
-      font-family: var(--font-mono);
+    .btn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--badge-text);
       font-size: 11px;
       font-weight: 600;
-      padding: 6px 14px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s;
     }
 
-    .switch-btn:hover {
-      color: var(--text-0);
+    .btn-pill:hover {
+      border-color: var(--accent-color);
     }
 
-    .switch-btn.active {
-      background: var(--text-0);
-      color: var(--bg-0);
+    /* Titles */
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      color: var(--text-main);
+      margin-bottom: 2px;
     }
 
-    /* Viewport Sizer Buttons */
-    .viewport-group {
+    .hero-sub {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+    }
+
+    /* Controls Bar: Device Switcher + Viewport Sizers */
+    .control-row {
       display: flex;
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      padding: 3px;
-    }
-
-    .viewport-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-3);
-      padding: 6px 10px;
-      cursor: pointer;
-      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+      margin-bottom: 10px;
     }
 
-    .viewport-btn:hover {
-      color: var(--text-0);
+    .segmented-tabs {
+      display: flex;
+      gap: 6px;
     }
 
-    .viewport-btn.active {
-      background: var(--bg-3);
-      color: #06b6d4;
-    }
-
-    .open-full-btn {
+    .seg-tab {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 7px 16px;
-      background: transparent;
-      border: 1px solid var(--border-strong);
-      color: var(--text-0);
-      font-family: var(--font-mono);
+      border: 1px solid var(--tab-border);
+      background: var(--tab-bg);
+      color: var(--tab-text);
+      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      text-decoration: none;
-      border-radius: var(--radius-btn);
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .seg-tab.active {
+      background: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      border-color: var(--tab-active-border);
+    }
+
+    .vp-group {
+      display: flex;
+      gap: 4px;
+      background: var(--card-outer);
+      border: 1px solid var(--card-border);
+      padding: 3px;
+    }
+
+    .vp-btn {
+      background: transparent;
+      border: none;
+      padding: 4px 10px;
+      color: var(--text-sub);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
       transition: all 0.2s;
     }
 
-    .open-full-btn:hover {
-      background: #ffffff;
-      color: #000000;
+    .vp-btn.active {
+      background: var(--tab-active-bg);
+      color: var(--tab-active-text);
     }
 
-    /* Main Showcase Canvas */
-    .showcase-stage {
+    /* Screen Stage Frame */
+    .stage-wrapper {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 32px 16px 24px;
-      background: radial-gradient(circle at top, rgba(20, 20, 30, 0.6) 0%, #000000 70%);
-      transition: all 0.3s ease;
-    }
-
-    /* Preview IFrame Wrapper */
-    .frame-container {
       width: 100%;
-      max-width: 100%;
-      height: 860px;
-      background: #000000;
-      border: 1px solid var(--border-strong);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05);
-      transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease;
-      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
+      margin-bottom: 8px;
     }
 
-    .frame-container.viewport-mobile {
-      max-width: 430px;
-      height: 820px;
-      border: 2px solid #333333;
-      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    .stage-frame {
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--frame-border);
+      background: var(--canvas);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      transition: max-width 0.25s ease;
+      overflow: hidden;
+      position: relative;
     }
 
-    .frame-container.viewport-tablet {
+    .stage-frame.vp-desktop {
+      max-width: 100%;
+    }
+
+    .stage-frame.vp-tablet {
       max-width: 768px;
-      height: 860px;
-      border: 2px solid #333333;
     }
 
-    .frame-container.viewport-desktop {
-      max-width: 1200px;
-      height: 880px;
+    .stage-frame.vp-mobile {
+      max-width: 420px;
     }
 
     iframe {
@@ -239,205 +247,172 @@
       height: 100%;
       border: none;
       display: block;
-      background: #000000;
     }
 
-    /* Design Tokens Bar at Bottom */
-    .token-bar {
-      background: var(--bg-1);
-      border-top: 1px solid var(--border);
-      padding: 16px 24px;
+    /* Footer */
+    .footer-bar {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
       justify-content: space-between;
-      gap: 14px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-
-    .token-swatches {
-      display: flex;
       align-items: center;
-      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      padding-top: 4px;
     }
 
-    .swatch {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 10px;
-      color: var(--text-2);
-    }
-
-    .swatch-color {
-      width: 14px;
-      height: 14px;
-      border: 1px solid var(--border-strong);
-    }
-
-    .token-summary {
-      color: var(--text-3);
-    }
-
-    .token-summary strong {
-      color: var(--text-1);
+    @media (max-width: 768px) {
+      .hero-title { font-size: 20px; }
+      .hero-sub { font-size: 11px; margin-bottom: 6px; }
+      .vp-group { display: none; }
+      .seg-tab { padding: 5px 10px; font-size: 10px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="top-progress-rail"></div>
+  <div class="cockpit-container">
 
-  <!-- Master Cockpit Header -->
-  <header class="cockpit-header">
-    <div class="cockpit-brand">
-      <div class="cockpit-logo-badge">LL</div>
-      <div class="cockpit-title-box">
-        <h1>LIFELINE DESIGN SHOWROOM</h1>
-        <div class="sub">Bugatti Luxury System // Live OTA &amp; Wi-Fi Portals</div>
-      </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="control-deck">
-      
-      <!-- Device Selector -->
-      <div class="switch-group">
-        <button class="switch-btn active" id="btn_tx_select">TX Tactical Unit</button>
-        <button class="switch-btn" id="btn_rx_select">RX Base Station</button>
-      </div>
-
-      <!-- Viewport Device Resizer -->
-      <div class="viewport-group">
-        <!-- Mobile -->
-        <button class="viewport-btn" id="vp_mobile" title="Mobile (430px)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="5" y="2" width="14" height="20" rx="2"></rect>
-            <line x1="12" y1="18" x2="12" y2="18"></line>
-          </svg>
-        </button>
-        <!-- Tablet -->
-        <button class="viewport-btn" id="vp_tablet" title="Tablet (768px)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
-            <line x1="12" y1="18" x2="12" y2="18"></line>
-          </svg>
-        </button>
-        <!-- Desktop -->
-        <button class="viewport-btn active" id="vp_desktop" title="Desktop Frame (1200px)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Launch Full Page Link -->
-      <a href="tx_portal.html" target="_blank" class="open-full-btn" id="btn_open_tab">
-        <span>Launch Fullscreen</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-          <polyline points="15 3 21 3 21 9"></polyline>
-          <line x1="10" y1="14" x2="21" y2="3"></line>
+    <!-- Top Header -->
+    <div class="top-header">
+      <div class="badge-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-      </a>
+        <span>PORTAL SHOWROOM // ONE SCREEN FIT</span>
+      </div>
 
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <button class="btn-pill" id="theme_toggle">
+          <span id="theme_icon">☀️</span>
+          <span id="theme_label">LIGHT</span>
+        </button>
+        <!-- Direct Fullscreen Link -->
+        <a href="tx_portal.html" target="_blank" class="btn-pill" id="btn_fullscreen">
+          <span>OPEN DIRECT</span>
+          <span>&nearr;</span>
+        </a>
+      </div>
     </div>
-  </header>
 
-  <!-- Interactive Stage -->
-  <main class="showcase-stage">
-    <div class="frame-container viewport-desktop" id="frame_container">
-      <iframe src="tx_portal.html" id="preview_iframe"></iframe>
+    <!-- Title & Subtitle -->
+    <div>
+      <h1 class="hero-title">Four services. One platform.</h1>
+      <p class="hero-sub">Single-screen responsive portals for LifeLine TX Tactical Unit and RX Base Station.</p>
     </div>
-  </main>
 
-  <!-- Design Token Swatches Bar -->
-  <footer class="token-bar">
-    <div class="token-swatches">
-      <div class="swatch">
-        <span class="swatch-color" style="background:#000000;"></span>
-        <span>--bg-0 Pure Black</span>
+    <!-- Control Row: Device Tabs & Viewport Sizers -->
+    <div class="control-row">
+      <div class="segmented-tabs">
+        <button class="seg-tab active" id="btn_select_tx" onclick="selectDevice('tx')">
+          <span>TX TACTICAL UNIT</span>
+        </button>
+        <button class="seg-tab" id="btn_select_rx" onclick="selectDevice('rx')">
+          <span>RX BASE STATION</span>
+        </button>
       </div>
-      <div class="swatch">
-        <span class="swatch-color" style="background:#0d0d0d;"></span>
-        <span>--bg-1 Soft</span>
-      </div>
-      <div class="swatch">
-        <span class="swatch-color" style="background:#141414;"></span>
-        <span>--bg-2 Card</span>
-      </div>
-      <div class="swatch">
-        <span class="swatch-color" style="background:#6366f1;"></span>
-        <span>Indigo</span>
-      </div>
-      <div class="swatch">
-        <span class="swatch-color" style="background:#06b6d4;"></span>
-        <span>Cyan</span>
-      </div>
-      <div class="swatch">
-        <span class="swatch-color" style="background:#ff1e42;"></span>
-        <span>Crimson</span>
+
+      <div class="vp-group">
+        <button class="vp-btn" id="vp_mobile" onclick="setViewport('mobile')">MOBILE (420px)</button>
+        <button class="vp-btn" id="vp_tablet" onclick="setViewport('tablet')">TABLET (768px)</button>
+        <button class="vp-btn active" id="vp_desktop" onclick="setViewport('desktop')">PC FULL (100%)</button>
       </div>
     </div>
-    <div class="token-summary">
-      Geometry: <strong>0px radius</strong> | Buttons: <strong>9999px pill</strong> | Typography: <strong>Space Grotesk + JetBrains Mono</strong>
+
+    <!-- Stage Wrapper with Iframe (Fitted in 1 Screen Frame) -->
+    <div class="stage-wrapper">
+      <div class="stage-frame vp-desktop" id="stage_frame">
+        <iframe src="tx_portal.html" id="preview_iframe"></iframe>
+      </div>
     </div>
-  </footer>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <span>THEME: REFERENCE IMAGE EXACT MATCH (LIGHT + DARK MODE)</span>
+      <span>LAYOUT: SINGLE SCREEN VIEWPORT FIT</span>
+    </div>
+
+  </div>
 
   <script>
+    const htmlEl = document.documentElement;
+    const themeToggle = document.getElementById('theme_toggle');
+    const themeIcon = document.getElementById('theme_icon');
+    const themeLabel = document.getElementById('theme_label');
     const iframe = document.getElementById('preview_iframe');
-    const btnTx = document.getElementById('btn_tx_select');
-    const btnRx = document.getElementById('btn_rx_select');
-    const frameContainer = document.getElementById('frame_container');
-    const btnOpenTab = document.getElementById('btn_open_tab');
-
-    const vpMobile = document.getElementById('vp_mobile');
-    const vpTablet = document.getElementById('vp_tablet');
-    const vpDesktop = document.getElementById('vp_desktop');
+    const stageFrame = document.getElementById('stage_frame');
+    const btnTx = document.getElementById('btn_select_tx');
+    const btnRx = document.getElementById('btn_select_rx');
+    const btnFullscreen = document.getElementById('btn_fullscreen');
 
     let currentDevice = 'tx';
 
-    function setDevice(device) {
+    function applyTheme(theme) {
+      htmlEl.setAttribute('data-theme', theme);
+      if (theme === 'dark') {
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'DARK';
+      } else {
+        themeIcon.textContent = '☀️';
+        themeLabel.textContent = 'LIGHT';
+      }
+      localStorage.setItem('lifeline_theme', theme);
+      // Sync theme to iframe
+      try {
+        if (iframe.contentWindow && iframe.contentWindow.document) {
+          iframe.contentWindow.document.documentElement.setAttribute('data-theme', theme);
+          if (iframe.contentWindow.applyTheme) {
+            iframe.contentWindow.applyTheme(theme);
+          }
+        }
+      } catch(e) {}
+    }
+
+    const savedTheme = localStorage.getItem('lifeline_theme') || 'light';
+    applyTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    function selectDevice(device) {
       currentDevice = device;
       if (device === 'tx') {
         btnTx.classList.add('active');
         btnRx.classList.remove('active');
         iframe.src = 'tx_portal.html';
-        btnOpenTab.href = 'tx_portal.html';
+        btnFullscreen.href = 'tx_portal.html';
       } else {
         btnRx.classList.add('active');
         btnTx.classList.remove('active');
         iframe.src = 'rx_portal.html';
-        btnOpenTab.href = 'rx_portal.html';
+        btnFullscreen.href = 'rx_portal.html';
       }
+      iframe.onload = function() {
+        try {
+          iframe.contentWindow.document.documentElement.setAttribute('data-theme', htmlEl.getAttribute('data-theme'));
+        } catch(e) {}
+      };
     }
 
-    btnTx.addEventListener('click', () => setDevice('tx'));
-    btnRx.addEventListener('click', () => setDevice('rx'));
-
-    // Viewport resizing
     function setViewport(mode) {
-      [vpMobile, vpTablet, vpDesktop].forEach(b => b.classList.remove('active'));
-      frameContainer.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop');
-
+      document.querySelectorAll('.vp-btn').forEach(b => b.classList.remove('active'));
+      stageFrame.classList.remove('vp-desktop', 'vp-tablet', 'vp-mobile');
       if (mode === 'mobile') {
-        vpMobile.classList.add('active');
-        frameContainer.classList.add('viewport-mobile');
+        document.getElementById('vp_mobile').classList.add('active');
+        stageFrame.classList.add('vp-mobile');
       } else if (mode === 'tablet') {
-        vpTablet.classList.add('active');
-        frameContainer.classList.add('viewport-tablet');
+        document.getElementById('vp_tablet').classList.add('active');
+        stageFrame.classList.add('vp-tablet');
       } else {
-        vpDesktop.classList.add('active');
-        frameContainer.classList.add('viewport-desktop');
+        document.getElementById('vp_desktop').classList.add('active');
+        stageFrame.classList.add('vp-desktop');
       }
     }
-
-    vpMobile.addEventListener('click', () => setViewport('mobile'));
-    vpTablet.addEventListener('click', () => setViewport('tablet'));
-    vpDesktop.addEventListener('click', () => setViewport('desktop'));
   </script>
 </body>
 </html>
