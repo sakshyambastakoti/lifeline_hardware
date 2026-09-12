@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LifeLine Tactical Companion // Web BLE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    /* Himalix Labs — Bugatti-Inspired Austere Luxury Design System */
+    /* Reference: docs/DESIGN_PALETTE.md */
+    :root {
+      /* Dark Mode (Default) */
+      --bg-0: #000000;
+      --bg-1: #0d0d0d;
+      --bg-2: #141414;
+      --bg-3: #1f1f1f;
+      --border: #262626;
+      --border-strong: #3a3a3a;
+      --text-0: #ffffff;
+      --text-1: #cccccc;
+      --text-2: #999999;
+      --text-3: #666666;
+      --btn-fill: #ffffff;
+      --btn-text: #000000;
+      --success: #5fa657;
+      --success-bg: rgba(95, 166, 87, 0.12);
+      --danger: #d9534f;
+      --danger-bg: rgba(217, 83, 79, 0.15);
+      --warning: #d4a017;
+      --warning-bg: rgba(212, 160, 23, 0.15);
+      --cyan: #06b6d4;
+      --indigo: #6366f1;
+      --violet: #8b5cf6;
+      --amber: #f59e0b;
+    }
+
+    [data-theme="light"] {
+      /* Light Mode */
+      --bg-0: #ffffff;
+      --bg-1: #f7f7f7;
+      --bg-2: #eeeeee;
+      --bg-3: #fcfcfc;
+      --border: #e0e0e0;
+      --border-strong: #888888;
+      --text-0: #000000;
+      --text-1: #222222;
+      --text-2: #555555;
+      --text-3: #888888;
+      --btn-fill: #000000;
+      --btn-text: #ffffff;
+      --success: #2e7d32;
+      --success-bg: rgba(46, 125, 50, 0.1);
+      --danger: #c62828;
+      --danger-bg: rgba(198, 40, 40, 0.1);
+      --warning: #b78103;
+      --warning-bg: rgba(183, 129, 3, 0.12);
+      --cyan: #0891b2;
+      --indigo: #4f46e5;
+      --violet: #7c3aed;
+      --amber: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-0);
+      color: var(--text-0);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOP HOLOGRAPHIC SWEEP */
+    .holographic-sweep {
+      display: flex;
+      height: 3px;
+      width: 100%;
+    }
+    .sweep-seg { flex: 1; height: 100%; }
+    .seg-1 { background: var(--indigo); }
+    .seg-2 { background: var(--cyan); }
+    .seg-3 { background: var(--violet); }
+    .seg-4 { background: var(--amber); }
+
+    /* HEADER */
+    header {
+      background: var(--bg-0);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--text-0);
+    }
+    .brand-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-2);
+      border: 1px solid var(--border-strong);
+      padding: 2px 6px;
+      letter-spacing: 1.5px;
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-btn {
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      color: var(--text-0);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .link-strip {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: 0.5px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-3);
+    }
+    .status-dot.connected { background: var(--success); }
+    .status-dot.connecting { background: var(--amber); }
+
+    .telemetry-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* MAIN VIEWPORT */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .tab-view { display: none; flex-direction: column; gap: 14px; }
+    .tab-view.active { display: flex; }
+
+    /* AUSTERE CARDS */
+    .card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--text-0);
+      margin-bottom: 4px;
+    }
+    .card-desc {
+      color: var(--text-2);
+      font-size: 11px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* BUTTONS */
+    .btn-pill {
+      background: var(--btn-fill);
+      color: var(--btn-text);
+      border: none;
+      padding: 13px 20px;
+      border-radius: 9999px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.15s ease;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .btn-pill:hover { opacity: 0.9; }
+    .btn-pill:active { transform: scale(0.98); }
+
+    .btn-danger-pill {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 12px 20px;
+      border-radius: 9999px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* TELEMETRY GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .metric-box {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 14px;
+    }
+    .metric-label {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--text-2);
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-0);
+      margin-bottom: 4px;
+    }
+    .metric-hint {
+      font-size: 10px;
+      color: var(--text-3);
+    }
+
+    /* CHAT STREAM */
+    .chat-stream {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 220px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .bubble {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      max-width: 85%;
+      border-radius: 0px;
+    }
+    .bubble.out {
+      align-self: flex-end;
+      background: var(--bg-3);
+      border-color: var(--border-strong);
+    }
+    .bubble.in {
+      align-self: flex-start;
+      background: var(--bg-2);
+    }
+    .bubble-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-2);
+      margin-bottom: 4px;
+    }
+    .bubble-text {
+      color: var(--text-0);
+      font-size: 13px;
+    }
+
+    .macro-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .macro-pill {
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      color: var(--text-1);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .input-box {
+      flex: 1;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text-0);
+      padding: 10px 14px;
+      font-size: 13px;
+      border-radius: 0px;
+      outline: none;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* SOS PROTOCOL */
+    .sos-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      padding: 18px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .sos-card:active { border-color: var(--danger); }
+    .sos-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--danger);
+    }
+    .sos-title {
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+    .sos-desc {
+      color: var(--text-2);
+      font-size: 11px;
+    }
+
+    .ack-card {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .ack-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--danger);
+      letter-spacing: 1px;
+    }
+    .ack-body {
+      background: var(--bg-0);
+      padding: 12px;
+      border: 1px solid var(--border-strong);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-0);
+    }
+
+    /* BOTTOM TABS */
+    nav.bottom-nav {
+      background: var(--bg-1);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 8px 0 16px 0;
+    }
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-3);
+      padding: 6px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-btn.active { color: var(--text-0); }
+    .nav-btn.sos.active { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <!-- Ambient Top Sweep -->
+  <div class="holographic-sweep">
+    <div class="sweep-seg seg-1"></div>
+    <div class="sweep-seg seg-2"></div>
+    <div class="sweep-seg seg-3"></div>
+    <div class="sweep-seg seg-4"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="brand-box">
+        <span class="brand-title">LIFELINE</span>
+        <span class="brand-tag">WEB BLE</span>
+      </div>
+      <div class="header-controls">
+        <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ LIGHT</button>
+      </div>
+    </div>
+
+    <div class="link-strip">
+      <div class="status-group">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">STANDBY // NO NODE CONNECTED</span>
+      </div>
+      <div class="telemetry-mini">
+        <span id="batDisplay">--%</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <main>
+    <!-- TAB 1: RADAR / BLE SCANNER -->
+    <div class="tab-view active" id="tab-radar">
+      <div class="card">
+        <div class="card-title">BLE HARDWARE DISCOVERY</div>
+        <div class="card-desc">
+          Scan for nearby LifeLine TX Pro field handhelds and RX Pro base stations via Web Bluetooth (Nordic UART Service).
+        </div>
+
+        <button class="btn-pill" id="scanBtn" onclick="toggleBle()">
+          <span id="scanBtnText">SCAN & PAIR BLE HARDWARE</span>
+        </button>
+      </div>
+
+      <div class="card" id="connDetailsCard" style="display:none;">
+        <div class="card-title">ACTIVE RF CONNECTION</div>
+        <div class="card-desc" id="deviceMeta">Node: --</div>
+        <button class="btn-danger-pill" onclick="disconnectBle()">DISCONNECT LINK</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: TELEMETRY METRICS -->
+    <div class="tab-view" id="tab-metrics">
+      <div class="grid">
+        <div class="metric-box">
+          <div class="metric-label">POWER RESERVES</div>
+          <div class="metric-val" id="metricBat">--%</div>
+          <div class="metric-hint">Sub-Zero Regulated LiPo</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">ELEVATION MSL</div>
+          <div class="metric-val" id="metricAlt">--M</div>
+          <div class="metric-hint">Barometric / GNSS Fused</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">TEMPERATURE</div>
+          <div class="metric-val" id="metricTemp">--°C</div>
+          <div class="metric-hint">Alpine Ambient</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">AIR INTEGRITY</div>
+          <div class="metric-val" id="metricGas">-- PPM</div>
+          <div class="metric-hint">CO & Toxic Gas Edge Sensor</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">SATELLITE POSITIONING [GNSS]</div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px;">
+          <div>
+            <div style="font-size:10px; color:var(--text-3); font-weight:800;">LATITUDE</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:900;" id="metricLat">--° N</div>
+          </div>
+          <div>
+            <div style="font-size:10px; color:var(--text-3); font-weight:800;">LONGITUDE</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:900;" id="metricLon">--° E</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: TACTICAL CHAT -->
+    <div class="tab-view" id="tab-chat">
+      <div class="chat-stream" id="chatStream">
+        <div class="bubble in">
+          <div class="bubble-head"><span>COMMAND HQ</span><span>SESSION</span></div>
+          <div class="bubble-text">LifeLine Web BLE tactical stream armed. Messages broadcast across 433 MHz LoRa RF.</div>
+        </div>
+      </div>
+
+      <div class="macro-bar">
+        <div class="macro-pill" onclick="sendMacro('LANDSLIDE BLOCKING TRAIL')">LANDSLIDE BLOCKING</div>
+        <div class="macro-pill" onclick="sendMacro('NEED MEDICAL STRETCHER')">NEED STRETCHER</div>
+        <div class="macro-pill" onclick="sendMacro('SUPPLIES CRITICAL LOW')">SUPPLIES LOW</div>
+        <div class="macro-pill" onclick="sendMacro('GROUP SAFE AT SHELTER')">GROUP SAFE</div>
+      </div>
+
+      <div class="input-row">
+        <input type="text" class="input-box" id="chatInput" placeholder="TYPE TACTICAL SITREP..." onkeydown="if(event.key==='Enter') sendChat()" />
+        <button class="btn-pill" style="padding:10px 16px;" onclick="sendChat()">SEND</button>
+      </div>
+    </div>
+
+    <!-- TAB 4: DISTRESS SOS -->
+    <div class="tab-view" id="tab-sos">
+      <div class="ack-card" id="ackCard">
+        <div class="ack-title">CLOSED-LOOP LORA ACK RECEIVED</div>
+        <div class="ack-body" id="ackBody">
+          Base Station response pending...
+        </div>
+      </div>
+
+      <div class="sos-card" onclick="triggerSos('A', 'GENERAL RESCUE SOS')">
+        <div class="sos-code">CODE // A</div>
+        <div class="sos-title">GENERAL EMERGENCY RESCUE</div>
+        <div class="sos-desc">Trapped party, structural failure, avalanche, or flash flood hazard.</div>
+      </div>
+
+      <div class="sos-card" onclick="triggerSos('M', 'CRITICAL MEDICAL SOS')">
+        <div class="sos-code">CODE // M</div>
+        <div class="sos-title">CRITICAL MEDICAL EMERGENCY</div>
+        <div class="sos-desc">Severe physical trauma, high-altitude hypothermia, cardiac arrest.</div>
+      </div>
+
+      <div class="sos-card" onclick="triggerSos('F', 'WILDFIRE / TOXIC HAZARD')">
+        <div class="sos-code">CODE // F</div>
+        <div class="sos-title">WILDFIRE / TOXIC HAZARD</div>
+        <div class="sos-desc">Hazardous chemical gas release or rapid fire boundary encroachment.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('radar')">RADAR</button>
+    <button class="nav-btn" onclick="switchTab('metrics')">METRICS</button>
+    <button class="nav-btn" onclick="switchTab('chat')">COMMS</button>
+    <button class="nav-btn sos" onclick="switchTab('sos')">DISTRESS</button>
+  </nav>
+
+  <script>
+    // Nordic UART Service (NUS) Specifications used in LifeLine firmware
+    const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    const NUS_RX_UUID      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Phone -> ESP32
+    const NUS_TX_UUID      = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // ESP32 -> Phone
+
+    let bleDevice = null;
+    let rxChar = null;
+    let txChar = null;
+    let packetBuffer = '';
+
+    // Theme Switcher
+    function toggleTheme() {
+      const html = document.documentElement;
+      const cur = html.getAttribute('data-theme') || 'dark';
+      const next = cur === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️ LIGHT' : '🌙 DARK';
+    }
+
+    // Tab Navigation
+    function switchTab(name) {
+      document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tab-${name}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Web Bluetooth Scanner & Connection
+    async function toggleBle() {
+      if (!navigator.bluetooth) {
+        alert('Web Bluetooth is required. If on iPhone, please open this exact page in the Bluefy app!');
+        return;
+      }
+
+      try {
+        document.getElementById('statusText').textContent = 'ACQUIRING BLE LINK...';
+        document.getElementById('statusDot').className = 'status-dot connecting';
+
+        bleDevice = await navigator.bluetooth.requestDevice({
+          filters: [
+            { namePrefix: 'LifeLine' },
+            { namePrefix: 'TX' },
+            { namePrefix: 'RX' },
+            { services: [NUS_SERVICE_UUID] }
+          ],
+          optionalServices: [NUS_SERVICE_UUID]
+        });
+
+        bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+        const server = await bleDevice.gatt.connect();
+        const service = await server.getPrimaryService(NUS_SERVICE_UUID);
+        rxChar = await service.getCharacteristic(NUS_RX_UUID);
+        txChar = await service.getCharacteristic(NUS_TX_UUID);
+
+        await txChar.startNotifications();
+        txChar.addEventListener('characteristicvaluechanged', handleNotification);
+
+        // Update UI
+        onConnected(bleDevice.name || 'LifeLine Field Node');
+        sendCommand('STATUS');
+      } catch (err) {
+        console.error('BLE error:', err);
+        onDisconnected();
+      }
+    }
+
+    function onConnected(name) {
+      document.getElementById('statusDot').className = 'status-dot connected';
+      document.getElementById('statusText').textContent = `CONNECTED // ${name.toUpperCase()}`;
+      document.getElementById('connDetailsCard').style.display = 'flex';
+      document.getElementById('deviceMeta').textContent = `Paired Hardware: ${name}`;
+      document.getElementById('scanBtnText').textContent = 'LINK ACTIVE (TAP TO RE-SCAN)';
+    }
+
+    function onDisconnected() {
+      document.getElementById('statusDot').className = 'status-dot';
+      document.getElementById('statusText').textContent = 'STANDBY // DISCONNECTED';
+      document.getElementById('connDetailsCard').style.display = 'none';
+      document.getElementById('scanBtnText').textContent = 'SCAN & PAIR BLE HARDWARE';
+      bleDevice = null;
+      rxChar = null;
+      txChar = null;
+    }
+
+    async function disconnectBle() {
+      if (bleDevice && bleDevice.gatt.connected) {
+        await bleDevice.gatt.disconnect();
+      }
+      onDisconnected();
+    }
+
+    // Send ASCII command over Nordic UART
+    async function sendCommand(cmd) {
+      if (!rxChar) return false;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(cmd.endsWith('\n') ? cmd : cmd + '\n');
+      await rxChar.writeValue(data);
+      return true;
+    }
+
+    // Receive Incoming Nordic UART Chunks
+    function handleNotification(event) {
+      const decoder = new TextDecoder();
+      const chunk = decoder.decode(event.target.value);
+      packetBuffer += chunk;
+
+      const lines = packetBuffer.split('\n');
+      while (lines.length > 1) {
+        const line = lines.shift().trim();
+        if (line) parsePacket(line);
+      }
+      packetBuffer = lines[0] || '';
+    }
+
+    function parsePacket(packet) {
+      console.log('Incoming Packet:', packet);
+
+      // 1. STATUS
+      if (packet.startsWith('STATUS:')) {
+        const parts = packet.substring(7).split(',');
+        parts.forEach(p => {
+          const [k, v] = p.split('=');
+          if (k === 'BAT') {
+            document.getElementById('batDisplay').textContent = `${v}%`;
+            document.getElementById('metricBat').textContent = `${v}%`;
+          }
+        });
+      }
+      // 2. TELEMETRY
+      else if (packet.startsWith('TELEMETRY:')) {
+        const parts = packet.substring(10).split(',');
+        parts.forEach(p => {
+          const [k, v] = p.split('=');
+          if (k === 'BAT') {
+            document.getElementById('batDisplay').textContent = `${v}%`;
+            document.getElementById('metricBat').textContent = `${v}%`;
+          }
+          if (k === 'ALT') document.getElementById('metricAlt').textContent = `${v}M`;
+          if (k === 'TEMP') document.getElementById('metricTemp').textContent = `${v}°C`;
+          if (k === 'GAS') document.getElementById('metricGas').textContent = `${v} PPM`;
+          if (k === 'LAT') document.getElementById('metricLat').textContent = `${parseFloat(v).toFixed(6)}° N`;
+          if (k === 'LON') document.getElementById('metricLon').textContent = `${parseFloat(v).toFixed(6)}° E`;
+        });
+      }
+      // 3. CLOSED LOOP ACK
+      else if (packet.startsWith('ACK_RECV:')) {
+        const card = document.getElementById('ackCard');
+        card.style.display = 'flex';
+        document.getElementById('ackBody').textContent = packet.substring(9);
+      }
+      // 4. CHAT
+      else if (packet.startsWith('CHAT:')) {
+        const text = packet.substring(5);
+        appendChatMessage('BASE STATION', text, false);
+      }
+    }
+
+    // Chat functionality
+    function appendChatMessage(sender, text, isOut) {
+      const stream = document.getElementById('chatStream');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${isOut ? 'out' : 'in'}`;
+      bubble.innerHTML = `
+        <div class="bubble-head"><span>${sender}</span><span>${time}</span></div>
+        <div class="bubble-text">${text}</div>
+      `;
+      stream.appendChild(bubble);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    async function sendChat() {
+      const input = document.getElementById('chatInput');
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = '';
+      appendChatMessage('ME (FIELD)', val, true);
+      await sendCommand(`MSG:${val}`);
+    }
+
+    async function sendMacro(text) {
+      appendChatMessage('ME (FIELD)', text, true);
+      await sendCommand(`MSG:${text}`);
+    }
+
+    async function triggerSos(code, name) {
+      const card = document.getElementById('ackCard');
+      card.style.display = 'flex';
+      document.getElementById('ackBody').textContent = `Broadcasting ${name} [CODE ${code}] over 433 MHz LoRa... Awaiting Base ACK...`;
+      await sendCommand(`ALERT:${code}`);
+    }
+  </script>
+</body>
+</html>
