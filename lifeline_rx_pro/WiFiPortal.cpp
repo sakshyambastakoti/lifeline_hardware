@@ -416,9 +416,9 @@ static String getPortalHTML() {
     html += "<div class='card'>";
     html += "<h2 class='ota'>2. Wireless OTA Firmware Upgrade</h2>";
     html += "<div class='desc'>Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. The 16x2 LCD shows live progress and restarts the base station on completion.</div>";
-    html += "<form action='/update' method='POST' enctype='multipart/form-data'>";
+    html += "<form action='/update' method='POST' enctype='multipart/form-data' onsubmit=\"var f=document.getElementById('fwFile');if(f&&f.files.length>0){this.action='/update?size='+f.files[0].size;}\">";
     html += "<label>Select Firmware Binary (.bin):</label>";
-    html += "<input type='file' name='update' accept='.bin' required>";
+    html += "<input type='file' id='fwFile' name='update' accept='.bin' required>";
     html += "<input class='btn-ota' type='submit' value='FLASH FIRMWARE (OTA)'>";
     html += "</form>";
     html += "</div>";
@@ -516,7 +516,8 @@ static void setupServerRoutes() {
     wifiServer.on("/save", HTTP_POST, handlePortalSave);
     wifiServer.on("/api-save", HTTP_POST, handleAPISave);
     
-    // Direct OTA Firmware Flash endpoint
+    static size_t rxPortalExpected = 0;
+    static int lastPortalPct = -1;
     wifiServer.on("/update", HTTP_POST, []() {
         wifiServer.sendHeader("Connection", "close");
         String res = (Update.hasError()) ? 
@@ -530,6 +531,22 @@ static void setupServerRoutes() {
         if (upload.status == UPLOAD_FILE_START) {
             Serial.printf("[WEB OTA] Start: %s\n", upload.filename.c_str());
             currentScreen = SCREEN_OTA;
+            lastPortalPct = -1;
+            rxPortalExpected = 0;
+            if (wifiServer.hasArg("size")) {
+                rxPortalExpected = wifiServer.arg("size").toInt();
+            }
+            if (rxPortalExpected <= 0) {
+                int cl = wifiServer.clientContentLength();
+                if (cl > 300) {
+                    rxPortalExpected = cl - 200; // Offset multipart boundary overhead
+                } else if (cl > 0) {
+                    rxPortalExpected = cl;
+                } else {
+                    rxPortalExpected = 1350000; // Fallback typical firmware size
+                }
+            }
+            Serial.printf("[WEB OTA] Expected size: %u bytes\n", (unsigned int)rxPortalExpected);
             drawOTAProgressScreen(0);
             if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
                 Update.printError(Serial);
@@ -538,13 +555,18 @@ static void setupServerRoutes() {
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 Update.printError(Serial);
             }
-            if (upload.totalSize > 0) {
-                int pct = (upload.currentSize * 100) / upload.totalSize;
-                drawOTAProgressScreen(pct);
+            if (rxPortalExpected > 0) {
+                int pct = (upload.totalSize * 100) / rxPortalExpected;
+                pct = constrain(pct, 0, 99);
+                if (pct != lastPortalPct) {
+                    lastPortalPct = pct;
+                    drawOTAProgressScreen(pct);
+                }
             }
         } else if (upload.status == UPLOAD_FILE_END) {
             if (Update.end(true)) {
                 Serial.printf("[WEB OTA] Success: %u bytes\n", upload.totalSize);
+                drawOTAProgressScreen(100);
                 drawOTASuccessScreen();
             } else {
                 Update.printError(Serial);

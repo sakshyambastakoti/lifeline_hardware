@@ -205,8 +205,11 @@ R"rawliteral(
     h1 { color: #ff1e42; margin-bottom: 5px; font-size: 22px; }
     h3 { color: #a3b1c6; font-weight: 300; margin-top: 0; font-size: 14px; }
     input[type=file] { margin: 20px 0; padding: 10px; background: #1b1b24; color: #fff; border: 1px solid #405070; width: 90%; }
-    input[type=submit] { background: #ff1e42; color: #fff; font-weight: bold; border: none; padding: 12px 28px; cursor: pointer; font-size: 15px; width: 90%; }
-    input[type=submit]:hover { background: #d01030; }
+    input[type=submit], button { background: #ff1e42; color: #fff; font-weight: bold; border: none; padding: 12px 28px; cursor: pointer; font-size: 15px; width: 90%; }
+    input[type=submit]:hover, button:hover { background: #d01030; }
+    .progress-box { height: 22px; background: #0a0a0f; border: 1px solid #282836; margin-top: 15px; display: none; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: #ff1e42; text-align: right; padding-right: 6px; line-height: 22px; font-size: 12px; font-weight: bold; color: #fff; }
+    .msg { margin-top: 12px; font-size: 12px; color: #00ff87; display: none; font-family: monospace; }
   </style>
 </head>
 <body>
@@ -214,11 +217,60 @@ R"rawliteral(
     <h1>LIFELINE RX BASE STATION</h1>
     <h3>Wireless OTA Firmware Portal</h3>
     <p>Select firmware <b>.bin</b> file to update base station:</p>
-    <form method='POST' action='/update' enctype='multipart/form-data'>
-      <input type='file' name='update' accept='.bin' required><br>
-      <input type='submit' value='Flash Firmware'>
+    <form id='flash_form' method='POST' action='/update' enctype='multipart/form-data'>
+      <input type='file' id='firmware_file' name='update' accept='.bin' required><br>
+      <button type='submit' id='btn_flash'>Flash Firmware</button>
     </form>
+    <div class='progress-box' id='p_box'><div class='progress-bar' id='p_bar'>0%</div></div>
+    <div class='msg' id='flash_msg'></div>
   </div>
+  <script>
+  document.getElementById('flash_form').onsubmit = function(e) {
+    e.preventDefault();
+    var file = document.getElementById('firmware_file').files[0];
+    if (!file) return;
+    var pBox = document.getElementById('p_box');
+    var pBar = document.getElementById('p_bar');
+    var msg = document.getElementById('flash_msg');
+    var btn = document.getElementById('btn_flash');
+    pBox.style.display = 'block';
+    msg.style.display = 'block';
+    msg.style.color = '#ff1e42';
+    msg.innerText = 'Uploading to Base Station...';
+    btn.disabled = true; btn.style.opacity = '0.5';
+    var xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = function(evt) {
+      if (evt.lengthComputable) {
+        var pct = Math.round((evt.loaded / evt.total) * 100);
+        pBar.style.width = pct + '%';
+        pBar.innerText = pct + '%';
+        msg.innerText = 'Flashing Base Station: ' + pct + '%';
+      }
+    };
+    xhr.onload = function() {
+      if (xhr.status == 200) {
+        pBar.style.width = '100%';
+        pBar.innerText = '100%';
+        pBar.style.background = '#00ff87';
+        msg.style.color = '#00ff87';
+        msg.innerText = 'SUCCESS! Base Station is rebooting...';
+      } else {
+        msg.style.color = '#ff1e42';
+        msg.innerText = 'Upload failed (' + xhr.status + ')';
+        btn.disabled = false; btn.style.opacity = '1';
+      }
+    };
+    xhr.onerror = function() {
+      pBar.style.background = '#00ff87';
+      msg.style.color = '#00ff87';
+      msg.innerText = 'Upload complete! Base Station is rebooting...';
+    };
+    var data = new FormData();
+    data.append('update', file);
+    xhr.open('POST', '/update?size=' + file.size);
+    xhr.send(data);
+  };
+  </script>
 </body>
 </html>
 )rawliteral";
@@ -240,6 +292,8 @@ void startLocalOTAMode() {
         otaServer.send(200, "text/html", rxServerIndex);
     });
     
+    static size_t rxLocalExpected = 0;
+    static int lastRxLocalPct = -1;
     otaServer.on("/update", HTTP_POST, []() {
         otaServer.sendHeader("Connection", "close");
         otaServer.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "SUCCESS - Rebooting...");
@@ -249,18 +303,46 @@ void startLocalOTAMode() {
         HTTPUpload& upload = otaServer.upload();
         if (upload.status == UPLOAD_FILE_START) {
             Serial.printf("[OTA LOCAL] Start: %s\n", upload.filename.c_str());
+            lastRxLocalPct = -1;
+            localOtaProgress = 0;
+            rxLocalExpected = 0;
+            if (otaServer.hasArg("size")) {
+                rxLocalExpected = otaServer.arg("size").toInt();
+            }
+            if (rxLocalExpected <= 0) {
+                int cl = otaServer.clientContentLength();
+                if (cl > 300) {
+                    rxLocalExpected = cl - 200; // Offset multipart boundary overhead
+                } else if (cl > 0) {
+                    rxLocalExpected = cl;
+                } else {
+                    rxLocalExpected = 1350000; // Fallback typical firmware size
+                }
+            }
+            Serial.printf("[OTA LOCAL] Expected size: %u bytes\n", (unsigned int)rxLocalExpected);
             drawOTAProgressScreen(0);
+            if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+                Update.printError(Serial);
+            }
         } else if (upload.status == UPLOAD_FILE_WRITE) {
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 Update.printError(Serial);
             }
-            if (upload.totalSize > 0) {
-                localOtaProgress = (upload.currentSize * 100) / upload.totalSize;
-                drawOTAProgressScreen(localOtaProgress);
+            if (rxLocalExpected > 0) {
+                int pct = (upload.totalSize * 100) / rxLocalExpected;
+                pct = constrain(pct, 0, 99);
+                if (pct != lastRxLocalPct) {
+                    lastRxLocalPct = pct;
+                    localOtaProgress = pct;
+                    drawOTAProgressScreen(localOtaProgress);
+                }
             }
         } else if (upload.status == UPLOAD_FILE_END) {
             if (Update.end(true)) {
                 Serial.printf("[OTA LOCAL] Success: %u bytes\n", upload.totalSize);
+                localOtaProgress = 100;
+                lastRxLocalPct = 100;
+                drawOTAProgressScreen(100);
                 drawOTASuccessScreen();
             } else {
                 Update.printError(Serial);
@@ -282,8 +364,14 @@ void startLocalOTAMode() {
         drawOTASuccessScreen();
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-        int percent = (progress * 100) / total;
-        drawOTAProgressScreen(percent);
+        if (total > 0) {
+            int percent = (progress * 100) / total;
+            static int lastArduinoOtaPct = -1;
+            if (percent != lastArduinoOtaPct) {
+                lastArduinoOtaPct = percent;
+                drawOTAProgressScreen(percent);
+            }
+        }
     });
     ArduinoOTA.onError([](ota_error_t error) {
         Serial.printf("[ArduinoOTA RX] Error[%u]\n", error);

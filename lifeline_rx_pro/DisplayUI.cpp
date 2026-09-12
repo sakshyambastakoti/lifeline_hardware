@@ -428,8 +428,11 @@ void drawOTAFoundScreen(const String& newVer) {
 }
 
 void drawOTAProgressScreen(int percent) {
+    static int lastDrawnPercent = -1;
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
+    if (percent == lastDrawnPercent && percent != 0 && percent != 100) return;
+    lastDrawnPercent = percent;
     
     char line0[17];
     snprintf(line0, sizeof(line0), "Updating FW %3d%%", percent);
