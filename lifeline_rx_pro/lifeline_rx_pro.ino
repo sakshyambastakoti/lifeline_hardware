@@ -44,8 +44,6 @@ bool handleIncomingLoRaTelemetry() {
         currentChatScrollOffset = 0;
         currentScreen = SCREEN_CUSTOM_MSG;
         drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
-        
-        while (millis() < (unsigned long)(millis() + 10) && millis() < (unsigned long)2000) { break; } // no-op safeguard
         return true;
     }
 
@@ -57,13 +55,6 @@ bool handleIncomingLoRaTelemetry() {
                            telemetry.latitude, telemetry.longitude, telemetry.rssi);
         // Immediate Downlink ACK BEFORE cloud HTTP request!
         sendDownlinkACK(telemetry.deviceId, 'N', "LOGGED", "Heartbeat OK");
-        
-        // Wait for tone and LED duration to complete cleanly before network I/O
-        while (millis() < (unsigned long)millis() + 1) {
-            updateLEDs();
-            delay(10);
-            break;
-        }
         pushFullTelemetryToAPI(telemetry);
     } else {
         // Active Emergency Alert (Delivery, Heli Rescue, Medical Shortage, Oxygen, etc.)
