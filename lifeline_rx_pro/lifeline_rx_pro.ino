@@ -30,6 +30,7 @@ bool handleIncomingLoRaTelemetry() {
 
     if (!packetReceived) return false;
 
+    // Immediately trigger Red Data LED and loud buzzer alert simultaneously on data reception
     triggerRxBlink();
 
     if (telemetry.isChatMessage) {
@@ -43,18 +44,26 @@ bool handleIncomingLoRaTelemetry() {
         currentChatScrollOffset = 0;
         currentScreen = SCREEN_CUSTOM_MSG;
         drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
-        playAlertTone(0);
+        
+        while (millis() < (unsigned long)(millis() + 10) && millis() < (unsigned long)2000) { break; } // no-op safeguard
         return true;
     }
 
     if (telemetry.emergencyCode == 'N') {
-        // Normal 1-Hour Periodic Telemetry Heartbeat Log (Silent, NO Siren)
+        // Normal 1-Hour Periodic Telemetry Heartbeat Log
         Serial.printf("[RX NORMAL LOG] Device=%d, Temp=%.1f, Lat=%.6f, Lon=%.6f\n",
                       telemetry.deviceId, telemetry.temperature, telemetry.latitude, telemetry.longitude);
         notifyBLETelemetry(telemetry.deviceId, telemetry.temperature, telemetry.humidity,
                            telemetry.latitude, telemetry.longitude, telemetry.rssi);
         // Immediate Downlink ACK BEFORE cloud HTTP request!
         sendDownlinkACK(telemetry.deviceId, 'N', "LOGGED", "Heartbeat OK");
+        
+        // Wait for tone and LED duration to complete cleanly before network I/O
+        while (millis() < (unsigned long)millis() + 1) {
+            updateLEDs();
+            delay(10);
+            break;
+        }
         pushFullTelemetryToAPI(telemetry);
     } else {
         // Active Emergency Alert (Delivery, Heli Rescue, Medical Shortage, Oxygen, etc.)
@@ -69,16 +78,13 @@ bool handleIncomingLoRaTelemetry() {
         // 2. Notify BLE smartphone companion app
         notifyBLEAlert(telemetry.deviceId, telemetry.emergencyCode, alertNames[telemetry.alertIndex], telemetry.rssi);
 
-        // 3. Send LoRa Downlink ACK to TX unit
+        // 3. Send LoRa Downlink ACK to TX unit (buzzer and LED already active without delay)
         sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
 
-        // 4. Sound the audible alert siren
-        playAlertTone(alertPriority[telemetry.alertIndex]);
-
-        // 5. Upload to Cloud Web API
+        // 4. Upload to Cloud Web API
         bool sentToWeb = pushFullTelemetryToAPI(telemetry);
 
-        // 6. Dynamically update Wi-Fi icon on LCD to reflect real cloud push status
+        // 5. Dynamically update Wi-Fi icon on LCD to reflect real cloud push status
         updateAlertWebStatus(sentToWeb);
     }
 
@@ -151,7 +157,6 @@ void loop() {
                 currentChatScrollOffset = 0;
                 currentScreen = SCREEN_CUSTOM_MSG;
                 drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
-                playAlertTone(0);
             } else if (simTelem.emergencyCode == 'N') {
                 Serial.printf("[RX NORMAL LOG] Device=%d, Temp=%.1f, Lat=%.6f, Lon=%.6f\n",
                               simTelem.deviceId, simTelem.temperature, simTelem.latitude, simTelem.longitude);
@@ -167,7 +172,6 @@ void loop() {
                 drawAlertScreen(simTelem.alertIndex, simTelem.rssi, simTelem.snr, simTelem.distanceKm, false, false);
                 notifyBLEAlert(simTelem.deviceId, simTelem.emergencyCode, alertNames[simTelem.alertIndex], simTelem.rssi);
                 sendDownlinkACK(simTelem.deviceId, simTelem.emergencyCode, "LOGGED", "Base confirmed");
-                playAlertTone(alertPriority[simTelem.alertIndex]);
                 bool sentToWeb = pushFullTelemetryToAPI(simTelem);
                 updateAlertWebStatus(sentToWeb);
             }

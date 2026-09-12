@@ -76,15 +76,20 @@ void playAlertTone(int priority) {
 }
 
 void playRxBeep() {
-    // Loud, prominent long confirmation beep when data is received
-    executeBeep(2500, 450);
+    triggerRxBlink();
 }
 
 void triggerRxBlink() {
     uint8_t dataOnState = LED_DATA_ACTIVE_HIGH ? HIGH : LOW;
     digitalWrite(LED_DATA, dataOnState);
     rxBlinkEndTime = millis() + RX_BLINK_DURATION_MS;
-    playRxBeep();
+    
+    // Immediately sound loud buzzer alert synchronously with the LED glow
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+    digitalWrite(BUZZER_PIN, HIGH);
+#else
+    tone(BUZZER_PIN, 2500);
+#endif
 }
 
 void updateLEDs() {
@@ -120,11 +125,21 @@ void updateLEDs() {
         digitalWrite(LED_WIFI, wifiOffState);
     }
 
-    // 2. Data RX LED blink timeout check
-    if (rxBlinkEndTime > 0 && millis() < rxBlinkEndTime) {
-        digitalWrite(LED_DATA, dataOnState);
+    // 2. Data RX LED & Buzzer alert timeout check
+    if (rxBlinkEndTime > 0) {
+        if (millis() < rxBlinkEndTime) {
+            digitalWrite(LED_DATA, dataOnState);
+        } else {
+            digitalWrite(LED_DATA, dataOffState);
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+            digitalWrite(BUZZER_PIN, LOW);
+#else
+            noTone(BUZZER_PIN);
+            digitalWrite(BUZZER_PIN, LOW);
+#endif
+            rxBlinkEndTime = 0;
+        }
     } else {
         digitalWrite(LED_DATA, dataOffState);
-        rxBlinkEndTime = 0;
     }
 }
