@@ -1,23 +1,50 @@
 {
   "expo": {
-    "name": "lifeline_companion",
-    "slug": "lifeline_companion",
+    "name": "LifeLine Companion",
+    "slug": "lifeline-companion",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#090d16",
+    "splash": {
+      "backgroundColor": "#090d16"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lifeline.companion",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "LifeLine uses Bluetooth Low Energy to connect to off-grid emergency rescue hardware and base stations.",
+        "NSBluetoothPeripheralUsageDescription": "LifeLine communicates with local rescue radios over Bluetooth."
+      }
     },
     "android": {
+      "package": "com.lifeline.companion",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#090d16",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
     },
+    "plugins": [
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": ["peripheral", "central"],
+          "bluetoothAlwaysPermission": "LifeLine uses Bluetooth Low Energy to connect to off-grid emergency rescue hardware and base stations."
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
