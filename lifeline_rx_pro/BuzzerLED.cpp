@@ -12,15 +12,16 @@ static bool wifiBlinkState = false;
 
 // Universal Beep Driver: Compatible with both Active and Passive Buzzers
 static void executeBeep(uint16_t freq, uint16_t durationMs) {
-    // 1. Frequency driver for Passive Buzzers
-    tone(BUZZER_PIN, freq, durationMs);
-    
-    // 2. High-level pulse driver for Active Buzzers
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
     digitalWrite(BUZZER_PIN, HIGH);
     delay(durationMs);
     digitalWrite(BUZZER_PIN, LOW);
-    
+#else
+    tone(BUZZER_PIN, freq);
+    delay(durationMs);
     noTone(BUZZER_PIN);
+    digitalWrite(BUZZER_PIN, LOW);
+#endif
 }
 
 void initBuzzerLED() {
@@ -85,6 +86,7 @@ void triggerRxBlink() {
     uint8_t dataOnState = LED_DATA_ACTIVE_HIGH ? HIGH : LOW;
     digitalWrite(LED_DATA, dataOnState);
     rxBlinkEndTime = millis() + RX_BLINK_DURATION_MS;
+    playRxBeep();
 }
 
 void updateLEDs() {

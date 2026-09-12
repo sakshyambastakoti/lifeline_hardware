@@ -31,7 +31,6 @@ bool handleIncomingLoRaTelemetry() {
     if (!packetReceived) return false;
 
     triggerRxBlink();
-    playRxBeep();
 
     if (telemetry.isChatMessage) {
         Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
@@ -141,7 +140,6 @@ void loop() {
         FullTelemetryData simTelem;
         if (checkSerialSimulatedPacket(simTelem)) {
             triggerRxBlink();
-            playRxBeep();
             if (simTelem.isChatMessage) {
                 Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", simTelem.deviceId, simTelem.chatMessage.c_str());
                 notifyBLEChat(simTelem.deviceId, simTelem.chatMessage.c_str(), simTelem.rssi);

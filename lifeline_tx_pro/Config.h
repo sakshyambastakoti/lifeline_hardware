@@ -43,7 +43,8 @@
 #define LED_RED     13      // Failure indicator (active HIGH)
 
 // Audio Feedback
-#define BUZZER_PIN  12      // Buzzer
+#define BUZZER_PIN            12      // Buzzer
+#define BUZZER_IS_PASSIVE     true    // Set to true for passive buzzer (PWM tone), false for active buzzer (DC pulse)
 
 // SPU Telemetry Receiver Pin (Hardware Serial2 RX)
 #define SPU_RX_PIN  34      // SPU UART Telemetry RX Pin

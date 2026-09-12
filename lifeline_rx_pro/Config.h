@@ -67,7 +67,8 @@
 #define LED_DATA_ACTIVE_HIGH  true
 
 // Audio Feedback
-#define BUZZER_PIN  12      // Buzzer
+#define BUZZER_PIN            12      // Buzzer
+#define BUZZER_IS_PASSIVE     true    // Set to true for passive buzzer (PWM tone), false for active buzzer (DC pulse)
 
 // Dedicated WiFi Portal Push Button
 #define WIFI_PORTAL_PIN  14 // Push button on GPIO 14 (Active LOW with internal pullup)
