@@ -151,7 +151,7 @@ static String getPortalHTML() {
         "  };"
         "  var data = new FormData();"
         "  data.append('update', file);"
-        "  xhr.open('POST', '/update');"
+        "  xhr.open('POST', '/update?size=' + file.size);"
         "  xhr.send(data);"
         "};"
 
@@ -254,6 +254,7 @@ void startOTAMode(OTAMode mode) {
         }
     });
 
+    static size_t txOtaExpected = 0;
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
         server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "SUCCESS - Rebooting...");
@@ -266,6 +267,23 @@ void startOTAMode(OTAMode mode) {
             otaStatusText = "Uploading: " + upload.filename;
             otaProgress = 0;
             lastReportedProgress = -1;
+            
+            txOtaExpected = 0;
+            if (server.hasArg("size")) {
+                txOtaExpected = server.arg("size").toInt();
+            }
+            if (txOtaExpected <= 0) {
+                int cl = server.clientContentLength();
+                if (cl > 300) {
+                    txOtaExpected = cl - 200; // Offset multipart boundary overhead
+                } else if (cl > 0) {
+                    txOtaExpected = cl;
+                } else {
+                    txOtaExpected = 1350000; // Fallback typical firmware size
+                }
+            }
+            Serial.printf("[OTA] Expected size: %u bytes\n", (unsigned int)txOtaExpected);
+            
             updateOTAProgressBar(0, "Flashing Firmware...");
             if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
                 Update.printError(Serial);
@@ -274,8 +292,9 @@ void startOTAMode(OTAMode mode) {
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 Update.printError(Serial);
             }
-            if (upload.totalSize > 0) {
-                int pct = (upload.currentSize * 100) / upload.totalSize;
+            if (txOtaExpected > 0) {
+                int pct = (upload.totalSize * 100) / txOtaExpected;
+                pct = constrain(pct, 0, 99);
                 if (pct != lastReportedProgress) {
                     lastReportedProgress = pct;
                     otaProgress = pct;
@@ -287,10 +306,13 @@ void startOTAMode(OTAMode mode) {
                 Serial.printf("[OTA] Update Success: %u bytes\n", upload.totalSize);
                 otaStatusText = "Success! Rebooting...";
                 otaProgress = 100;
+                lastReportedProgress = 100;
                 updateOTAProgressBar(100, "Success! Rebooting...");
             } else {
                 Update.printError(Serial);
                 otaStatusText = "Update Failed!";
+                otaProgress = 0;
+                lastReportedProgress = 0;
                 updateOTAProgressBar(0, "Update Failed!");
             }
         }

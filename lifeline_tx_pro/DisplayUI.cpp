@@ -486,44 +486,13 @@ void drawHomeStatusBar() {
     tft.setCursor(24, topStripY + 4);
     tft.print(F("LIFELINE // TX #003"));
     
-    // Screen Context Tag
-    tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(144, topStripY + 4);
-    tft.print(F("ALERT DISPATCH"));
-    
     // LoRa RF Status
     tft.setTextColor(loraInitialized ? COLOR_GREEN_BRIGHT : COLOR_RED);
-    tft.setCursor(228, topStripY + 4);
+    tft.setCursor(264, topStripY + 4);
     tft.print(loraInitialized ? F("RF:OK") : F("RF:ERR"));
-    
-    // Battery Status
-    int batX = 276;
-    tft.drawRect(batX, topStripY + 3, 20, 10, RGB565(45, 65, 90));
-    tft.fillRect(batX + 20, topStripY + 6, 2, 4, RGB565(45, 65, 90)); // Nub
-    tft.fillRect(batX + 1, topStripY + 4, 18, 8, RGB565(10, 15, 22)); // Interior
-    
-    if (batteryPercent >= 0) {
-        int fillW = constrain((batteryPercent * 16) / 100, 1, 16);
-        uint16_t bCol = (batteryPercent > 50) ? COLOR_GREEN : ((batteryPercent > 20) ? COLOR_AMBER : COLOR_RED);
-        tft.fillRect(batX + 2, topStripY + 5, fillW, 6, bCol);
-        char bStr[8];
-        sprintf(bStr, "%d%%", batteryPercent);
-        tft.setTextColor(bCol);
-        tft.setCursor(batX - 26, topStripY + 4);
-        tft.print(bStr);
-    } else {
-        tft.fillRect(batX + 2, topStripY + 5, 16, 6, RGB565(0, 60, 80));
-        tft.setTextColor(COLOR_CYAN_BRIGHT);
-        tft.setCursor(batX + 2, topStripY + 4);
-        tft.print(F("PWR"));
-    }
     
     // 3. Sub-Header Navigation Breadcrumb (y = 25)
     tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_CYAN_DARK);
-    tft.setCursor(8, 25);
-    tft.print(F("MIL-SPEC // SECURE BROADCAST"));
-    
     char frameStr[24];
     int firstItem = menuScrollOffset + 1;
     int lastItem = min(menuScrollOffset + VISIBLE_MENU_ITEMS, ALERT_COUNT);
@@ -854,22 +823,9 @@ void drawConfirmScreen() {
     sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
     tft.print(unitTag);
     
-    tft.setTextColor(COLOR_WHITE);
-    tft.setCursor(154, topStripY + 4);
-    tft.print(F("ARMED // CONFIRM REQ"));
-    
     tft.setTextColor(loraInitialized ? COLOR_GREEN_BRIGHT : COLOR_RED);
     tft.setCursor(264, topStripY + 4);
     tft.print(loraInitialized ? F("RF:RDY") : F("RF:ERR"));
-    
-    // 3. Sub-header Context Breadcrumb (y = 25)
-    tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_AMBER);
-    tft.setCursor(8, 25);
-    tft.print(F("ALERT DISPATCH VERIFICATION // BROADCAST PROTOCOL"));
-    tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(248, 25);
-    tft.print(F("OP:0xTX"));
     
     // 4. Primary Tactical Alert Focus Card (y = 37 to 101)
     int alertCardX = 8;
@@ -1111,10 +1067,6 @@ void drawSendingScreen() {
     sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
     tft.print(unitTag);
     
-    tft.setTextColor(COLOR_WHITE);
-    tft.setCursor(144, topStripY + 4);
-    tft.print(F("TRANSMITTING // RF ACTIVE"));
-    
     tft.setTextColor(COLOR_AMBER_BRIGHT);
     tft.setCursor(266, topStripY + 4);
     tft.print(F("TX:20dBm"));
@@ -1123,7 +1075,7 @@ void drawSendingScreen() {
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_CYAN);
     tft.setCursor(8, 25);
-    tft.print(F("UPLINK FREQ: 868.000 MHz // SPREADING FACTOR: 7"));
+    tft.print(F("UPLINK FREQ: 868.000 MHz"));
     tft.setTextColor(COLOR_TEXT_MUTED);
     tft.setCursor(248, 25);
     tft.print(F("AIRTIME ~82ms"));
@@ -1535,22 +1487,9 @@ void drawResultScreen() {
         sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
         tft.print(unitTag);
         
-        tft.setTextColor(COLOR_WHITE);
-        tft.setCursor(144, topStripY + 4);
-        tft.print(F("TRANSMISSION FAILED // NO ACK"));
-        
         tft.setTextColor(COLOR_RED_BRIGHT);
         tft.setCursor(266, topStripY + 4);
         tft.print(F("STATUS:ERR"));
-        
-        // Sub-header Breadcrumb (y = 25)
-        tft.setTextSize(TEXT_SMALL);
-        tft.setTextColor(COLOR_RED_BRIGHT);
-        tft.setCursor(8, 25);
-        tft.print(F("NO SPU BASE STATION ACKNOWLEDGED // RETRY REQUIRED"));
-        tft.setTextColor(COLOR_AMBER);
-        tft.setCursor(248, 25);
-        tft.print(F("TIMEOUT"));
         
         // Hero Tactical Hazard Reticle & Cross Emblem (y = 36 to 116)
         int cx = SCREEN_WIDTH / 2; // 160

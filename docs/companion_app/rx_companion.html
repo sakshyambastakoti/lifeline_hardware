@@ -1154,13 +1154,42 @@
     let isSerial = false;
 
     let isSirenOn = true;
-    let currentTargetId = null;
+    let currentTargetId = 1;
     let baseHardwareInfo = { ver: 'v3.1.0 PRO', lora: 'Ready', packets: 0 };
     let searchQuery = '';
 
-    // Real in-memory state (starts completely empty, real data only)
+    // Real in-memory state (starts with Unit #001 ready for immediate downlink dispatch)
     const unitsMap = new Map();
     const messagesMap = new Map();
+
+    function initDefaultUnit() {
+      if (!unitsMap.has(1)) {
+        unitsMap.set(1, {
+          id: 1,
+          name: 'Unit #001',
+          color: '#2563eb',
+          dot: 'dot-green',
+          lastMsg: 'Ready for Downlink Dispatch',
+          time: 'Standby',
+          alertTag: 'READY',
+          tagCls: 'tag-nominal',
+          rssi: null
+        });
+      }
+      if (!messagesMap.has(1)) {
+        messagesMap.set(1, [
+          {
+            sender: 'Base Station Hub',
+            text: 'LifeLine RX Pro incident hub online. Downlink radio channel ready. Select a tactical chip or type custom orders to transmit.',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            in: true,
+            info: true
+          }
+        ]);
+      }
+      if (!currentTargetId) currentTargetId = 1;
+    }
+    initDefaultUnit();
 
     // Web Audio Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1213,7 +1242,8 @@
         filtered = filtered.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || (u.lastMsg && u.lastMsg.toLowerCase().includes(searchQuery.toLowerCase())));
       }
 
-      document.getElementById('badgeActiveCount').innerText = unitsMap.size;
+      const countEl = document.getElementById('badgeActiveCount');
+      if (countEl) countEl.innerText = unitsMap.size;
 
       if (filtered.length === 0) {
         container.innerHTML = `
@@ -1226,8 +1256,8 @@
                 </svg>
               </span>
             </div>
-            <div class="empty-state-title" style="font-size:13px;">No Units Active</div>
-            <div class="empty-state-desc" style="font-size:11px;">Listening on 433 MHz LoRa. Transmissions from field units will appear here automatically.</div>
+            <div class="empty-state-title" style="font-size:13px;">No Units Found</div>
+            <div class="empty-state-desc" style="font-size:11px;">Click "+ Target #" above to open a direct dispatch channel.</div>
           </div>
         `;
         return;
@@ -1269,6 +1299,46 @@
       renderInbox();
     }
 
+    // Direct Target Dispatch to any Unit ID
+    function promptNewDispatch() {
+      const input = prompt('Enter Target Field Unit ID (1 - 999):', String(currentTargetId || 1));
+      if (!input) return;
+      const id = parseInt(input.trim(), 10);
+      if (isNaN(id) || id < 1 || id > 999) {
+        showToast('Invalid Unit ID. Must be 1-999', 'warn');
+        return;
+      }
+      if (!unitsMap.has(id)) {
+        const padId = String(id).padStart(3, '0');
+        unitsMap.set(id, {
+          id: id,
+          name: `Unit #${padId}`,
+          color: '#0284c7',
+          dot: 'dot-green',
+          lastMsg: 'Direct dispatch channel ready',
+          time: 'Active',
+          alertTag: 'READY',
+          tagCls: 'tag-nominal',
+          rssi: null
+        });
+        messagesMap.set(id, [
+          {
+            sender: 'Base Station Hub',
+            text: `Direct downlink dispatch channel opened for Unit #${padId}. You can transmit orders or tactical replies below.`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            in: true,
+            info: true
+          }
+        ]);
+      }
+      selectUnit(id);
+      showToast(`Target unit set to #${id}`, 'success');
+      setTimeout(() => {
+        const inp = document.getElementById('composerInput');
+        if (inp) inp.focus();
+      }, 100);
+    }
+
     // Select active conversation unit
     function selectUnit(id) {
       currentTargetId = id;
@@ -1281,34 +1351,7 @@
     function renderCenterColumn() {
       const container = document.getElementById('chatColumnContainer');
       if (!currentTargetId || !unitsMap.has(currentTargetId)) {
-        container.innerHTML = `
-          <div class="empty-state-box">
-            <div class="empty-state-icon">
-              <span class="svg-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4.93 19.07A10 10 0 0 1 2 12a10 10 0 0 1 2.93-7.07"/>
-                  <path d="M19.07 4.93A10 10 0 0 1 22 12a10 10 0 0 1-2.93 7.07"/>
-                  <path d="M8.46 15.54A5 5 0 0 1 7 12a5 5 0 0 1 1.46-3.54"/>
-                  <path d="M15.54 8.46A5 5 0 0 1 17 12a5 5 0 0 1-1.46 3.54"/>
-                  <circle cx="12" cy="12" r="2"/>
-                </svg>
-              </span>
-            </div>
-            <div class="empty-state-title">Incident Command Standby</div>
-            <div class="empty-state-desc">Connect your LifeLine RX Pro Base Station via Bluetooth or USB. Incoming distress signals and two-way field messages will stream here.</div>
-            <div class="empty-action-row">
-              <button class="btn-top active-primary" onclick="toggleBle()">
-                <span class="svg-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
-                <span>Connect BLE</span>
-              </button>
-              <button class="btn-top" onclick="toggleSerial()">
-                <span class="svg-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="7" rx="1"/><path d="M10 9v4a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9"/><path d="M12 15v7"/></svg></span>
-                <span>USB Serial</span>
-              </button>
-            </div>
-          </div>
-        `;
-        return;
+        initDefaultUnit();
       }
 
       const u = unitsMap.get(currentTargetId);
@@ -1329,8 +1372,9 @@
                   </span>
                   <span>${u.alertTag || 'ACTIVE'}</span>
                 </span>
+                <button class="btn-top" style="padding:1px 7px; font-size:10px; margin-left:6px; background:#f8fafc;" onclick="promptNewDispatch()" title="Change target field unit ID">Target #</button>
               </div>
-              <div class="chat-peer-sub">via 433 MHz LoRa &bull; Signal: ${u.rssi ? u.rssi + ' dBm' : 'Active'}</div>
+              <div class="chat-peer-sub">via 433 MHz LoRa &bull; Signal: ${u.rssi ? u.rssi + ' dBm' : 'Radio Ready (433MHz)'}</div>
             </div>
           </div>
 
@@ -1464,13 +1508,13 @@
             <div class="bubble-footer">
               <span>${m.time}</span>
               ${!m.in ? `
-                <span class="check-double">
+                <span class="check-double" style="color:${m.confirmed ? 'var(--green)' : m.pending ? 'var(--amber)' : 'var(--primary)'};">
                   <span class="svg-icon">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                   </span>
-                  <span>Delivered</span>
+                  <span>${m.confirmed ? 'LoRa Confirmed' : m.pending ? 'Queued (Offline)' : 'Dispatched'}</span>
                 </span>` : ''}
             </div>
           </div>
@@ -1596,35 +1640,36 @@
 
     // Quick Command Dispatch
     async function sendQuickDispatch(action, msg) {
-      if (!currentTargetId) {
-        showToast('Please select a field unit first', 'warn');
-        return;
-      }
+      if (!currentTargetId) currentTargetId = 1;
       const cmd = `REPLY:${currentTargetId},${action},${msg}`;
       const sent = await transmit(cmd);
 
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const msgs = messagesMap.get(currentTargetId) || [];
-      msgs.push({ sender: 'Base Commander (You)', text: `[${action}] ${msg}`, time, in: false });
+      msgs.push({ sender: 'Base Commander (You)', text: `[${action}] ${msg}`, time, in: false, pending: !sent, confirmed: false });
       messagesMap.set(currentTargetId, msgs);
 
+      const u = unitsMap.get(currentTargetId);
+      if (u) {
+        u.lastMsg = `[${action}] ${msg}`;
+        u.time = time;
+      }
+
       playBeep(700, 0.15);
+      renderInbox();
       renderCenterColumn();
       if (!sent) {
-        showToast('Command queued (Hardware offline - connect BLE/USB)', 'warn');
+        showToast('Downlink queued (Base station offline — connect BLE/USB in top bar)', 'warn');
       } else {
-        showToast(`Downlink transmitted to Unit #${currentTargetId}`, 'success');
+        showToast(`LoRa Downlink transmitted to Unit #${currentTargetId}`, 'success');
       }
     }
 
     // Custom Downlink from input
     async function sendCustomReply() {
-      if (!currentTargetId) {
-        showToast('Please select a field unit first', 'warn');
-        return;
-      }
+      if (!currentTargetId) currentTargetId = 1;
       const input = document.getElementById('composerInput');
-      const text = input.value.trim();
+      const text = input ? input.value.trim() : '';
       if (!text) return;
 
       const cmd = `REPLY:${currentTargetId},COMMAND,${text}`;
@@ -1632,17 +1677,27 @@
 
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const msgs = messagesMap.get(currentTargetId) || [];
-      msgs.push({ sender: 'Base Commander (You)', text, time, in: false });
+      msgs.push({ sender: 'Base Commander (You)', text, time, in: false, pending: !sent, confirmed: false });
       messagesMap.set(currentTargetId, msgs);
 
-      input.value = '';
-      document.getElementById('charCount').innerText = '0/48';
+      const u = unitsMap.get(currentTargetId);
+      if (u) {
+        u.lastMsg = text;
+        u.time = time;
+      }
+
+      if (input) {
+        input.value = '';
+        const cc = document.getElementById('charCount');
+        if (cc) cc.innerText = '0/48';
+      }
       playBeep(700, 0.15);
+      renderInbox();
       renderCenterColumn();
       if (!sent) {
-        showToast('Message queued (Hardware offline - connect BLE/USB)', 'warn');
+        showToast('Downlink queued (Base station offline — connect BLE/USB in top bar)', 'warn');
       } else {
-        showToast(`Message sent to Unit #${currentTargetId}`, 'success');
+        showToast(`LoRa message transmitted to Unit #${currentTargetId}`, 'success');
       }
     }
 
@@ -1655,44 +1710,81 @@
       const cmd = `EVAC:${reason}`;
       const sent = await transmit(cmd);
       alertSiren();
-      showToast(sent ? 'Mass Evacuation Broadcast Transmitted' : 'Evac frame queued (Hardware offline)', 'warn');
+      showToast(sent ? 'Mass Evacuation Broadcast Transmitted over LoRa' : 'Evac frame queued (Base station offline)', 'warn');
     }
 
     // Clear feed
     function clearFeed() {
       unitsMap.clear();
       messagesMap.clear();
-      currentTargetId = null;
+      initDefaultUnit();
       renderInbox();
       renderCenterColumn();
       renderDetailsColumn();
-      showToast('Incident log cleared');
+      showToast('Incident feed reset (Unit #001 ready)');
     }
 
-    // Real Hardware Transmit
+    // Real Hardware Transmit (Dual Web Bluetooth + Web Serial with fallbacks)
     async function transmit(cmd) {
       const payload = cmd + '\n';
+      let sent = false;
+
+      // 1. Web Bluetooth NUS
       if (isConnected && rxCharacteristic) {
         try {
           const enc = new TextEncoder();
-          await rxCharacteristic.writeValueWithoutResponse(enc.encode(payload));
-          return true;
+          const bytes = enc.encode(payload);
+          let writeSuccess = false;
+
+          if (rxCharacteristic.writeValueWithoutResponse) {
+            try {
+              await rxCharacteristic.writeValueWithoutResponse(bytes);
+              writeSuccess = true;
+            } catch (err1) {
+              console.warn('writeValueWithoutResponse failed, attempting fallback...', err1);
+            }
+          }
+          if (!writeSuccess && rxCharacteristic.writeValue) {
+            try {
+              await rxCharacteristic.writeValue(bytes);
+              writeSuccess = true;
+            } catch (err2) {
+              console.warn('writeValue failed, attempting writeValueWithResponse...', err2);
+            }
+          }
+          if (!writeSuccess && rxCharacteristic.writeValueWithResponse) {
+            try {
+              await rxCharacteristic.writeValueWithResponse(bytes);
+              writeSuccess = true;
+            } catch (err3) {
+              console.error('writeValueWithResponse failed', err3);
+            }
+          }
+
+          if (writeSuccess) sent = true;
         } catch (e) {
           console.error('BLE send error', e);
         }
       }
+
+      // 2. Web Serial
       if (isSerial && serialPort && serialPort.writable) {
         try {
           const writer = serialPort.writable.getWriter();
-          const enc = new TextEncoder();
-          await writer.write(enc.encode(payload));
-          writer.releaseLock();
-          return true;
+          try {
+            const enc = new TextEncoder();
+            await writer.write(enc.encode(payload));
+            sent = true;
+          } finally {
+            writer.releaseLock();
+          }
         } catch (e) {
           console.error('Serial send error', e);
         }
       }
-      return false;
+
+      console.log(`[TRANSMIT] '${cmd.trim()}' -> Result: ${sent ? 'SUCCESS' : 'FAILED / OFFLINE'}`);
+      return sent;
     }
 
     // Parse Real Inbound Packet
@@ -1710,6 +1802,27 @@
           if (lbl) lbl.innerText = `SX1278 ${lora}`;
         }
         renderDetailsColumn();
+      }
+      else if (line.startsWith('CMD_SENT:')) {
+        const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '1', 10);
+        const action = (line.match(/ACTION=([^,]+)/) || [])[1] || 'CMD';
+        const ok = (line.match(/OK=(\d+)/) || [])[1] === '1';
+        const msgs = messagesMap.get(dev);
+        if (msgs && msgs.length > 0) {
+          for (let i = msgs.length - 1; i >= 0; i--) {
+            if (!msgs[i].in) {
+              msgs[i].confirmed = ok;
+              msgs[i].pending = false;
+              break;
+            }
+          }
+        }
+        showToast(`LoRa [${action}] ${ok ? 'confirmed by SX1278 transceiver' : 'transmission failed'}`, ok ? 'success' : 'warn');
+        renderCenterColumn();
+      }
+      else if (line.startsWith('EVAC_SENT:')) {
+        const ok = (line.match(/OK=(\d+)/) || [])[1] === '1';
+        showToast(`LoRa EVAC Broadcast ${ok ? 'confirmed by SX1278' : 'broadcast failed'}`, ok ? 'warn' : 'warn');
       }
       else if (line.startsWith('ALERT:')) {
         const dev = parseInt((line.match(/DEV=(\d+)/) || [])[1] || '1', 10);
@@ -1796,7 +1909,7 @@
         if (!navigator.bluetooth) return alert('Web Bluetooth requires Google Chrome or Bluefy on iOS.');
         try {
           bleDevice = await navigator.bluetooth.requestDevice({
-            filters: [{ namePrefix: 'LifeLine-RX' }, { namePrefix: 'LifeLine' }, { services: [NUS_SERVICE_UUID] }],
+            filters: [{ namePrefix: 'LifeLine-RX' }, { namePrefix: 'LifeLine' }],
             optionalServices: [NUS_SERVICE_UUID]
           });
           bleDevice.addEventListener('gattserverdisconnected', () => updateConn(false));
