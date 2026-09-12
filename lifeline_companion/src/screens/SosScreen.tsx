@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
+import { THEME } from '../constants/theme';
 
 export const SosScreen: React.FC = () => {
   const { connectionState, sosStatus, triggerSos, clearSos } = useLifeLine();
@@ -9,10 +10,10 @@ export const SosScreen: React.FC = () => {
   if (connectionState !== 'CONNECTED') {
     return (
       <View style={styles.disconnectedContainer}>
-        <Ionicons name="warning-outline" size={48} color="#ef4444" />
-        <Text style={styles.discTitle}>SOS BEACON OFFLINE</Text>
+        <Ionicons name="warning-outline" size={40} color={THEME.colors.text3} />
+        <Text style={styles.discTitle}>DISTRESS BEACON DISARMED</Text>
         <Text style={styles.discSub}>
-          Connect your phone to a LifeLine transmitter in the Radar tab to enable one-touch LoRa distress broadcasting.
+          Connect your device to a field node via Radar to arm emergency 433 MHz LoRa distress broadcasting.
         </Text>
       </View>
     );
@@ -20,15 +21,15 @@ export const SosScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Active Distress Banner if SOS is triggered */}
+      {/* Active Distress Beacon Console */}
       {sosStatus.isActive ? (
         <View style={styles.activeSosCard}>
           <View style={styles.beaconHeader}>
             <View style={styles.pulseDot} />
-            <Text style={styles.beaconTitle}>DISTRESS BEACON BROADCASTING</Text>
+            <Text style={styles.beaconTitle}>BROADCASTING DISTRESS PROTOCOL</Text>
           </View>
 
-          <Text style={styles.alertName}>{sosStatus.name} (CODE {sosStatus.code})</Text>
+          <Text style={styles.alertName}>{sosStatus.name} // [CODE {sosStatus.code}]</Text>
 
           {/* Closed-Loop Confirmation Card */}
           <View style={styles.ackBox}>
@@ -36,14 +37,14 @@ export const SosScreen: React.FC = () => {
               <Ionicons
                 name={
                   sosStatus.ackStatus === 'DISPATCHED' || sosStatus.ackStatus === 'CONFIRMED'
-                    ? 'checkmark-circle'
-                    : 'sync'
+                    ? 'checkmark-circle-outline'
+                    : 'sync-outline'
                 }
-                size={20}
+                size={18}
                 color={
                   sosStatus.ackStatus === 'DISPATCHED' || sosStatus.ackStatus === 'CONFIRMED'
-                    ? '#10b981'
-                    : '#f59e0b'
+                    ? THEME.colors.success
+                    : THEME.colors.solarAmber
                 }
               />
               <Text
@@ -53,92 +54,92 @@ export const SosScreen: React.FC = () => {
                     styles.ackStatusSuccess,
                 ]}
               >
-                {sosStatus.ackStatus}
+                STATUS // {sosStatus.ackStatus}
               </Text>
             </View>
 
             <Text style={styles.ackNote}>
-              {sosStatus.ackNote || 'Waiting for Base Station LoRa acknowledgment...'}
+              {sosStatus.ackNote || 'Awaiting LoRa ACK acknowledgment from Base Station...'}
             </Text>
 
             {sosStatus.ackRssi !== null && (
               <View style={styles.ackMetrics}>
                 <Text style={styles.ackMetricText}>
-                  Signal: {sosStatus.ackRssi} dBm • SNR: {sosStatus.ackSnr ?? 0} dB
+                  LINK STRENGTH: {sosStatus.ackRssi} DBM • SNR: {sosStatus.ackSnr ?? 0} DB
                 </Text>
               </View>
             )}
           </View>
 
-          <TouchableOpacity style={styles.cancelBtn} onPress={clearSos}>
-            <Ionicons name="close-circle" size={18} color="#f87171" />
-            <Text style={styles.cancelBtnText}>STAND DOWN / CANCEL SOS</Text>
+          <TouchableOpacity style={styles.cancelPill} onPress={clearSos} activeOpacity={0.8}>
+            <Ionicons name="close-circle-outline" size={16} color={THEME.colors.danger} />
+            <Text style={styles.cancelPillText}>STAND DOWN // CANCEL DISTRESS</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.standbyBanner}>
-          <Ionicons name="shield-checkmark" size={20} color="#10b981" />
+          <View style={styles.standbyDot} />
           <Text style={styles.standbyText}>
-            SOS SYSTEM ARMED • Direct LoRa ACK Protection
+            DISTRESS BEACON ARMED // CLOSED-LOOP LORA PROTOCOL
           </Text>
         </View>
       )}
 
-      {/* Emergency Buttons Grid */}
-      <Text style={styles.sectionHeader}>SELECT DISTRESS CATEGORY</Text>
+      {/* Distress Category Selector */}
+      <Text style={styles.sectionHeader}>DEPLOY DISTRESS PROTOCOL</Text>
 
       {/* 1. General Emergency SOS Button */}
       <TouchableOpacity
-        style={[styles.sosButton, styles.sosGeneral]}
-        activeOpacity={0.8}
+        style={[styles.sosCard, styles.sosGeneralCard]}
+        activeOpacity={0.85}
         onPress={() => triggerSos('A', 'GENERAL RESCUE SOS')}
       >
-        <View style={styles.sosIconBox}>
-          <Ionicons name="alert-circle" size={32} color="#ffffff" />
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.codePill}>
+            <Text style={styles.codeText}>CODE // A</Text>
+          </View>
+          <Ionicons name="alert-circle-outline" size={24} color={THEME.colors.text0} />
         </View>
-        <View style={styles.sosTextBox}>
-          <Text style={styles.sosTitle}>GENERAL EMERGENCY SOS</Text>
-          <Text style={styles.sosDesc}>
-            Immediate danger, trapped group, flash flood, or structural collapse.
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#ffffff" />
+        <Text style={styles.sosTitle}>GENERAL EMERGENCY SOS</Text>
+        <Text style={styles.sosDesc}>
+          Immediate life hazard, structural collapse, flash flood, or trapped party.
+        </Text>
       </TouchableOpacity>
 
-      {/* 2. Medical Distress Button */}
+      {/* 2. Critical Medical SOS Button */}
       <TouchableOpacity
-        style={[styles.sosButton, styles.sosMedical]}
-        activeOpacity={0.8}
+        style={[styles.sosCard, styles.sosMedicalCard]}
+        activeOpacity={0.85}
         onPress={() => triggerSos('M', 'CRITICAL MEDICAL SOS')}
       >
-        <View style={styles.sosIconBox}>
-          <Ionicons name="medkit" size={30} color="#ffffff" />
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.codePill}>
+            <Text style={styles.codeText}>CODE // M</Text>
+          </View>
+          <Ionicons name="medkit-outline" size={24} color={THEME.colors.text0} />
         </View>
-        <View style={styles.sosTextBox}>
-          <Text style={styles.sosTitle}>CRITICAL MEDICAL SOS</Text>
-          <Text style={styles.sosDesc}>
-            Severe trauma, frostbite, cardiac event, or evacuation stretcher required.
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#ffffff" />
+        <Text style={styles.sosTitle}>CRITICAL MEDICAL SOS</Text>
+        <Text style={styles.sosDesc}>
+          Severe trauma, high-altitude frostbite, cardiac incident, or stretcher evacuation.
+        </Text>
       </TouchableOpacity>
 
-      {/* 3. Fire / Hazard Distress Button */}
+      {/* 3. Wildfire / Toxic Hazard Button */}
       <TouchableOpacity
-        style={[styles.sosButton, styles.sosFire]}
-        activeOpacity={0.8}
-        onPress={() => triggerSos('F', 'FIRE / TOXIC HAZARD')}
+        style={[styles.sosCard, styles.sosFireCard]}
+        activeOpacity={0.85}
+        onPress={() => triggerSos('F', 'WILDFIRE / TOXIC HAZARD')}
       >
-        <View style={styles.sosIconBox}>
-          <Ionicons name="flame" size={30} color="#ffffff" />
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.codePill}>
+            <Text style={styles.codeText}>CODE // F</Text>
+          </View>
+          <Ionicons name="flame-outline" size={24} color={THEME.colors.text0} />
         </View>
-        <View style={styles.sosTextBox}>
-          <Text style={styles.sosTitle}>WILDFIRE / HAZARD</Text>
-          <Text style={styles.sosDesc}>
-            Rapid wildfire spread, hazardous gas leak, or route completely cut off.
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#ffffff" />
+        <Text style={styles.sosTitle}>WILDFIRE & TOXIC HAZARD</Text>
+        <Text style={styles.sosDesc}>
+          Rapid wildfire perimeter encroachment or hazardous atmospheric gas release.
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -147,42 +148,50 @@ export const SosScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
   },
   content: {
     padding: 16,
-    paddingBottom: 30,
+    paddingBottom: 32,
   },
   standbyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: THEME.colors.bg1,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: 8,
+    borderColor: THEME.colors.border,
     paddingVertical: 10,
     paddingHorizontal: 14,
     marginBottom: 20,
+    borderRadius: THEME.geometry.sharp,
+  },
+  standbyDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: THEME.colors.success,
   },
   standbyText: {
-    color: '#10b981',
-    fontSize: 12,
+    color: THEME.colors.text1,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    fontFamily: THEME.fonts.mono,
   },
   sectionHeader: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '800',
+    color: THEME.colors.text2,
+    fontSize: 11,
+    fontWeight: '900',
     letterSpacing: 1.5,
     marginBottom: 14,
+    paddingHorizontal: 4,
   },
   activeSosCard: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderWidth: 2,
-    borderColor: '#ef4444',
-    borderRadius: 12,
+    backgroundColor: THEME.colors.dangerBg,
+    borderWidth: 1,
+    borderColor: THEME.colors.danger,
+    borderRadius: THEME.geometry.sharp,
     padding: 18,
     marginBottom: 24,
   },
@@ -193,29 +202,31 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   pulseDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#ef4444',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: THEME.colors.danger,
   },
   beaconTitle: {
-    color: '#f87171',
-    fontSize: 12,
+    color: THEME.colors.danger,
+    fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1.5,
+    fontFamily: THEME.fonts.mono,
   },
   alertName: {
-    color: '#ffffff',
-    fontSize: 20,
+    color: THEME.colors.text0,
+    fontSize: 16,
     fontWeight: '900',
+    letterSpacing: 1,
     marginBottom: 14,
   },
   ackBox: {
-    backgroundColor: '#090d16',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: THEME.colors.bg0,
+    borderRadius: THEME.geometry.sharp,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.borderStrong,
     marginBottom: 14,
   },
   ackHeader: {
@@ -225,105 +236,116 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   ackStatusText: {
-    color: '#f59e0b',
-    fontSize: 13,
+    color: THEME.colors.solarAmber,
+    fontSize: 11,
     fontWeight: '800',
-    fontFamily: 'monospace',
+    fontFamily: THEME.fonts.mono,
   },
   ackStatusSuccess: {
-    color: '#10b981',
+    color: THEME.colors.success,
   },
   ackNote: {
-    color: '#cbd5e1',
-    fontSize: 13,
+    color: THEME.colors.text1,
+    fontSize: 12,
     lineHeight: 18,
+    fontFamily: THEME.fonts.mono,
   },
   ackMetrics: {
-    marginTop: 6,
+    marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
-    paddingTop: 6,
+    borderTopColor: THEME.colors.border,
+    paddingTop: 8,
   },
   ackMetricText: {
-    color: '#64748b',
-    fontSize: 11,
-    fontFamily: 'monospace',
+    color: THEME.colors.text3,
+    fontSize: 10,
+    fontFamily: THEME.fonts.mono,
   },
-  cancelBtn: {
+  cancelPill: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: THEME.colors.bg0,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: THEME.geometry.pill,
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: THEME.colors.danger,
   },
-  cancelBtnText: {
-    color: '#f87171',
-    fontSize: 12,
-    fontWeight: '800',
+  cancelPillText: {
+    color: THEME.colors.danger,
+    fontSize: 11,
+    fontWeight: '900',
     letterSpacing: 1,
   },
-  sosButton: {
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+  sosCard: {
+    borderRadius: THEME.geometry.sharp,
+    padding: 18,
     marginBottom: 14,
+    borderWidth: 1,
   },
-  sosGeneral: {
-    backgroundColor: '#dc2626',
+  sosGeneralCard: {
+    backgroundColor: THEME.colors.bg2,
+    borderColor: THEME.colors.borderStrong,
   },
-  sosMedical: {
-    backgroundColor: '#0284c7',
+  sosMedicalCard: {
+    backgroundColor: THEME.colors.bg2,
+    borderColor: THEME.colors.borderStrong,
   },
-  sosFire: {
-    backgroundColor: '#d97706',
+  sosFireCard: {
+    backgroundColor: THEME.colors.bg2,
+    borderColor: THEME.colors.borderStrong,
   },
-  sosIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    justifyContent: 'center',
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginRight: 14,
+    marginBottom: 10,
   },
-  sosTextBox: {
-    flex: 1,
+  codePill: {
+    backgroundColor: THEME.colors.bg1,
+    borderWidth: 1,
+    borderColor: THEME.colors.borderStrong,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: THEME.geometry.sharp,
+  },
+  codeText: {
+    color: THEME.colors.text2,
+    fontSize: 10,
+    fontWeight: '800',
+    fontFamily: THEME.fonts.mono,
   },
   sosTitle: {
-    color: '#ffffff',
-    fontSize: 15,
+    color: THEME.colors.text0,
+    fontSize: 14,
     fontWeight: '900',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    letterSpacing: 1,
+    marginBottom: 4,
   },
   sosDesc: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: THEME.colors.text2,
     fontSize: 11,
-    lineHeight: 15,
+    lineHeight: 16,
   },
   disconnectedContainer: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 28,
   },
   discTitle: {
-    color: '#ef4444',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1,
+    color: THEME.colors.text1,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 2,
     marginTop: 16,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   discSub: {
-    color: '#475569',
-    fontSize: 13,
+    color: THEME.colors.text3,
+    fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
   },

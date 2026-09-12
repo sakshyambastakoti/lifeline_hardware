@@ -12,12 +12,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
 import { ChatMessage } from '../constants/ble';
+import { THEME } from '../constants/theme';
 
 const TACTICAL_MACROS = [
-  'Landslide blocking trail',
-  'Need medical stretcher',
-  'Supplies running low',
-  'Group safe at shelter',
+  'LANDSLIDE BLOCKING TRAIL',
+  'NEED MEDICAL STRETCHER',
+  'SUPPLIES CRITICAL LOW',
+  'GROUP SAFE AT SHELTER',
 ];
 
 export const ChatScreen: React.FC = () => {
@@ -42,9 +43,9 @@ export const ChatScreen: React.FC = () => {
       <View style={[styles.msgWrapper, isOut ? styles.msgOutWrapper : styles.msgInWrapper]}>
         <View style={[styles.bubble, isOut ? styles.bubbleOut : styles.bubbleIn]}>
           <View style={styles.msgHeader}>
-            <Text style={styles.senderText}>{item.sender}</Text>
+            <Text style={styles.senderText}>{item.sender.toUpperCase()}</Text>
             {item.rssi !== undefined && (
-              <Text style={styles.rssiTag}>{item.rssi} dBm</Text>
+              <Text style={styles.rssiTag}>{item.rssi} DBM</Text>
             )}
           </View>
           <Text style={styles.msgText}>{item.text}</Text>
@@ -64,11 +65,11 @@ export const ChatScreen: React.FC = () => {
                       ? 'time-outline'
                       : 'alert-circle'
                   }
-                  size={14}
-                  color={item.status === 'CONFIRMED' ? '#06b6d4' : '#94a3b8'}
+                  size={12}
+                  color={item.status === 'CONFIRMED' ? THEME.colors.text0 : THEME.colors.text3}
                 />
                 <Text style={styles.statusText}>
-                  {item.status === 'CONFIRMED' ? 'LoRa ACK' : item.status}
+                  {item.status === 'CONFIRMED' ? 'LORA RELAY ACK' : item.status}
                 </Text>
               </View>
             )}
@@ -81,10 +82,10 @@ export const ChatScreen: React.FC = () => {
   if (connectionState !== 'CONNECTED') {
     return (
       <View style={styles.disconnectedContainer}>
-        <Ionicons name="chatbubbles-outline" size={48} color="#475569" />
-        <Text style={styles.discTitle}>TACTICAL RADIO OFFLINE</Text>
+        <Ionicons name="chatbubbles-outline" size={40} color={THEME.colors.text3} />
+        <Text style={styles.discTitle}>LORA MESH TERMINAL OFFLINE</Text>
         <Text style={styles.discSub}>
-          Connect to a LifeLine node in the Radar tab to broadcast messages over 433 MHz LoRa.
+          Connect to a LifeLine node via Radar to broadcast tactical text dispatches across mountain terrain.
         </Text>
       </View>
     );
@@ -95,15 +96,15 @@ export const ChatScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Tactical LoRa Mesh Banner */}
+      {/* Tactical Sub-Header Strip */}
       <View style={styles.loraHeader}>
-        <Ionicons name="radio" size={14} color="#06b6d4" />
+        <Ionicons name="radio-outline" size={13} color={THEME.colors.text2} />
         <Text style={styles.loraHeaderText}>
-          433 MHz LoRa Mesh • Direct Field-to-Base Relay
+          433 MHZ SX1278 RF RELAY // STORE-AND-FORWARD MESH
         </Text>
       </View>
 
-      {/* Messages List */}
+      {/* Message Stream */}
       <FlatList
         data={chatMessages}
         renderItem={renderMessage}
@@ -111,15 +112,15 @@ export const ChatScreen: React.FC = () => {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No transmissions in current session.</Text>
+            <Text style={styles.emptyText}>SECURE SESSION INITIALIZED</Text>
             <Text style={styles.emptySub}>
-              Type a field sitrep or select a tactical macro below to broadcast via LoRa.
+              Type a field report or choose a tactical macro below to broadcast via LoRa RF.
             </Text>
           </View>
         }
       />
 
-      {/* Tactical Macros for Quick Emergency Dispatch */}
+      {/* Tactical Macro Quick Pills */}
       <View style={styles.macrosContainer}>
         <FlatList
           horizontal
@@ -127,8 +128,9 @@ export const ChatScreen: React.FC = () => {
           data={TACTICAL_MACROS}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.macroChip}
+              style={styles.macroPill}
               onPress={() => handleMacroPress(item)}
+              activeOpacity={0.7}
             >
               <Text style={styles.macroText}>{item}</Text>
             </TouchableOpacity>
@@ -137,17 +139,17 @@ export const ChatScreen: React.FC = () => {
         />
       </View>
 
-      {/* Input Bar */}
+      {/* Input Console */}
       <View style={styles.inputBar}>
         <TextInput
           style={styles.textInput}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Type field message (broadcasts via LoRa)..."
-          placeholderTextColor="#64748b"
+          placeholder="TYPE TACTICAL SITREP..."
+          placeholderTextColor={THEME.colors.text3}
         />
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Ionicons name="paper-plane" size={18} color="#090d16" />
+        <TouchableOpacity style={styles.sendPill} onPress={handleSend} activeOpacity={0.85}>
+          <Ionicons name="arrow-up" size={16} color={THEME.colors.bg0} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -157,23 +159,24 @@ export const ChatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
   },
   loraHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#0f172a',
-    paddingVertical: 6,
+    backgroundColor: THEME.colors.bg1,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomColor: THEME.colors.border,
   },
   loraHeaderText: {
-    color: '#06b6d4',
-    fontSize: 11,
-    fontWeight: '700',
-    fontFamily: 'monospace',
+    color: THEME.colors.text2,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    fontFamily: THEME.fonts.mono,
   },
   listContent: {
     padding: 16,
@@ -191,128 +194,137 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bubble: {
-    maxWidth: '82%',
-    borderRadius: 12,
-    padding: 12,
+    maxWidth: '85%',
+    borderRadius: THEME.geometry.sharp,
+    padding: 14,
     borderWidth: 1,
   },
   bubbleIn: {
-    backgroundColor: '#0f172a',
-    borderColor: '#1e293b',
+    backgroundColor: THEME.colors.bg2,
+    borderColor: THEME.colors.border,
   },
   bubbleOut: {
-    backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    backgroundColor: THEME.colors.bg3,
+    borderColor: THEME.colors.borderStrong,
   },
   msgHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   senderText: {
-    color: '#06b6d4',
+    color: THEME.colors.text0,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '900',
+    letterSpacing: 1,
+    fontFamily: THEME.fonts.mono,
   },
   rssiTag: {
-    color: '#64748b',
+    color: THEME.colors.text3,
     fontSize: 10,
-    fontFamily: 'monospace',
+    fontFamily: THEME.fonts.mono,
   },
   msgText: {
-    color: '#f8fafc',
-    fontSize: 14,
-    lineHeight: 20,
+    color: THEME.colors.text1,
+    fontSize: 13,
+    lineHeight: 19,
+    letterSpacing: 0.2,
   },
   msgFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 6,
+    gap: 8,
+    marginTop: 8,
   },
   timeText: {
-    color: '#64748b',
+    color: THEME.colors.text3,
     fontSize: 10,
+    fontFamily: THEME.fonts.mono,
   },
   statusIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
   },
   statusText: {
-    color: '#94a3b8',
-    fontSize: 10,
-    fontWeight: '600',
+    color: THEME.colors.text2,
+    fontSize: 9,
+    fontWeight: '800',
+    fontFamily: THEME.fonts.mono,
+    letterSpacing: 0.5,
   },
   macrosContainer: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#0c1322',
+    paddingVertical: 10,
+    backgroundColor: THEME.colors.bg1,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: THEME.colors.border,
   },
-  macroChip: {
-    backgroundColor: '#1e293b',
-    paddingHorizontal: 12,
+  macroPill: {
+    backgroundColor: THEME.colors.bg2,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: THEME.geometry.pill,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: THEME.colors.borderStrong,
   },
   macroText: {
-    color: '#cbd5e1',
-    fontSize: 12,
-    fontWeight: '600',
+    color: THEME.colors.text1,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    fontFamily: THEME.fonts.mono,
   },
   inputBar: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: '#0f172a',
+    backgroundColor: THEME.colors.bg1,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: THEME.colors.border,
     alignItems: 'center',
     gap: 10,
   },
   textInput: {
     flex: 1,
-    backgroundColor: '#090d16',
-    borderRadius: 8,
+    backgroundColor: THEME.colors.bg0,
+    borderRadius: THEME.geometry.sharp,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#f8fafc',
-    fontSize: 14,
+    color: THEME.colors.text0,
+    fontSize: 13,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.borderStrong,
+    fontFamily: THEME.fonts.mono,
   },
-  sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: '#06b6d4',
+  sendPill: {
+    width: 42,
+    height: 42,
+    borderRadius: THEME.geometry.pill,
+    backgroundColor: THEME.colors.text0,
     justifyContent: 'center',
     alignItems: 'center',
   },
   disconnectedContainer: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 28,
   },
   discTitle: {
-    color: '#94a3b8',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1,
+    color: THEME.colors.text1,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 2,
     marginTop: 16,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   discSub: {
-    color: '#475569',
-    fontSize: 13,
+    color: THEME.colors.text3,
+    fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -323,15 +335,17 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   emptyText: {
-    color: '#94a3b8',
-    fontSize: 14,
-    fontWeight: '700',
+    color: THEME.colors.text2,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 2,
   },
   emptySub: {
-    color: '#475569',
-    fontSize: 12,
+    color: THEME.colors.text3,
+    fontSize: 11,
     textAlign: 'center',
-    marginTop: 4,
-    paddingHorizontal: 30,
+    marginTop: 6,
+    paddingHorizontal: 32,
+    lineHeight: 16,
   },
 });

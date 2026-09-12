@@ -8,12 +8,13 @@ import { RadarScreen } from './src/screens/RadarScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { SosScreen } from './src/screens/SosScreen';
+import { THEME } from './src/constants/theme';
 
 type TabKey = 'RADAR' | 'TELEMETRY' | 'CHAT' | 'SOS';
 
 const MainAppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('RADAR');
-  const { sosStatus, chatMessages, connectionState } = useLifeLine();
+  const { sosStatus, chatMessages } = useLifeLine();
 
   const unreadChatCount = chatMessages.filter(m => !m.isOutgoing).length;
 
@@ -29,18 +30,18 @@ const MainAppContent: React.FC = () => {
         {activeTab === 'SOS' && <SosScreen />}
       </View>
 
-      {/* Tactical Bottom Navigation Bar */}
+      {/* Austere Luxury Tactical Bottom Navigation */}
       <View style={styles.navBar}>
         {/* Radar Tab */}
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => setActiveTab('RADAR')}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
         >
           <Ionicons
             name={activeTab === 'RADAR' ? 'radio' : 'radio-outline'}
-            size={22}
-            color={activeTab === 'RADAR' ? '#06b6d4' : '#64748b'}
+            size={20}
+            color={activeTab === 'RADAR' ? THEME.colors.text0 : THEME.colors.text3}
           />
           <Text style={[styles.navText, activeTab === 'RADAR' && styles.navTextActive]}>
             RADAR
@@ -51,15 +52,15 @@ const MainAppContent: React.FC = () => {
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => setActiveTab('TELEMETRY')}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
         >
           <Ionicons
             name={activeTab === 'TELEMETRY' ? 'pulse' : 'pulse-outline'}
-            size={22}
-            color={activeTab === 'TELEMETRY' ? '#06b6d4' : '#64748b'}
+            size={20}
+            color={activeTab === 'TELEMETRY' ? THEME.colors.text0 : THEME.colors.text3}
           />
           <Text style={[styles.navText, activeTab === 'TELEMETRY' && styles.navTextActive]}>
-            SENSORS
+            METRICS
           </Text>
         </TouchableOpacity>
 
@@ -67,22 +68,22 @@ const MainAppContent: React.FC = () => {
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => setActiveTab('CHAT')}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
         >
           <View style={styles.iconWithBadge}>
             <Ionicons
               name={activeTab === 'CHAT' ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'}
-              size={22}
-              color={activeTab === 'CHAT' ? '#06b6d4' : '#64748b'}
+              size={20}
+              color={activeTab === 'CHAT' ? THEME.colors.text0 : THEME.colors.text3}
             />
             {unreadChatCount > 0 && (
-              <View style={styles.badge}>
+              <View style={styles.badgePill}>
                 <Text style={styles.badgeText}>{unreadChatCount}</Text>
               </View>
             )}
           </View>
           <Text style={[styles.navText, activeTab === 'CHAT' && styles.navTextActive]}>
-            CHAT
+            COMMS
           </Text>
         </TouchableOpacity>
 
@@ -90,24 +91,24 @@ const MainAppContent: React.FC = () => {
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => setActiveTab('SOS')}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
         >
           <View style={styles.iconWithBadge}>
             <Ionicons
               name={activeTab === 'SOS' ? 'alert-circle' : 'alert-circle-outline'}
-              size={24}
-              color={sosStatus.isActive ? '#ef4444' : activeTab === 'SOS' ? '#ef4444' : '#64748b'}
+              size={22}
+              color={sosStatus.isActive ? THEME.colors.danger : activeTab === 'SOS' ? THEME.colors.text0 : THEME.colors.text3}
             />
             {sosStatus.isActive && <View style={styles.sosPulse} />}
           </View>
           <Text
             style={[
               styles.navText,
-              styles.navTextSos,
-              (activeTab === 'SOS' || sosStatus.isActive) && styles.navTextSosActive,
+              activeTab === 'SOS' && styles.navTextActive,
+              sosStatus.isActive && styles.navTextSosActive,
             ]}
           >
-            SOS
+            DISTRESS
           </Text>
         </TouchableOpacity>
       </View>
@@ -126,18 +127,19 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
   },
   screenContainer: {
     flex: 1,
+    backgroundColor: THEME.colors.bg0,
   },
   navBar: {
     flexDirection: 'row',
-    backgroundColor: '#0c1322',
+    backgroundColor: THEME.colors.bg1,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
-    paddingVertical: 8,
-    paddingBottom: 16,
+    borderTopColor: THEME.colors.border,
+    paddingVertical: 10,
+    paddingBottom: 18,
   },
   navItem: {
     flex: 1,
@@ -146,46 +148,45 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   navText: {
-    color: '#64748b',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    color: THEME.colors.text3,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    fontFamily: THEME.fonts.mono,
   },
   navTextActive: {
-    color: '#06b6d4',
-  },
-  navTextSos: {
-    color: '#94a3b8',
+    color: THEME.colors.text0,
   },
   navTextSosActive: {
-    color: '#ef4444',
+    color: THEME.colors.danger,
   },
   iconWithBadge: {
     position: 'relative',
   },
-  badge: {
+  badgePill: {
     position: 'absolute',
     top: -4,
     right: -8,
-    backgroundColor: '#06b6d4',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    backgroundColor: THEME.colors.text0,
+    width: 14,
+    height: 14,
+    borderRadius: THEME.geometry.pill,
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeText: {
-    color: '#090d16',
-    fontSize: 9,
+    color: THEME.colors.bg0,
+    fontSize: 8,
     fontWeight: '900',
+    fontFamily: THEME.fonts.mono,
   },
   sosPulse: {
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#ef4444',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    backgroundColor: THEME.colors.danger,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
 });

@@ -2,77 +2,110 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
+import { THEME } from '../constants/theme';
 
 export const TacticalHeader: React.FC = () => {
-  const { connectionState, connectedDevice, telemetry, isSimulator, setIsSimulator, disconnectDevice } = useLifeLine();
+  const {
+    connectionState,
+    connectedDevice,
+    telemetry,
+    isSimulator,
+    setIsSimulator,
+    disconnectDevice,
+  } = useLifeLine();
 
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.topRow}>
-        <View style={styles.brandGroup}>
-          <Ionicons name="radio" size={22} color="#ef4444" style={styles.radioIcon} />
-          <Text style={styles.brandTitle}>LIFELINE</Text>
-          <Text style={styles.brandSub}>COMPANION</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.simBadge, isSimulator ? styles.simActive : styles.simInactive]}
-          onPress={() => setIsSimulator(!isSimulator)}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.simText, isSimulator ? styles.simTextActive : styles.simTextInactive]}>
-            {isSimulator ? 'SIMULATOR ON' : 'BLE HARDWARE'}
-          </Text>
-        </TouchableOpacity>
+      {/* Holographic Ambient Accent Top Bar */}
+      <View style={styles.holographicBar}>
+        <View style={[styles.barSegment, { backgroundColor: THEME.colors.electricIndigo }]} />
+        <View style={[styles.barSegment, { backgroundColor: THEME.colors.cyanStream }]} />
+        <View style={[styles.barSegment, { backgroundColor: THEME.colors.digitalViolet }]} />
+        <View style={[styles.barSegment, { backgroundColor: THEME.colors.solarAmber }]} />
       </View>
 
-      <View style={styles.statusRow}>
-        <View style={styles.statusGroup}>
-          <View
+      <View style={styles.contentWrap}>
+        {/* Brand Bar */}
+        <View style={styles.topRow}>
+          <View style={styles.brandGroup}>
+            <Ionicons name="radio" size={18} color={THEME.colors.text0} style={styles.radioIcon} />
+            <Text style={styles.brandTitle}>LIFELINE</Text>
+            <View style={styles.brandBadge}>
+              <Text style={styles.brandBadgeText}>TACTICAL</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
             style={[
-              styles.statusDot,
-              connectionState === 'CONNECTED'
-                ? styles.dotConnected
-                : connectionState === 'CONNECTING'
-                ? styles.dotConnecting
-                : styles.dotDisconnected,
+              styles.simPill,
+              isSimulator ? styles.simPillActive : styles.simPillHardware,
             ]}
-          />
-          <Text style={styles.statusText}>
-            {connectionState === 'CONNECTED'
-              ? connectedDevice?.name || 'LINK ACTIVE'
-              : connectionState === 'CONNECTING'
-              ? 'LINKING...'
-              : connectionState === 'SCANNING'
-              ? 'SCANNING...'
-              : 'STANDBY'}
-          </Text>
+            onPress={() => setIsSimulator(!isSimulator)}
+            activeOpacity={0.8}
+          >
+            <View
+              style={[
+                styles.modeDot,
+                { backgroundColor: isSimulator ? THEME.colors.solarAmber : THEME.colors.success },
+              ]}
+            />
+            <Text style={styles.simPillText}>
+              {isSimulator ? 'SIMULATOR' : 'HARDWARE BLE'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {connectionState === 'CONNECTED' && (
-          <View style={styles.telemetryMini}>
-            {telemetry?.batteryPct !== undefined && (
-              <View style={styles.miniItem}>
-                <Ionicons
-                  name={
-                    telemetry.batteryPct > 50
-                      ? 'battery-charging'
-                      : telemetry.batteryPct > 20
-                      ? 'battery-half'
-                      : 'battery-dead'
-                  }
-                  size={16}
-                  color={telemetry.batteryPct > 20 ? '#10b981' : '#ef4444'}
-                />
-                <Text style={styles.miniVal}>{telemetry.batteryPct}%</Text>
-              </View>
-            )}
-
-            <TouchableOpacity onPress={disconnectDevice} style={styles.disconnectBtn}>
-              <Ionicons name="power" size={14} color="#f87171" />
-            </TouchableOpacity>
+        {/* Link Status & Telemetry Strip */}
+        <View style={styles.statusRow}>
+          <View style={styles.statusGroup}>
+            <View
+              style={[
+                styles.statusIndicator,
+                connectionState === 'CONNECTED'
+                  ? styles.statusConnected
+                  : connectionState === 'CONNECTING'
+                  ? styles.statusConnecting
+                  : styles.statusDisconnected,
+              ]}
+            />
+            <Text style={styles.statusText}>
+              {connectionState === 'CONNECTED'
+                ? connectedDevice?.name?.toUpperCase() || 'LINK ESTABLISHED'
+                : connectionState === 'CONNECTING'
+                ? 'ACQUIRING LINK...'
+                : connectionState === 'SCANNING'
+                ? 'SEARCHING 2.4 GHZ RF...'
+                : 'STANDBY'}
+            </Text>
           </View>
-        )}
+
+          {connectionState === 'CONNECTED' && (
+            <View style={styles.metricsGroup}>
+              {telemetry?.batteryPct !== undefined && (
+                <View style={styles.metricItem}>
+                  <Ionicons
+                    name={
+                      telemetry.batteryPct > 40
+                        ? 'battery-charging-outline'
+                        : 'battery-dead-outline'
+                    }
+                    size={14}
+                    color={telemetry.batteryPct > 20 ? THEME.colors.success : THEME.colors.danger}
+                  />
+                  <Text style={styles.metricValue}>{telemetry.batteryPct}%</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                onPress={disconnectDevice}
+                style={styles.disconnectPill}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="power-outline" size={13} color={THEME.colors.text2} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -80,123 +113,146 @@ export const TacticalHeader: React.FC = () => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#0c1322',
-    paddingTop: 48,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
+    backgroundColor: THEME.colors.bg0,
     borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomColor: THEME.colors.border,
+  },
+  holographicBar: {
+    flexDirection: 'row',
+    height: 2.5,
+    width: '100%',
+  },
+  barSegment: {
+    flex: 1,
+    height: '100%',
+  },
+  contentWrap: {
+    paddingTop: 16,
+    paddingBottom: 14,
+    paddingHorizontal: 18,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   brandGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   radioIcon: {
     marginRight: 2,
   },
   brandTitle: {
-    color: '#f8fafc',
-    fontSize: 18,
+    color: THEME.colors.text0,
+    fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 2,
+    letterSpacing: 3,
   },
-  brandSub: {
-    color: '#06b6d4',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    backgroundColor: 'rgba(6, 182, 212, 0.15)',
-    paddingHorizontal: 6,
+  brandBadge: {
+    borderWidth: 1,
+    borderColor: THEME.colors.borderStrong,
+    paddingHorizontal: 7,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: THEME.geometry.sharp,
   },
-  simBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  brandBadgeText: {
+    color: THEME.colors.text2,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    fontFamily: THEME.fonts.mono,
+  },
+  simPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: THEME.geometry.pill,
     borderWidth: 1,
   },
-  simActive: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderColor: '#f59e0b',
+  simPillActive: {
+    backgroundColor: THEME.colors.warningBg,
+    borderColor: THEME.colors.warning,
   },
-  simInactive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: '#10b981',
+  simPillHardware: {
+    backgroundColor: THEME.colors.successBg,
+    borderColor: THEME.colors.success,
   },
-  simText: {
+  modeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  simPillText: {
+    color: THEME.colors.text0,
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  simTextActive: {
-    color: '#f59e0b',
-  },
-  simTextInactive: {
-    color: '#10b981',
+    letterSpacing: 1,
+    fontFamily: THEME.fonts.mono,
   },
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#070b13',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    backgroundColor: THEME.colors.bg1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: THEME.geometry.sharp,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.border,
   },
   statusGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  statusIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  dotConnected: {
-    backgroundColor: '#10b981',
+  statusConnected: {
+    backgroundColor: THEME.colors.success,
   },
-  dotConnecting: {
-    backgroundColor: '#f59e0b',
+  statusConnecting: {
+    backgroundColor: THEME.colors.solarAmber,
   },
-  dotDisconnected: {
-    backgroundColor: '#64748b',
+  statusDisconnected: {
+    backgroundColor: THEME.colors.text3,
   },
   statusText: {
-    color: '#cbd5e1',
-    fontSize: 12,
+    color: THEME.colors.text1,
+    fontSize: 11,
     fontWeight: '700',
-    fontFamily: 'monospace',
+    letterSpacing: 1,
+    fontFamily: THEME.fonts.mono,
   },
-  telemetryMini: {
+  metricsGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  miniItem: {
+  metricItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  miniVal: {
-    color: '#e2e8f0',
-    fontSize: 12,
+  metricValue: {
+    color: THEME.colors.text0,
+    fontSize: 11,
     fontWeight: '700',
-    fontFamily: 'monospace',
+    fontFamily: THEME.fonts.mono,
   },
-  disconnectBtn: {
-    padding: 4,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 4,
+  disconnectPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: THEME.colors.bg2,
+    borderRadius: THEME.geometry.pill,
+    borderWidth: 1,
+    borderColor: THEME.colors.borderStrong,
   },
 });

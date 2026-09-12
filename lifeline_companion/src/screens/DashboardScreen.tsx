@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
+import { THEME } from '../constants/theme';
 
 export const DashboardScreen: React.FC = () => {
   const { connectionState, connectedDevice, telemetry } = useLifeLine();
@@ -9,10 +10,10 @@ export const DashboardScreen: React.FC = () => {
   if (connectionState !== 'CONNECTED') {
     return (
       <View style={styles.disconnectedContainer}>
-        <Ionicons name="link-outline" size={48} color="#475569" />
-        <Text style={styles.discTitle}>NO FIELD UNIT CONNECTED</Text>
+        <Ionicons name="link-outline" size={40} color={THEME.colors.text3} />
+        <Text style={styles.discTitle}>RF TELEMETRY DISCONNECTED</Text>
         <Text style={styles.discSub}>
-          Connect to a LifeLine transmitter or base station via the Radar tab to view real-time telemetry.
+          Establish a Bluetooth Low Energy link with a field node via the Radar console to stream real-time environmental metrics.
         </Text>
       </View>
     );
@@ -22,113 +23,115 @@ export const DashboardScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Node Header */}
+      {/* Node Info Banner */}
       <View style={styles.nodeBanner}>
         <View>
-          <Text style={styles.nodeTitle}>{connectedDevice?.name || 'LifeLine Field Node'}</Text>
+          <Text style={styles.nodeTitle}>{connectedDevice?.name?.toUpperCase() || 'LIFELINE FIELD NODE'}</Text>
           <Text style={styles.nodeSub}>
-            ID: {telemetry?.deviceId || '003'} • Firmware: {telemetry?.version || 'v3.1.0 PRO'}
+            DEVICE // {telemetry?.deviceId || '003'} • FW // {telemetry?.version || 'v3.1.0 PRO'}
           </Text>
         </View>
-        <View style={styles.loraBadge}>
-          <Ionicons name="radio" size={14} color="#10b981" />
-          <Text style={styles.loraBadgeText}>LORA {telemetry?.loraStatus || 'ACTIVE'}</Text>
+        <View style={styles.loraPill}>
+          <View style={styles.loraDot} />
+          <Text style={styles.loraPillText}>LORA {telemetry?.loraStatus || 'ACTIVE'}</Text>
         </View>
       </View>
 
-      {/* Grid of Key Telemetry */}
+      {/* Grid of Telemetry Cards */}
       <View style={styles.grid}>
-        {/* Battery Card */}
+        {/* Battery Telemetry */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardLabel}>BATTERY</Text>
+            <Text style={styles.cardLabel}>POWER RESERVES</Text>
             <Ionicons
               name={
                 (telemetry?.batteryPct || 0) > 40
-                  ? 'battery-charging'
-                  : 'battery-dead'
+                  ? 'battery-charging-outline'
+                  : 'battery-dead-outline'
               }
-              size={18}
-              color={(telemetry?.batteryPct || 0) > 20 ? '#10b981' : '#ef4444'}
+              size={16}
+              color={(telemetry?.batteryPct || 0) > 20 ? THEME.colors.success : THEME.colors.danger}
             />
           </View>
           <Text style={styles.cardValue}>
             {telemetry?.batteryPct !== undefined ? `${telemetry.batteryPct}%` : '--'}
           </Text>
-          <Text style={styles.cardHint}>
-            {(telemetry?.batteryPct || 0) > 20 ? 'Optimal Sub-Zero LiPo' : 'Low Battery Warning'}
-          </Text>
+          <Text style={styles.cardHint}>Sub-Zero Thermal Regulated LiPo</Text>
         </View>
 
-        {/* Altitude Card */}
+        {/* Barometric Altitude */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardLabel}>ALTITUDE</Text>
-            <Ionicons name="trending-up" size={18} color="#06b6d4" />
+            <Text style={styles.cardLabel}>ELEVATION MSL</Text>
+            <Ionicons name="trending-up-outline" size={16} color={THEME.colors.cyanStream} />
           </View>
           <Text style={styles.cardValue}>
-            {telemetry?.altitude ? `${telemetry.altitude}m` : '1,350m'}
+            {telemetry?.altitude ? `${telemetry.altitude}M` : '1,350M'}
           </Text>
-          <Text style={styles.cardHint}>Barometric / GPS MSL</Text>
+          <Text style={styles.cardHint}>Barometric & GNSS Fused</Text>
         </View>
 
-        {/* Temperature Card */}
+        {/* Ambient Temperature */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardLabel}>TEMP</Text>
-            <Ionicons name="thermometer" size={18} color="#f59e0b" />
+            <Text style={styles.cardLabel}>TEMPERATURE</Text>
+            <Ionicons name="thermometer-outline" size={16} color={THEME.colors.solarAmber} />
           </View>
           <Text style={styles.cardValue}>
             {telemetry?.temperature !== undefined ? `${telemetry.temperature}°C` : '16.4°C'}
           </Text>
-          <Text style={styles.cardHint}>Alpine Ambient</Text>
+          <Text style={styles.cardHint}>Alpine Ambient Sensor</Text>
         </View>
 
-        {/* Hazardous Gas / Air Quality Card */}
+        {/* Toxic Gas / Carbon Monoxide */}
         <View style={[styles.card, isGasHazard && styles.cardDanger]}>
           <View style={styles.cardHeader}>
-            <Text style={[styles.cardLabel, isGasHazard && styles.cardLabelDanger]}>AIR / GAS</Text>
+            <Text style={[styles.cardLabel, isGasHazard && styles.cardLabelDanger]}>AIR INTEGRITY</Text>
             <Ionicons
-              name="warning"
-              size={18}
-              color={isGasHazard ? '#ef4444' : '#10b981'}
+              name="warning-outline"
+              size={16}
+              color={isGasHazard ? THEME.colors.danger : THEME.colors.success}
             />
           </View>
           <Text style={[styles.cardValue, isGasHazard && styles.cardValueDanger]}>
             {telemetry?.gasPpm !== undefined ? `${telemetry.gasPpm} PPM` : '18 PPM'}
           </Text>
-          <Text style={styles.cardHint}>
-            {isGasHazard ? 'HAZARDOUS CO / SMOKE' : 'Safe Atmosphere'}
+          <Text style={[styles.cardHint, isGasHazard && styles.cardHintDanger]}>
+            {isGasHazard ? 'HAZARDOUS ATMOSPHERE' : 'Nominal Safe Quality'}
           </Text>
         </View>
       </View>
 
-      {/* GPS Geo-Location Card */}
+      {/* GPS Geo-Positioning Card */}
       <View style={styles.gpsCard}>
         <View style={styles.gpsHeader}>
-          <Ionicons name="navigate" size={18} color="#06b6d4" />
-          <Text style={styles.gpsTitle}>FIELD GPS COORDINATES</Text>
+          <View style={styles.gpsTitleGroup}>
+            <Ionicons name="navigate-outline" size={16} color={THEME.colors.text0} />
+            <Text style={styles.gpsTitle}>SATELLITE POSITIONING [GNSS]</Text>
+          </View>
+          <View style={styles.gpsLockPill}>
+            <Text style={styles.gpsLockText}>3D FIX ACTIVE</Text>
+          </View>
         </View>
 
         <View style={styles.gpsRow}>
-          <View style={styles.gpsCoord}>
+          <View style={styles.gpsCoordBox}>
             <Text style={styles.coordLabel}>LATITUDE</Text>
             <Text style={styles.coordValue}>
-              {telemetry?.latitude ? telemetry.latitude.toFixed(6) : '27.717200° N'}
+              {telemetry?.latitude ? telemetry.latitude.toFixed(6) : '27.717200'}° N
             </Text>
           </View>
           <View style={styles.coordDivider} />
-          <View style={styles.gpsCoord}>
+          <View style={styles.gpsCoordBox}>
             <Text style={styles.coordLabel}>LONGITUDE</Text>
             <Text style={styles.coordValue}>
-              {telemetry?.longitude ? telemetry.longitude.toFixed(6) : '85.324000° E'}
+              {telemetry?.longitude ? telemetry.longitude.toFixed(6) : '085.324000'}° E
             </Text>
           </View>
         </View>
 
         <View style={styles.gpsFooter}>
-          <Ionicons name="checkmark-circle" size={14} color="#10b981" />
-          <Text style={styles.gpsStatus}>3D GPS Fix Locked • NEO-8M High Precision</Text>
+          <Text style={styles.gpsMeta}>NEO-8M HIGH-PRECISION DUAL-CONSTELLATION RECEIVER</Text>
         </View>
       </View>
     </ScrollView>
@@ -138,49 +141,58 @@ export const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
   },
   content: {
     padding: 16,
     paddingBottom: 30,
   },
   nodeBanner: {
-    backgroundColor: '#0f172a',
-    borderRadius: 10,
-    padding: 14,
+    backgroundColor: THEME.colors.bg2,
+    borderRadius: THEME.geometry.sharp,
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.border,
     marginBottom: 16,
   },
   nodeTitle: {
-    color: '#f8fafc',
-    fontSize: 16,
-    fontWeight: '800',
+    color: THEME.colors.text0,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   nodeSub: {
-    color: '#94a3b8',
-    fontSize: 12,
-    marginTop: 2,
-    fontFamily: 'monospace',
+    color: THEME.colors.text2,
+    fontSize: 11,
+    marginTop: 3,
+    fontFamily: THEME.fonts.mono,
   },
-  loraBadge: {
+  loraPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: 8,
+    backgroundColor: THEME.colors.successBg,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: THEME.geometry.pill,
     borderWidth: 1,
-    borderColor: '#10b981',
+    borderColor: THEME.colors.success,
   },
-  loraBadgeText: {
-    color: '#10b981',
-    fontSize: 11,
+  loraDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: THEME.colors.success,
+  },
+  loraPillText: {
+    color: THEME.colors.text0,
+    fontSize: 10,
     fontWeight: '800',
+    fontFamily: THEME.fonts.mono,
+    letterSpacing: 1,
   },
   grid: {
     flexDirection: 'row',
@@ -189,122 +201,147 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   card: {
-    backgroundColor: '#0f172a',
+    backgroundColor: THEME.colors.bg2,
     width: '48%',
-    borderRadius: 10,
-    padding: 14,
+    borderRadius: THEME.geometry.sharp,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.border,
   },
   cardDanger: {
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderColor: THEME.colors.danger,
+    backgroundColor: THEME.colors.dangerBg,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   cardLabel: {
-    color: '#64748b',
-    fontSize: 11,
-    fontWeight: '800',
+    color: THEME.colors.text2,
+    fontSize: 10,
+    fontWeight: '900',
     letterSpacing: 1,
   },
   cardLabelDanger: {
-    color: '#ef4444',
+    color: THEME.colors.danger,
   },
   cardValue: {
-    color: '#f1f5f9',
+    color: THEME.colors.text0,
     fontSize: 22,
     fontWeight: '900',
-    fontFamily: 'monospace',
+    fontFamily: THEME.fonts.mono,
     marginBottom: 4,
   },
   cardValueDanger: {
-    color: '#ef4444',
+    color: THEME.colors.danger,
   },
   cardHint: {
-    color: '#94a3b8',
+    color: THEME.colors.text3,
     fontSize: 10,
     fontWeight: '500',
+    lineHeight: 14,
+  },
+  cardHintDanger: {
+    color: THEME.colors.danger,
   },
   gpsCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 10,
-    padding: 16,
+    backgroundColor: THEME.colors.bg2,
+    borderRadius: THEME.geometry.sharp,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.border,
   },
   gpsHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  gpsTitleGroup: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 14,
   },
   gpsTitle: {
-    color: '#06b6d4',
+    color: THEME.colors.text0,
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 1.5,
+  },
+  gpsLockPill: {
+    backgroundColor: THEME.colors.bg1,
+    borderWidth: 1,
+    borderColor: THEME.colors.borderStrong,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: THEME.geometry.pill,
+  },
+  gpsLockText: {
+    color: THEME.colors.text2,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
+    fontFamily: THEME.fonts.mono,
   },
   gpsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 14,
+    marginBottom: 16,
   },
-  gpsCoord: {
+  gpsCoordBox: {
     alignItems: 'center',
   },
   coordLabel: {
-    color: '#64748b',
+    color: THEME.colors.text3,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 1,
     marginBottom: 4,
   },
   coordValue: {
-    color: '#f8fafc',
+    color: THEME.colors.text0,
     fontSize: 16,
-    fontWeight: '800',
-    fontFamily: 'monospace',
+    fontWeight: '900',
+    fontFamily: THEME.fonts.mono,
   },
   coordDivider: {
     width: 1,
     height: '100%',
-    backgroundColor: '#1e293b',
+    backgroundColor: THEME.colors.border,
   },
   gpsFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
-    paddingTop: 10,
+    borderTopColor: THEME.colors.border,
+    paddingTop: 12,
+    alignItems: 'center',
   },
-  gpsStatus: {
-    color: '#94a3b8',
-    fontSize: 11,
+  gpsMeta: {
+    color: THEME.colors.text3,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1,
+    fontFamily: THEME.fonts.mono,
   },
   disconnectedContainer: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 28,
   },
   discTitle: {
-    color: '#94a3b8',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1,
+    color: THEME.colors.text1,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 2,
     marginTop: 16,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   discSub: {
-    color: '#475569',
-    fontSize: 13,
+    color: THEME.colors.text3,
+    fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
   },

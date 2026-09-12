@@ -1,0 +1,12 @@
+{
+  "name": "lifeline-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LifeLine Emergency Hardware and Mobile Companion",
+  "scripts": {
+    "start": "npm --prefix lifeline_companion start",
+    "tunnel": "npm --prefix lifeline_companion run start -- --tunnel",
+    "web": "npm --prefix lifeline_companion run web",
+    "companion": "npm --prefix lifeline_companion start"
+  }
+}

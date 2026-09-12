@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
 import { LifeLineDevice } from '../constants/ble';
+import { THEME } from '../constants/theme';
 
 export const RadarScreen: React.FC = () => {
   const {
@@ -30,34 +31,38 @@ export const RadarScreen: React.FC = () => {
 
     return (
       <View style={styles.deviceCard}>
-        <View style={styles.deviceIconBox}>
+        <View style={styles.deviceIconFrame}>
           <Ionicons
-            name={isBase ? 'business' : 'walk'}
-            size={22}
-            color={isBase ? '#06b6d4' : '#10b981'}
+            name={isBase ? 'business-outline' : 'walk-outline'}
+            size={20}
+            color={isBase ? THEME.colors.cyanStream : THEME.colors.text0}
           />
         </View>
 
         <View style={styles.deviceInfo}>
-          <Text style={styles.deviceName}>{item.name}</Text>
+          <Text style={styles.deviceName}>{item.name.toUpperCase()}</Text>
           <View style={styles.deviceSubRow}>
-            <Text style={styles.deviceId}>{item.id}</Text>
+            <Text style={styles.deviceId}>ID // {item.id}</Text>
             {item.rssi !== null && (
               <View style={styles.rssiBadge}>
-                <Ionicons name="cellular" size={12} color="#94a3b8" />
-                <Text style={styles.rssiText}>{item.rssi} dBm</Text>
+                <Ionicons name="cellular-outline" size={12} color={THEME.colors.text2} />
+                <Text style={styles.rssiText}>{item.rssi} DBM</Text>
               </View>
             )}
           </View>
         </View>
 
         <TouchableOpacity
-          style={[styles.connectBtn, isConnected ? styles.connectedBtn : styles.actionBtn]}
+          style={[
+            styles.connectPill,
+            isConnected ? styles.connectedPill : styles.actionPill,
+          ]}
           onPress={() => (isConnected ? disconnectDevice() : connectDevice(item))}
           disabled={connectionState === 'CONNECTING'}
+          activeOpacity={0.8}
         >
-          <Text style={styles.connectBtnText}>
-            {isConnected ? 'DISCONNECT' : 'CONNECT'}
+          <Text style={[styles.connectPillText, isConnected && styles.connectedPillText]}>
+            {isConnected ? 'DISCONNECT' : 'LINK NODE'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -66,72 +71,76 @@ export const RadarScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Radar Status Banner */}
-      <View style={styles.radarCard}>
-        <View style={styles.radarVisual}>
+      {/* Radar Main Console Card */}
+      <View style={styles.consoleCard}>
+        <View style={styles.radarVisualFrame}>
           <Ionicons
             name="radio-outline"
-            size={48}
-            color={connectionState === 'SCANNING' ? '#06b6d4' : '#64748b'}
+            size={36}
+            color={connectionState === 'SCANNING' ? THEME.colors.cyanStream : THEME.colors.text2}
           />
           {connectionState === 'SCANNING' && (
             <ActivityIndicator
               size="small"
-              color="#06b6d4"
+              color={THEME.colors.cyanStream}
               style={styles.radarSpinner}
             />
           )}
         </View>
 
-        <Text style={styles.radarTitle}>
+        <Text style={styles.consoleTitle}>
           {connectionState === 'SCANNING'
-            ? 'SCANNING 2.4 GHz RF...'
+            ? 'RF SPECTRUM ACTIVE'
             : connectionState === 'CONNECTED'
-            ? 'DEVICE PAIRED'
-            : 'BLE RADAR STANDBY'}
+            ? 'RF LINK SYNCHRONIZED'
+            : 'DISCOVERY CONSOLE'}
         </Text>
 
-        <Text style={styles.statusSub}>{statusMessage || 'Ready to discover field devices'}</Text>
+        <Text style={styles.statusSub}>
+          {statusMessage?.toUpperCase() || 'STANDBY // READY TO ENGAGE BEACON'}
+        </Text>
 
         {isSimulator && (
-          <View style={styles.simNotice}>
-            <Ionicons name="information-circle" size={14} color="#f59e0b" />
+          <View style={styles.simNoticePill}>
+            <Ionicons name="information-circle-outline" size={13} color={THEME.colors.solarAmber} />
             <Text style={styles.simNoticeText}>
-              Simulator Active: Generates realistic LifeLine nodes for testing.
+              HARDWARE SIMULATOR ACTIVE // DUAL-NODE SYNTHESIS
             </Text>
           </View>
         )}
 
-        <View style={styles.buttonRow}>
+        <View style={styles.actionRow}>
           {connectionState === 'SCANNING' ? (
-            <TouchableOpacity style={styles.stopBtn} onPress={stopScan}>
-              <Ionicons name="stop-circle" size={18} color="#ef4444" />
-              <Text style={styles.stopBtnText}>STOP SCAN</Text>
+            <TouchableOpacity style={styles.stopPill} onPress={stopScan} activeOpacity={0.8}>
+              <Ionicons name="stop-circle-outline" size={16} color={THEME.colors.danger} />
+              <Text style={styles.stopPillText}>ABORT SCAN</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={styles.scanBtn}
+              style={styles.scanPill}
               onPress={startScan}
               disabled={connectionState === 'CONNECTING'}
+              activeOpacity={0.85}
             >
-              <Ionicons name="search" size={18} color="#0f172a" />
-              <Text style={styles.scanBtnText}>SCAN FOR LIFELINE</Text>
+              <Ionicons name="search-outline" size={16} color={THEME.colors.bg0} />
+              <Text style={styles.scanPillText}>DISCOVER FIELD NODES</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      {/* Discovered Devices List */}
-      <Text style={styles.sectionHeader}>
-        NEARBY FIELD UNITS ({availableDevices.length})
-      </Text>
+      {/* Discovered Devices Header */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionHeader}>DETECTED HARDWARE NODES</Text>
+        <Text style={styles.counterText}>[{availableDevices.length}]</Text>
+      </View>
 
       {availableDevices.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="bluetooth" size={36} color="#334155" />
-          <Text style={styles.emptyText}>No LifeLine units detected yet.</Text>
+          <Ionicons name="bluetooth-outline" size={32} color={THEME.colors.text3} />
+          <Text style={styles.emptyText}>NO ACTIVE RF NODES DETECTED</Text>
           <Text style={styles.emptySubText}>
-            Tap "SCAN FOR LIFELINE" to search for TX Pro or RX Base nodes.
+            Initiate scan to detect LifeLine TX Pro field transmitters or RX Pro base stations.
           </Text>
         </View>
       ) : (
@@ -149,121 +158,141 @@ export const RadarScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: THEME.colors.bg0,
     padding: 16,
   },
-  radarCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 12,
-    padding: 20,
+  consoleCard: {
+    backgroundColor: THEME.colors.bg2,
+    borderRadius: THEME.geometry.sharp,
+    padding: 22,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.border,
     marginBottom: 20,
   },
-  radarVisual: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(6, 182, 212, 0.08)',
+  radarVisualFrame: {
+    width: 68,
+    height: 68,
+    borderRadius: THEME.geometry.sharp,
+    backgroundColor: THEME.colors.bg1,
+    borderWidth: 1,
+    borderColor: THEME.colors.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
     position: 'relative',
   },
   radarSpinner: {
     position: 'absolute',
   },
-  radarTitle: {
-    color: '#f8fafc',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1.5,
+  consoleTitle: {
+    color: THEME.colors.text0,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 2,
     marginBottom: 4,
   },
   statusSub: {
-    color: '#94a3b8',
-    fontSize: 12,
+    color: THEME.colors.text2,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    fontFamily: THEME.fonts.mono,
     textAlign: 'center',
-    marginBottom: 14,
+    marginBottom: 16,
   },
-  simNotice: {
+  simNoticePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: THEME.colors.warningBg,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 5,
+    borderRadius: THEME.geometry.pill,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
-    marginBottom: 14,
+    borderColor: THEME.colors.warning,
+    marginBottom: 16,
   },
   simNoticeText: {
-    color: '#f59e0b',
-    fontSize: 11,
-    fontWeight: '600',
+    color: THEME.colors.solarAmber,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    fontFamily: THEME.fonts.mono,
   },
-  buttonRow: {
+  actionRow: {
     width: '100%',
   },
-  scanBtn: {
-    backgroundColor: '#06b6d4',
-    paddingVertical: 12,
-    borderRadius: 8,
+  scanPill: {
+    backgroundColor: THEME.colors.text0,
+    paddingVertical: 13,
+    borderRadius: THEME.geometry.pill,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
-  scanBtnText: {
-    color: '#090d16',
+  scanPillText: {
+    color: THEME.colors.bg0,
     fontWeight: '900',
-    fontSize: 13,
-    letterSpacing: 1,
+    fontSize: 12,
+    letterSpacing: 1.5,
   },
-  stopBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+  stopPill: {
+    backgroundColor: THEME.colors.dangerBg,
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: THEME.colors.danger,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: THEME.geometry.pill,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
-  stopBtnText: {
-    color: '#ef4444',
-    fontWeight: '800',
-    fontSize: 13,
-    letterSpacing: 1,
+  stopPillText: {
+    color: THEME.colors.danger,
+    fontWeight: '900',
+    fontSize: 12,
+    letterSpacing: 1.5,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
   sectionHeader: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '800',
+    color: THEME.colors.text2,
+    fontSize: 11,
+    fontWeight: '900',
     letterSpacing: 1.5,
-    marginBottom: 12,
+  },
+  counterText: {
+    color: THEME.colors.text3,
+    fontSize: 11,
+    fontFamily: THEME.fonts.mono,
+    fontWeight: '700',
   },
   listContainer: {
     paddingBottom: 24,
   },
   deviceCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 10,
+    backgroundColor: THEME.colors.bg2,
+    borderRadius: THEME.geometry.sharp,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: THEME.colors.border,
     marginBottom: 10,
   },
-  deviceIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 8,
-    backgroundColor: '#1e293b',
+  deviceIconFrame: {
+    width: 40,
+    height: 40,
+    borderRadius: THEME.geometry.sharp,
+    backgroundColor: THEME.colors.bg1,
+    borderWidth: 1,
+    borderColor: THEME.colors.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -272,9 +301,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deviceName: {
-    color: '#f1f5f9',
-    fontSize: 14,
-    fontWeight: '700',
+    color: THEME.colors.text0,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
     marginBottom: 3,
   },
   deviceSubRow: {
@@ -283,9 +313,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   deviceId: {
-    color: '#64748b',
-    fontSize: 11,
-    fontFamily: 'monospace',
+    color: THEME.colors.text3,
+    fontSize: 10,
+    fontFamily: THEME.fonts.mono,
   },
   rssiBadge: {
     flexDirection: 'row',
@@ -293,43 +323,54 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   rssiText: {
-    color: '#94a3b8',
+    color: THEME.colors.text2,
+    fontSize: 10,
+    fontFamily: THEME.fonts.mono,
+  },
+  connectPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: THEME.geometry.pill,
+  },
+  actionPill: {
+    backgroundColor: THEME.colors.text0,
+  },
+  connectedPill: {
+    backgroundColor: THEME.colors.dangerBg,
+    borderWidth: 1,
+    borderColor: THEME.colors.danger,
+  },
+  connectPillText: {
+    color: THEME.colors.bg0,
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontWeight: '900',
+    letterSpacing: 0.8,
   },
-  connectBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  actionBtn: {
-    backgroundColor: '#3b82f6',
-  },
-  connectedBtn: {
-    backgroundColor: '#dc2626',
-  },
-  connectBtnText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+  connectedPillText: {
+    color: THEME.colors.danger,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 48,
+    borderWidth: 1,
+    borderColor: THEME.colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: THEME.colors.bg1,
   },
   emptyText: {
-    color: '#94a3b8',
-    fontSize: 14,
-    fontWeight: '700',
+    color: THEME.colors.text1,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     marginTop: 12,
   },
   emptySubText: {
-    color: '#475569',
-    fontSize: 12,
+    color: THEME.colors.text3,
+    fontSize: 11,
     textAlign: 'center',
     marginTop: 4,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    lineHeight: 16,
   },
 });
