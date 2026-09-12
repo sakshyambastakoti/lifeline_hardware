@@ -10,6 +10,7 @@
 extern Keypad keypad;
 
 void initKeypad();
+char getKeyWithRepeat();
 char readSerialKey();
 void printDebugHeader();
 

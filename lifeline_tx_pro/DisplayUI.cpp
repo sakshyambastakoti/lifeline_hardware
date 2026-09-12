@@ -1076,9 +1076,6 @@ void drawSendingScreen() {
     tft.setTextColor(COLOR_CYAN);
     tft.setCursor(8, 25);
     tft.print(F("UPLINK FREQ: 868.000 MHz"));
-    tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(248, 25);
-    tft.print(F("AIRTIME ~82ms"));
     
     // 4. Hero Cybernetic Radar & Sonar Array (y = 36 to 126)
     int cx = SCREEN_WIDTH / 2; // 160
@@ -1291,28 +1288,9 @@ void drawResultScreen() {
         sprintf(unitTag, "LIFELINE // TX #%03d", DEVICE_ID);
         tft.print(unitTag);
         
-        tft.setTextColor(COLOR_WHITE);
-        tft.setCursor(144, topStripY + 4);
-        tft.print(F("BROADCAST CONFIRMED // ACK"));
-        
         tft.setTextColor(COLOR_GREEN_BRIGHT);
         tft.setCursor(266, topStripY + 4);
         tft.print(F("STATUS:OK"));
-        
-        // Sub-header Breadcrumb (y = 25)
-        tft.setTextSize(TEXT_SMALL);
-        tft.setTextColor(COLOR_GREEN_BRIGHT);
-        tft.setCursor(8, 25);
-        tft.print(F("LoRa SPU BASE STATION ACKNOWLEDGED // 2-WAY HANDSHAKE"));
-        tft.setTextColor(COLOR_WHITE);
-        tft.setCursor(252, 25);
-        if (lastAckSnr != 0) {
-            char snrBuf[16];
-            snprintf(snrBuf, sizeof(snrBuf), "SNR:%+ddB", lastAckSnr);
-            tft.print(snrBuf);
-        } else {
-            tft.print(F("SNR:+10dB"));
-        }
         
         // Hero Tactical Success Reticle & Checkmark Emblem (y = 36 to 116)
         int cx = SCREEN_WIDTH / 2; // 160
@@ -1564,12 +1542,6 @@ void drawResultScreen() {
         tft.print(F("RF DIAGNOSTIC:   "));
         tft.setTextColor(COLOR_AMBER);
         tft.print(F("UPLINK TIMEOUT // NO BASE ACK"));
-        
-        tft.setTextColor(COLOR_TEXT_MUTED);
-        tft.setCursor(18, fCardY + 38);
-        tft.print(F("TACTICAL ADVICE: "));
-        tft.setTextColor(COLOR_WHITE);
-        tft.print(F("EXTEND ANTENNA / MOVE TO HIGHER GROUND"));
         
         // Command Deck Action Buttons (y = 184, h = 42)
         int failBtnY = 184;

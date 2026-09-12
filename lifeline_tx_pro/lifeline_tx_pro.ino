@@ -112,7 +112,7 @@ void loop() {
         case SCREEN_BLE_PORTAL:
         case SCREEN_MESSAGE_POPUP:
             {
-                char key = keypad.getKey();
+                char key = getKeyWithRepeat();
                 #if SERIAL_DEBUG_ENABLED
                 if (!key) {
                     key = readSerialKey();
@@ -131,7 +131,7 @@ void loop() {
                     drawSensorLogScreen();
                 }
 
-                char key = keypad.getKey();
+                char key = getKeyWithRepeat();
                 #if SERIAL_DEBUG_ENABLED
                 if (!key) {
                     key = readSerialKey();
@@ -156,7 +156,7 @@ void loop() {
                     }
                 }
                 
-                char key = keypad.getKey();
+                char key = getKeyWithRepeat();
                 #if SERIAL_DEBUG_ENABLED
                 if (!key) {
                     key = readSerialKey();

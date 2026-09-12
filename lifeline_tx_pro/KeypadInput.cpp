@@ -28,11 +28,6 @@ void keypadEventListener(KeypadEvent key) {
             previousScreen = currentScreen;
             currentScreen = SCREEN_OTA_SELECT;
             drawOTASelectScreen();
-        } else if (key == 'A') {
-            Serial.println(F("\n[KEYPAD] Key 'A' held for 3 seconds -> Displaying SPU Sensor Log Dashboard!"));
-            playConfirmTone();
-            currentScreen = SCREEN_SENSOR_LOG;
-            drawSensorLogScreen();
         }
     }
 }
@@ -47,6 +42,54 @@ void initKeypad() {
     }
     keypad.setHoldTime(3000);  // 3000 ms = 3 seconds hold time
     keypad.addEventListener(keypadEventListener);
+}
+
+char getKeyWithRepeat() {
+    char key = keypad.getKey();
+    static char heldNavKey = '\0';
+    static unsigned long holdStartTime = 0;
+    static unsigned long lastRepeatTime = 0;
+    
+    // If a new key press event arrived
+    if (key != '\0') {
+        if (key == 'A' || key == 'B') {
+            heldNavKey = key;
+            holdStartTime = millis();
+            lastRepeatTime = millis();
+        } else {
+            heldNavKey = '\0';
+        }
+        return key;
+    }
+    
+    // Check continuous holding for UP ('A') and DOWN ('B')
+    if (heldNavKey == 'A' || heldNavKey == 'B') {
+        bool stillHeld = false;
+        for (byte i = 0; i < LIST_MAX; i++) {
+            if (keypad.key[i].kchar == heldNavKey) {
+                if (keypad.key[i].kstate == PRESSED || keypad.key[i].kstate == HOLD) {
+                    stillHeld = true;
+                }
+                break;
+            }
+        }
+        
+        if (stillHeld) {
+            unsigned long now = millis();
+            // Initial delay before continuous scrolling begins (350 ms)
+            if (now - holdStartTime >= 350) {
+                // Continuous step interval while held (150 ms)
+                if (now - lastRepeatTime >= 150) {
+                    lastRepeatTime = now;
+                    return heldNavKey;
+                }
+            }
+        } else {
+            heldNavKey = '\0';
+        }
+    }
+    
+    return '\0';
 }
 
 char readSerialKey() {
