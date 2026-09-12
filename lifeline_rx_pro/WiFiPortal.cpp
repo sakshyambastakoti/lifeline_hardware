@@ -386,6 +386,9 @@ static String getPortalHTML() {
         "input.btn-api { background: #008744; border-color: #00ff87; }"
         "input.btn-api:hover { background: #00a855; box-shadow: 0 0 15px rgba(0, 255, 135, 0.5); }"
         ".desc { font-size: 11.5px; color: #a4a4b8; line-height: 1.4; margin-bottom: 12px; }"
+        ".progress-box { width: 100%; background: #0a0a0f; border: 1px solid #282836; height: 24px; margin: 12px 0 6px; overflow: hidden; display: none; }"
+        ".progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00a8cc, #00ff87); color: #000; font-size: 11px; font-weight: 800; text-align: center; line-height: 24px; transition: width 0.15s ease; }"
+        ".msg { margin-top: 8px; font-size: 12px; font-weight: 600; min-height: 18px; line-height: 1.4; }"
         "</style></head><body><div class='container'>");
 
     html += "<div class='header'>";
@@ -415,12 +418,14 @@ static String getPortalHTML() {
     // 2. Wireless OTA Firmware Upgrade Section
     html += "<div class='card'>";
     html += "<h2 class='ota'>2. Wireless OTA Firmware Upgrade</h2>";
-    html += "<div class='desc'>Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. The 16x2 LCD shows live progress and restarts the base station on completion.</div>";
-    html += "<form action='/update' method='POST' enctype='multipart/form-data' onsubmit=\"var f=document.getElementById('fwFile');if(f&&f.files.length>0){this.action='/update?size='+f.files[0].size;}\">";
+    html += "<div class='desc'>Upload a freshly compiled <code>firmware.bin</code> over Wi-Fi. Live progress displays on both this dashboard and the 16x2 LCD.</div>";
+    html += "<form id='ota_form'>";
     html += "<label>Select Firmware Binary (.bin):</label>";
     html += "<input type='file' id='fwFile' name='update' accept='.bin' required>";
-    html += "<input class='btn-ota' type='submit' value='FLASH FIRMWARE (OTA)'>";
+    html += "<input class='btn-ota' id='btn_ota' type='submit' value='FLASH FIRMWARE (OTA)'>";
     html += "</form>";
+    html += "<div class='progress-box' id='p_box'><div class='progress-bar' id='p_bar'>0%</div></div>";
+    html += "<div class='msg' id='flash_msg'></div>";
     html += "</div>";
 
     // 3. Wi-Fi Multi-Network Setup Section
@@ -441,7 +446,51 @@ static String getPortalHTML() {
     html += "</form>";
     html += "</div>";
 
-    html += "</div></body></html>";
+    html += "</div>";
+    html += "<script>"
+            "var f=document.getElementById('ota_form');"
+            "if(f){f.onsubmit=function(e){"
+            "e.preventDefault();"
+            "var fi=document.getElementById('fwFile');"
+            "if(!fi||!fi.files.length)return false;"
+            "var file=fi.files[0];"
+            "var pb=document.getElementById('p_box');"
+            "var pr=document.getElementById('p_bar');"
+            "var btn=document.getElementById('btn_ota');"
+            "var msg=document.getElementById('flash_msg');"
+            "pb.style.display='block';"
+            "pr.style.width='0%';"
+            "pr.innerText='0%';"
+            "btn.disabled=true;btn.style.opacity='0.5';"
+            "msg.innerHTML='<span style=\"color:#00d4ff;\">Flashing firmware... Do NOT power off</span>';"
+            "var xhr=new XMLHttpRequest();"
+            "xhr.open('POST','/update?size='+file.size,true);"
+            "xhr.upload.onprogress=function(ev){"
+            "if(ev.lengthComputable){"
+            "var p=Math.round((ev.loaded/ev.total)*100);"
+            "if(p>99)p=99;"
+            "pr.style.width=p+'%';"
+            "pr.innerText=p+'%';"
+            "}};"
+            "xhr.onload=function(){"
+            "if(xhr.status>=200&&xhr.status<300){"
+            "pr.style.width='100%';"
+            "pr.innerText='100%';"
+            "msg.innerHTML='<span style=\"color:#00ff87;\">UPDATE COMPLETE! Base Station Rebooting...</span>';"
+            "setTimeout(function(){location.reload();},6000);"
+            "}else{"
+            "msg.innerHTML='<span style=\"color:#ff1e42;\">UPDATE FAILED ('+xhr.status+')</span>';"
+            "btn.disabled=false;btn.style.opacity='1';"
+            "}};"
+            "xhr.onerror=function(){"
+            "msg.innerHTML='<span style=\"color:#00ff87;\">Transfer complete. Rebooting...</span>';"
+            "setTimeout(function(){location.reload();},6000);"
+            "};"
+            "var d=new FormData();d.append('update',file);"
+            "xhr.send(d);"
+            "return false;"
+            "};}"
+            "</script></body></html>";
     return html;
 }
 
@@ -517,13 +566,15 @@ static void setupServerRoutes() {
     wifiServer.on("/api-save", HTTP_POST, handleAPISave);
     
     static size_t rxPortalExpected = 0;
+    static size_t rxPortalAccumulated = 0;
     static int lastPortalPct = -1;
     wifiServer.on("/update", HTTP_POST, []() {
         wifiServer.sendHeader("Connection", "close");
-        String res = (Update.hasError()) ? 
-            "<!DOCTYPE html><html><body style='background:#08080c;color:#ff1e42;font-family:sans-serif;text-align:center;padding:50px;'><h2>OTA UPDATE FAILED</h2><p style='color:#bbb;'>An error occurred during flashing.</p><br><a href='/' style='color:#fff;background:#ff1e42;padding:10px 20px;text-decoration:none;'>RETURN</a></body></html>" : 
-            "<!DOCTYPE html><html><body style='background:#08080c;color:#00ff87;font-family:sans-serif;text-align:center;padding:50px;'><h2>OTA UPDATE SUCCESSFUL!</h2><p style='color:#b3b3c2;'>Base station is rebooting with new firmware...</p></body></html>";
-        wifiServer.send(200, "text/html", res);
+        if (Update.hasError()) {
+            wifiServer.send(500, "text/plain", "FAIL: Flash Error");
+        } else {
+            wifiServer.send(200, "text/plain", "SUCCESS");
+        }
         delay(1000);
         ESP.restart();
     }, []() {
@@ -533,6 +584,7 @@ static void setupServerRoutes() {
             currentScreen = SCREEN_OTA;
             lastPortalPct = -1;
             rxPortalExpected = 0;
+            rxPortalAccumulated = 0;
             if (wifiServer.hasArg("size")) {
                 rxPortalExpected = wifiServer.arg("size").toInt();
             }
@@ -555,8 +607,9 @@ static void setupServerRoutes() {
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 Update.printError(Serial);
             }
+            rxPortalAccumulated += upload.currentSize;
             if (rxPortalExpected > 0) {
-                int pct = (upload.totalSize * 100) / rxPortalExpected;
+                int pct = (rxPortalAccumulated * 100) / rxPortalExpected;
                 pct = constrain(pct, 0, 99);
                 if (pct != lastPortalPct) {
                     lastPortalPct = pct;
@@ -565,7 +618,7 @@ static void setupServerRoutes() {
             }
         } else if (upload.status == UPLOAD_FILE_END) {
             if (Update.end(true)) {
-                Serial.printf("[WEB OTA] Success: %u bytes\n", upload.totalSize);
+                Serial.printf("[WEB OTA] Success: %u bytes\n", (unsigned int)rxPortalAccumulated);
                 drawOTAProgressScreen(100);
                 drawOTASuccessScreen();
             } else {

@@ -293,6 +293,7 @@ void startLocalOTAMode() {
     });
     
     static size_t rxLocalExpected = 0;
+    static size_t rxLocalAccumulated = 0;
     static int lastRxLocalPct = -1;
     otaServer.on("/update", HTTP_POST, []() {
         otaServer.sendHeader("Connection", "close");
@@ -306,6 +307,7 @@ void startLocalOTAMode() {
             lastRxLocalPct = -1;
             localOtaProgress = 0;
             rxLocalExpected = 0;
+            rxLocalAccumulated = 0;
             if (otaServer.hasArg("size")) {
                 rxLocalExpected = otaServer.arg("size").toInt();
             }
@@ -328,8 +330,9 @@ void startLocalOTAMode() {
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 Update.printError(Serial);
             }
+            rxLocalAccumulated += upload.currentSize;
             if (rxLocalExpected > 0) {
-                int pct = (upload.totalSize * 100) / rxLocalExpected;
+                int pct = (rxLocalAccumulated * 100) / rxLocalExpected;
                 pct = constrain(pct, 0, 99);
                 if (pct != lastRxLocalPct) {
                     lastRxLocalPct = pct;
@@ -339,7 +342,7 @@ void startLocalOTAMode() {
             }
         } else if (upload.status == UPLOAD_FILE_END) {
             if (Update.end(true)) {
-                Serial.printf("[OTA LOCAL] Success: %u bytes\n", upload.totalSize);
+                Serial.printf("[OTA LOCAL] Success: %u bytes\n", (unsigned int)rxLocalAccumulated);
                 localOtaProgress = 100;
                 lastRxLocalPct = 100;
                 drawOTAProgressScreen(100);

@@ -83,7 +83,7 @@
 #define IDLE_PULSE_INTERVAL     600     // Pulse animation interval (ms)
 #define HISTORY_MAX_ITEMS       10      // Maximum alerts in history
 #define LONG_PRESS_DURATION     3000    // 3 seconds hold required on WiFi button
-#define RX_BLINK_DURATION_MS    250     // LED ON time in milliseconds when data packet is received
+#define RX_BLINK_DURATION_MS    500     // LED ON time in milliseconds when data packet is received
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 //                              LCD CUSTOM CHARACTERS (CGRAM 0-7)

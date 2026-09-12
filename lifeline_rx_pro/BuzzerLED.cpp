@@ -76,10 +76,8 @@ void playAlertTone(int priority) {
 }
 
 void playRxBeep() {
-    // Crisp, audible confirmation chirp when packet is received
-    executeBeep(2400, 80);
-    delay(40);
-    executeBeep(2700, 80);
+    // Loud, prominent long confirmation beep when data is received
+    executeBeep(2500, 450);
 }
 
 void triggerRxBlink() {

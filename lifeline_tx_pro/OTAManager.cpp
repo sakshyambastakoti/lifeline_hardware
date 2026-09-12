@@ -255,6 +255,7 @@ void startOTAMode(OTAMode mode) {
     });
 
     static size_t txOtaExpected = 0;
+    static size_t txOtaAccumulated = 0;
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
         server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "SUCCESS - Rebooting...");
@@ -267,6 +268,7 @@ void startOTAMode(OTAMode mode) {
             otaStatusText = "Uploading: " + upload.filename;
             otaProgress = 0;
             lastReportedProgress = -1;
+            txOtaAccumulated = 0;
             
             txOtaExpected = 0;
             if (server.hasArg("size")) {
@@ -292,8 +294,9 @@ void startOTAMode(OTAMode mode) {
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 Update.printError(Serial);
             }
+            txOtaAccumulated += upload.currentSize;
             if (txOtaExpected > 0) {
-                int pct = (upload.totalSize * 100) / txOtaExpected;
+                int pct = (txOtaAccumulated * 100) / txOtaExpected;
                 pct = constrain(pct, 0, 99);
                 if (pct != lastReportedProgress) {
                     lastReportedProgress = pct;
@@ -303,7 +306,7 @@ void startOTAMode(OTAMode mode) {
             }
         } else if (upload.status == UPLOAD_FILE_END) {
             if (Update.end(true)) {
-                Serial.printf("[OTA] Update Success: %u bytes\n", upload.totalSize);
+                Serial.printf("[OTA] Update Success: %u bytes\n", (unsigned int)txOtaAccumulated);
                 otaStatusText = "Success! Rebooting...";
                 otaProgress = 100;
                 lastReportedProgress = 100;
