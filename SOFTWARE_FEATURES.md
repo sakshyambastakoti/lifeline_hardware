@@ -340,19 +340,27 @@ The backend is built as a lightweight, high-performance REST API written in clea
 
 ### 5.2 Gateway Telemetry Ingestion Pipeline
 
-Endpoint: `POST /API/Create/message.php`
+Endpoint: `POST /API/Create/message.php`  
+*Complete Setup Guide & Migration:* [Cloud REST API & Web Dashboard Integration Guide](file:///d:/lifeline_hardware/docs/api/cloud_api_setup_guide.md)
 
-When an edge LoRa RX Gateway receives an off-grid transmission (e.g. `TX003,1`), its WiFi/cellular module sends an HTTP POST request to this endpoint.
+When an edge LoRa RX Gateway receives an off-grid transmission (e.g. `TX003,1`, a custom LoRa chat SITREP `TX003,CHAT,...`, or local commander BLE command `MSG:...`), its WiFi module sends an HTTP POST request to this endpoint.
 
 #### Processing Steps:
-1. **Input Validation**: Verifies presence of `DID` (Device ID) and `message_code`.
-2. **Device Verification**: Confirms `DID` exists in the `devices` table; returns 404 if invalid.
-3. **Database Insertion**: Inserts message record into `messages` table with current timestamp and signal strength (`RSSI`).
-4. **Heartbeat Sync**: Executes `UPDATE devices SET last_ping = NOW() WHERE DID = :did`.
+1. **Input Validation**: Verifies presence of mandatory parameters: `DID` (Device ID) and `RSSI` (signal strength in dBm).
+2. **Device Verification**: Confirms `DID` exists in the `devices` table (or creates record if `DID=0` for Base Station commander); returns 404 if invalid.
+3. **Database Insertion**: Inserts message record into `messages` table storing:
+   - `RSSI` (Signal Strength in dBm, e.g. -68 dBm)
+   - `distance_km` (Estimated distance in km calculated from RF path loss / GPS)
+   - `snr` (Signal-to-Noise Ratio in dB)
+   - `is_chat` (Boolean flag: 1 for custom freeform message, 0 for standard alert category)
+   - `custom_msg` (Verbatim situation report or chat message)
+   - `source` (`'LORA'` for remote RF transmission, `'BLE'` for local commander mobile dispatch)
+   - `timestamp` (Current server timestamp)
+4. **Heartbeat Sync**: Executes `UPDATE devices SET last_ping = NOW(), status = 'active' WHERE DID = :did`.
 5. **Instant JSON Resolution**: Uses MySQL `JSON_EXTRACT` and `JSON_UNQUOTE` to join against the `indexes` table in a single query, resolving `location_name` and `message_text`.
 6. **Multi-Channel Dispatch Execution**:
-   - Spawns `FCMHelper` to dispatch real-time web push notifications.
-   - Spawns `EmailHelper` to dispatch formatted HTML emergency emails to all registered receivers.
+   - Spawns `FCMHelper` to dispatch real-time web push notifications with the custom SITREP text or alert category.
+   - Spawns `EmailHelper` to dispatch formatted HTML emergency emails displaying estimated distance and signal metrics.
 7. **Response Payload**: Returns full decoded message object including notification dispatch statistics (`emails.success`, `notifications.success`).
 
 ---
@@ -483,7 +491,12 @@ Tracks registered field hardware nodes.
 The central emergency message log.
 - `MID`: INT (Primary Key, Auto-increment)
 - `DID`: INT (Foreign Key referencing `devices.DID` with `ON DELETE CASCADE`)
-- `RSSI`: INT (Signal Strength in dBm, e.g. -65 dBm)
+- `RSSI`: INT (Signal Strength in dBm, e.g. -68 dBm)
+- `distance_km`: DECIMAL(6,2) (Estimated link distance in km based on log-distance path loss & GPS)
+- `snr`: DECIMAL(4,1) (Signal-to-Noise Ratio in dB from SX1278 packet metadata)
+- `is_chat`: TINYINT(1) (0 for categorized alert, 1 for freeform text SITREP / chat)
+- `custom_msg`: TEXT (Verbatim situation report typed on mobile companion or BLE terminal)
+- `source`: ENUM('LORA', 'BLE', 'WEB') (Transmission channel: LoRa 433MHz vs Local Base BLE)
 - `message_code`: INT (Maps to `indexes.mapping['message']`)
 - `timestamp`: DATETIME (Default `CURRENT_TIMESTAMP`)
 

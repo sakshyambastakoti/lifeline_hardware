@@ -344,6 +344,7 @@ All in-depth documentation is organized inside the [`docs/`](file:///d:/lifeline
 | **Hardware** | [Wiring & Pinouts Master](file:///d:/lifeline_hardware/docs/hardware/wiring_and_pinouts.md) | Complete pin connection tables for all boards |
 | **Hardware** | [Schematics & Assets](file:///d:/lifeline_hardware/docs/hardware/schematics/) | Circuit schematics, breadboard diagrams, and PDFs |
 | **API** | [SPU Telemetry REST API](file:///d:/lifeline_hardware/docs/api/spu_telemetry_api.md) | Direct Cloud upload JSON schemas and HTTP endpoints |
+| **API** | [Cloud API Setup & Web Integration](file:///d:/lifeline_hardware/docs/api/cloud_api_setup_guide.md) | Ingestion guide for distance, custom SITREPs, SNR, and database migrations |
 | **Guides** | [Local Wireless OTA Flashing](file:///d:/lifeline_hardware/docs/guides/local_ota_guide.md) | How to flash TX and RX wirelessly over SoftAP |
 | **Guides** | [VPS Remote HTTPS OTA](file:///d:/lifeline_hardware/docs/guides/vps_ota_guide.md) | How to configure VPS cloud auto-updates for Base Stations |
 | **Guides** | [Bluetooth BLE & Mobile Companion](file:///d:/lifeline_hardware/docs/guides/bluetooth_ble_integration_guide.md) | Dual-unit BLE GATT Nordic UART, mobile chat & offline Web Bluetooth PWA guide |

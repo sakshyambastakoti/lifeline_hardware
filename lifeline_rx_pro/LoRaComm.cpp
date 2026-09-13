@@ -122,7 +122,8 @@ bool parseLoRaPacketExtended(FullTelemetryData& telemetry) {
         telemetry.isChatMessage = true;
         telemetry.chatMessage = data.substring(chatComma + 6);
         telemetry.chatMessage.trim();
-        Serial.printf("[RX CHAT] Device #%d Chat: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
+        telemetry.distanceKm = calculateDistanceKm(telemetry.rssi, 0.0, 0.0);
+        Serial.printf("[RX CHAT] Device #%d Chat: '%s' (Dist: %.2fkm)\n", telemetry.deviceId, telemetry.chatMessage.c_str(), telemetry.distanceKm);
         LoRa.receive();
         return true;
     }

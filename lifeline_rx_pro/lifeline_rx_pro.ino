@@ -34,7 +34,7 @@ bool handleIncomingLoRaTelemetry() {
     triggerRxBlink();
 
     if (telemetry.isChatMessage) {
-        Serial.printf("[RX CHAT LOG] Dev #%d: '%s'\n", telemetry.deviceId, telemetry.chatMessage.c_str());
+        Serial.printf("[RX CHAT LOG] Dev #%d: '%s' (Dist: %.2fkm)\n", telemetry.deviceId, telemetry.chatMessage.c_str(), telemetry.distanceKm);
         notifyBLEChat(telemetry.deviceId, telemetry.chatMessage.c_str(), telemetry.rssi);
         sendDownlinkACK(telemetry.deviceId, 'M', "LOGGED", "Base received chat");
         hasActiveChatMessage = true;
@@ -44,6 +44,9 @@ bool handleIncomingLoRaTelemetry() {
         currentChatScrollOffset = 0;
         currentScreen = SCREEN_CUSTOM_MSG;
         drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+        
+        // Push custom chat message to Cloud API with distance and SNR for website display
+        pushCustomChatMessageToAPI(telemetry.deviceId, telemetry.chatMessage, telemetry.rssi, telemetry.snr, telemetry.distanceKm, "LORA");
         return true;
     }
 
@@ -206,6 +209,9 @@ void loop() {
         currentScreen = SCREEN_CUSTOM_MSG;
         playAlertTone(0);
         drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+        
+        // Push local commander message to Cloud API with BLE source tag
+        pushCustomChatMessageToAPI(0, chat, -50, 10.0f, 0.01f, "BLE");
     }
     
     if (isLocalOTAModeActive()) {
