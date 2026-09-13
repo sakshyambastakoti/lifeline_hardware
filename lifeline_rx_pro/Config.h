@@ -22,6 +22,9 @@
 //                              WIFI & API CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════════════
 #define API_ENDPOINT        "https://zenithkandel.com.np/lifeline/API/Create/message.php"
+#define API_DOWNLINK_POLL_ENDPOINT "https://zenithkandel.com.np/lifeline/API/Read/pending_commands.php"
+#define API_DOWNLINK_ACK_ENDPOINT  "https://zenithkandel.com.np/lifeline/API/Update/command_status.php"
+#define DOWNLINK_POLL_INTERVAL_MS  3500    // Polling interval for website downlink commands (3.5 seconds)
 #define OTA_VERSION_URL     "https://zenithkandel.com.np/lifeline/ota/version.json"
 #define OTA_CHECK_TIMEOUT_MS 10000         // OTA Manifest fetch timeout (10 seconds)
 #define WIFI_AP_SSID        "LifeLine-RX-Setup"

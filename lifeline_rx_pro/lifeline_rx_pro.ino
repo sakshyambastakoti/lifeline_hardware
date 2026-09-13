@@ -214,6 +214,47 @@ void loop() {
         pushCustomChatMessageToAPI(0, chat, -50, 10.0f, 0.01f, "BLE");
     }
     
+    // Check for pending Cloud Downlink commands from Website (Website -> RX Gateway -> TX Handheld)
+    static unsigned long lastDownlinkPollTime = 0;
+    if (wifiConnected && !portalActive && !isLocalOTAModeActive()) {
+        if (millis() - lastDownlinkPollTime >= DOWNLINK_POLL_INTERVAL_MS) {
+            lastDownlinkPollTime = millis();
+            DownlinkCommand cmd;
+            if (pollPendingDownlinkFromAPI(cmd)) {
+                Serial.printf("[CLOUD DOWNLINK] Received Web Command #%d for TX #%03d (%s): '%s'\n",
+                              cmd.commandId, cmd.targetDeviceId, cmd.action.c_str(), cmd.message.c_str());
+
+                // 1. Display on Base Station LCD & sound alert tone
+                hasActiveChatMessage = true;
+                String targetPrefix = (cmd.targetDeviceId == 0) ? "WEB->ALL" : ("WEB->TX" + String(cmd.targetDeviceId));
+                currentChatMessage = targetPrefix + ": " + cmd.message;
+                currentChatDeviceId = cmd.targetDeviceId;
+                currentChatRssi = 0;
+                currentChatScrollOffset = 0;
+                currentScreen = SCREEN_CUSTOM_MSG;
+                playAlertTone(0);
+                drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+
+                // 2. Transmit over 433 MHz LoRa to the field handhelds
+                bool txOk = false;
+                if (cmd.action.equalsIgnoreCase("EVAC") || (cmd.targetDeviceId == 0 && cmd.action.equalsIgnoreCase("EVAC"))) {
+                    txOk = sendBroadcastEvacuation(cmd.message.c_str());
+                } else {
+                    txOk = sendDownlinkCommand(cmd.targetDeviceId, cmd.action.c_str(), cmd.message.c_str());
+                }
+
+                // 3. Confirm execution status back to Cloud API
+                acknowledgeDownlinkToAPI(cmd.commandId, txOk ? "DISPATCHED_LORA" : "TX_FAILED", txOk);
+
+                // 4. Also forward to local Commander Phone via BLE if paired
+                char confirm[128];
+                snprintf(confirm, sizeof(confirm), "WEB_DOWNLINK:ID=%d,DEV=%03d,OK=%d", cmd.commandId, cmd.targetDeviceId, txOk ? 1 : 0);
+                sendBLEString(String(confirm));
+                Serial.println(confirm);
+            }
+        }
+    }
+    
     if (isLocalOTAModeActive()) {
         checkWiFiPortalButton();
         return;

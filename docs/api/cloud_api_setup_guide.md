@@ -421,3 +421,606 @@ curl -X GET "https://zenithkandel.com.np/lifeline/API/Read/message.php?limit=1"
 ```
 
 Verify that the returned JSON object includes `distance_km`, `snr`, `is_chat`, `custom_msg`, and `source`.
+
+---
+
+## 📡 8. Bidirectional Two-Way Communication (Website ➔ RX Gateway ➔ TX Handheld)
+
+LifeLine supports full **two-way closed-loop messaging**. Incident commanders on the central website or local base station can compose custom SITREPs, operational orders, and evacuation advisories that are delivered directly onto the screens of field handhelds in off-grid disaster zones.
+
+```text
+┌────────────────────────────────┐
+│   LifeLine Central Website     │  (Incident Commander Dashboard)
+│      (Web Dispatch Console)    │
+└────────────────────────────────┘
+               │  1. HTTP POST (Queue message)
+               ▼
+┌────────────────────────────────┐
+│       Cloud REST API           │  (MySQL Database: downlink_commands table)
+│   (zenithkandel.com.np)        │
+└────────────────────────────────┘
+               │  2. HTTP GET Poll (every 3.5s over Wi-Fi)
+               ▼
+┌────────────────────────────────┐
+│      LifeLine RX Pro           │  • Sounds alert tone & displays on Full 16×2 LCD
+│    (Base Station Gateway)      │  • Sends HTTP POST Ack (DISPATCHED_LORA) back to Cloud
+└────────────────────────────────┘
+               │  3. 433 MHz RF LoRa (CMD<did>,<action>,<msg>)
+               ▼
+┌────────────────────────────────┐
+│      LifeLine TX Pro           │  • Displays popup on Handheld Screen
+│    (Field Handheld Unit)       │  • Sounds audio buzzer & status LED
+└────────────────────────────────┘  • Pushes BLE notification to Responder's Phone
+               │
+               ▼  4. Field Responder replies via BLE App (CHAT:<devId>:<reply>)
+┌────────────────────────────────┐
+│    Full Loop Uplink Return     │  LoRa CHAT ➔ RX Base Gateway ➔ Cloud API ➔ Website Feed
+└────────────────────────────────┘
+```
+
+---
+
+### 8.1 Database Migration: `downlink_commands` Table
+
+Run the following SQL migration on your MySQL server:
+
+```sql
+-- Migration: Add downlink_commands table for bidirectional Web-to-LoRa dispatching
+CREATE TABLE IF NOT EXISTS `downlink_commands` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `rx_id` INT NOT NULL DEFAULT 1 COMMENT 'Target Base Station Gateway ID',
+    `target_did` INT NOT NULL DEFAULT 0 COMMENT '0 = Broadcast to All TX units; 1-999 = Specific TX device',
+    `action` VARCHAR(32) NOT NULL DEFAULT 'MSG' COMMENT 'MSG, DISPATCH, EVAC, MEDIC, PING, ALL_CLEAR',
+    `message` VARCHAR(96) NOT NULL COMMENT 'Command text / SITREP (max 48-96 characters)',
+    `status` ENUM('PENDING', 'DISPATCHED_LORA', 'TX_FAILED', 'ACK_CONFIRMED') NOT NULL DEFAULT 'PENDING',
+    `lora_tx_ok` TINYINT(1) DEFAULT 0 COMMENT '1 if RF packet transmission succeeded',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `dispatched_at` TIMESTAMP NULL DEFAULT NULL,
+    `acknowledged_at` TIMESTAMP NULL DEFAULT NULL,
+    INDEX `idx_rx_status` (`rx_id`, `status`),
+    INDEX `idx_target_did` (`target_did`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+---
+
+### 8.2 Server-Side PHP Endpoints
+
+#### 1. Queue Outgoing Web Command: `API/Create/command.php`
+
+Used by the web dashboard when an incident commander clicks **"Transmit via LoRa"**:
+
+```php
+<?php
+// API/Create/command.php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key");
+header("Content-Type: application/json; charset=UTF-8");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+require_once '../Config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+
+$raw = file_get_contents("php://input");
+$data = json_decode($raw);
+
+if (!$data || !isset($data->message) || trim($data->message) === '') {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "Message content is required"]);
+    exit();
+}
+
+$rx_id      = isset($data->rx_id) ? (int)$data->rx_id : 1;
+$target_did = isset($data->target_did) ? (int)$data->target_did : 0;
+$action     = isset($data->action) ? strtoupper(trim($data->action)) : 'MSG';
+$message    = substr(trim($data->message), 0, 96);
+
+// Sanitize message - replace commas and newlines for LoRa CSV safety
+$message = str_replace([",", "\n", "\r"], [" ", " ", ""], $message);
+
+$query = "INSERT INTO downlink_commands (rx_id, target_did, action, message, status) 
+          VALUES (:rx_id, :target_did, :action, :message, 'PENDING')";
+$stmt = $db->prepare($query);
+$stmt->bindParam(":rx_id", $rx_id);
+$stmt->bindParam(":target_did", $target_did);
+$stmt->bindParam(":action", $action);
+$stmt->bindParam(":message", $message);
+
+if ($stmt->execute()) {
+    $cmd_id = $db->lastInsertId();
+    http_response_code(201);
+    echo json_encode([
+        "status" => "success",
+        "message" => "Command queued for LoRa dispatch",
+        "command_id" => (int)$cmd_id,
+        "target_did" => $target_did,
+        "action" => $action,
+        "text" => $message
+    ]);
+} else {
+    http_response_code(500);
+    echo json_encode(["status" => "error", "message" => "Failed to queue command"]);
+}
+?>
+```
+
+---
+
+#### 2. Base Station Polling Endpoint: `API/Read/pending_commands.php`
+
+Called by `lifeline_rx_pro` every 3.5 seconds over Wi-Fi:
+
+```php
+<?php
+// API/Read/pending_commands.php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+
+require_once '../Config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+
+$rx_id = isset($_GET['rx_id']) ? (int)$_GET['rx_id'] : 1;
+
+// Retrieve the oldest pending command for this gateway
+$query = "SELECT id, rx_id, target_did, action, message, created_at 
+          FROM downlink_commands 
+          WHERE rx_id = :rx_id AND status = 'PENDING' 
+          ORDER BY id ASC LIMIT 1";
+$stmt = $db->prepare($query);
+$stmt->bindParam(":rx_id", $rx_id);
+$stmt->execute();
+
+if ($stmt->rowCount() > 0) {
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "has_command" => true,
+        "command_id" => (int)$row['id'],
+        "target_did" => (int)$row['target_did'],
+        "action" => $row['action'],
+        "message" => $row['message'],
+        "created_at" => $row['created_at']
+    ]);
+} else {
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "has_command" => false
+    ]);
+}
+?>
+```
+
+---
+
+#### 3. Gateway Status Confirmation: `API/Update/command_status.php`
+
+Called by `lifeline_rx_pro` immediately after transmitting over LoRa:
+
+```php
+<?php
+// API/Update/command_status.php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key");
+header("Content-Type: application/json; charset=UTF-8");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+require_once '../Config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+
+$raw = file_get_contents("php://input");
+$data = json_decode($raw);
+
+if (!$data || !isset($data->command_id)) {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "command_id is required"]);
+    exit();
+}
+
+$command_id = (int)$data->command_id;
+$status     = isset($data->status) ? trim($data->status) : 'DISPATCHED_LORA';
+$lora_tx_ok = (isset($data->lora_tx_ok) && $data->lora_tx_ok) ? 1 : 0;
+
+$query = "UPDATE downlink_commands 
+          SET status = :status, 
+              lora_tx_ok = :lora_tx_ok, 
+              dispatched_at = CURRENT_TIMESTAMP 
+          WHERE id = :command_id";
+$stmt = $db->prepare($query);
+$stmt->bindParam(":status", $status);
+$stmt->bindParam(":lora_tx_ok", $lora_tx_ok);
+$stmt->bindParam(":command_id", $command_id);
+
+if ($stmt->execute()) {
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "message" => "Command status updated successfully",
+        "command_id" => $command_id,
+        "new_status" => $status
+    ]);
+} else {
+    http_response_code(500);
+    echo json_encode(["status" => "error", "message" => "Failed to update command status"]);
+}
+?>
+```
+
+---
+
+### 8.3 Web Dashboard Two-Way Dispatch Console Component
+
+Integrate this interactive component into your web portal (`dashboard.php` or `index.html`). It connects to `API/Create/command.php` and polls `API/Read/message.php` for incoming replies:
+
+```html
+<!-- LifeLine Two-Way Downlink Dispatcher Widget -->
+<div class="dispatch-console-card">
+  <div class="dispatch-header">
+    <h3><span class="pulse-dot"></span> Two-Way LoRa Dispatch Console</h3>
+    <span class="badge-gateway">RX Gateway #01 (Active)</span>
+  </div>
+
+  <div class="dispatch-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="targetDid">Target Field Unit:</label>
+        <select id="targetDid" class="console-input">
+          <option value="0">📢 Broadcast to All Units (TX #000)</option>
+          <option value="1" selected>👤 Node #001 (Rescue Team Alpha)</option>
+          <option value="2">👤 Node #002 (Medical Team Bravo)</option>
+          <option value="3">👤 Node #003 (Evacuation Team Charlie)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cmdAction">Action Preset:</label>
+        <select id="cmdAction" class="console-input" onchange="applyPresetAction(this.value)">
+          <option value="MSG">💬 Custom SITREP / Message</option>
+          <option value="DISPATCH">🚁 Team Dispatched</option>
+          <option value="MEDIC">🚑 Medic En Route</option>
+          <option value="EVAC">⚠️ Evacuate Immediately</option>
+          <option value="PING">📡 Ping / Status Check</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="label-row">
+        <label for="customMessage">Message Text (Max 48 chars recommended for LoRa):</label>
+        <span id="charCount" class="char-counter">0 / 48</span>
+      </div>
+      <input type="text" id="customMessage" class="console-input message-box" 
+             placeholder="Type message for field unit..." maxlength="60" 
+             oninput="updateCharCount(this)">
+    </div>
+
+    <div class="dispatch-actions">
+      <button id="sendLoRaBtn" class="btn-dispatch" onclick="submitLoRaDownlink()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        Transmit via LoRa Downlink
+      </button>
+      <span id="dispatchStatus" class="dispatch-status">Ready</span>
+    </div>
+  </div>
+
+  <!-- Bidirectional Chat & SITREP Stream -->
+  <div class="conversation-stream" id="conversationStream">
+    <div class="stream-header">Live Field Communications & SITREPs</div>
+    <div class="stream-logs" id="streamLogs">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<style>
+.dispatch-console-card {
+  background: rgba(16, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  color: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin-bottom: 24px;
+}
+.dispatch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 12px;
+}
+.pulse-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #10b981;
+  margin-right: 8px;
+}
+.badge-gateway {
+  font-size: 0.8rem;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.form-group label {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+.label-row {
+  display: flex;
+  justify-content: space-between;
+}
+.char-counter {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+.console-input {
+  background: rgba(10, 15, 26, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 0.95rem;
+}
+.console-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+.dispatch-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+.btn-dispatch {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-dispatch:hover {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+.dispatch-status {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+.conversation-stream {
+  margin-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 14px;
+}
+.stream-header {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
+.stream-logs {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.msg-bubble {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  max-width: 80%;
+}
+.msg-downlink {
+  background: rgba(37, 99, 235, 0.2);
+  border-left: 4px solid #3b82f6;
+  align-self: flex-start;
+}
+.msg-uplink {
+  background: rgba(16, 185, 129, 0.2);
+  border-left: 4px solid #10b981;
+  align-self: flex-end;
+}
+</style>
+
+<script>
+function updateCharCount(input) {
+  document.getElementById('charCount').textContent = input.value.length + " / 48";
+}
+
+function applyPresetAction(val) {
+  const msgInput = document.getElementById('customMessage');
+  if (val === 'MEDIC') msgInput.value = "Medic en route to your position";
+  else if (val === 'EVAC') msgInput.value = "EVACUATE immediately to Sector 4";
+  else if (val === 'DISPATCH') msgInput.value = "Search team dispatched to GPS loc";
+  else if (val === 'PING') msgInput.value = "Confirm operational safety status";
+  updateCharCount(msgInput);
+}
+
+async function submitLoRaDownlink() {
+  const did = document.getElementById('targetDid').value;
+  const action = document.getElementById('cmdAction').value;
+  const msg = document.getElementById('customMessage').value.trim();
+  const statusElem = document.getElementById('dispatchStatus');
+  const btn = document.getElementById('sendLoRaBtn');
+
+  if (!msg) {
+    alert("Please enter a message to send.");
+    return;
+  }
+
+  btn.disabled = true;
+  statusElem.textContent = "Queuing command...";
+  statusElem.style.color = "#f59e0b";
+
+  try {
+    const res = await fetch("https://zenithkandel.com.np/lifeline/API/Create/command.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rx_id: 1,
+        target_did: parseInt(did),
+        action: action,
+        message: msg
+      })
+    });
+    const result = await res.json();
+
+    if (result.status === "success") {
+      statusElem.textContent = `✓ Queued (ID #${result.command_id}) ➔ Gateway will dispatch in ~3s`;
+      statusElem.style.color = "#10b981";
+      document.getElementById('customMessage').value = "";
+      updateCharCount(document.getElementById('customMessage'));
+      
+      // Append to live conversation preview
+      const logs = document.getElementById('streamLogs');
+      const item = document.createElement('div');
+      item.className = "msg-bubble msg-downlink";
+      item.innerHTML = `<strong>WEB ➔ TX #${did == 0 ? 'ALL' : did} [${action}]:</strong> ${msg} <span style="font-size:0.75rem; color:#9ca3af; margin-left:8px;">Just now</span>`;
+      logs.prepend(item);
+    } else {
+      statusElem.textContent = "Failed to queue command.";
+      statusElem.style.color = "#ef4444";
+    }
+  } catch (err) {
+    statusElem.textContent = "Network error: " + err.message;
+    statusElem.style.color = "#ef4444";
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+```
+
+---
+
+### 8.4 Local Gateway Direct LoRa Dispatch (`/send-downlink`)
+
+If operating in field headquarters where the Base Station gateway is operating locally on a LAN without internet connectivity, commanders can connect directly to the ESP32 Base Station web portal (`http://192.168.4.1` or the assigned LAN IP) and trigger LoRa downlinks directly:
+
+```bash
+# Direct HTTP POST to Base Station ESP32 Gateway
+curl -X POST http://192.168.4.1/send-downlink \
+  -d "did=1" \
+  -d "action=MSG" \
+  -d "msg=Stay in camp, supplies inbound"
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "did": 1,
+  "lora_tx_ok": true
+}
+```
+
+---
+
+### 8.5 Testing Bidirectional LoRa Downlink with `curl`
+
+#### Step 1: Queue a Command from Central Website
+```bash
+curl -X POST https://zenithkandel.com.np/lifeline/API/Create/command.php \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rx_id": 1,
+    "target_did": 1,
+    "action": "DISPATCH",
+    "message": "Medic helicopter en route to your LZ"
+  }'
+```
+
+Output:
+```json
+{
+  "status": "success",
+  "message": "Command queued for LoRa dispatch",
+  "command_id": 105,
+  "target_did": 1,
+  "action": "DISPATCH",
+  "text": "Medic helicopter en route to your LZ"
+}
+```
+
+#### Step 2: Simulate Gateway Poll
+```bash
+curl -X GET "https://zenithkandel.com.np/lifeline/API/Read/pending_commands.php?rx_id=1"
+```
+
+Output:
+```json
+{
+  "status": "success",
+  "has_command": true,
+  "command_id": 105,
+  "target_did": 1,
+  "action": "DISPATCH",
+  "message": "Medic helicopter en route to your LZ",
+  "created_at": "2026-09-13 10:15:00"
+}
+```
+
+#### Step 3: Gateway Acknowledges RF LoRa Transmission
+```bash
+curl -X POST https://zenithkandel.com.np/lifeline/API/Update/command_status.php \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command_id": 105,
+    "rx_id": 1,
+    "status": "DISPATCHED_LORA",
+    "lora_tx_ok": true
+  }'
+```
+
+Output:
+```json
+{
+  "status": "success",
+  "message": "Command status updated successfully",
+  "command_id": 105,
+  "new_status": "DISPATCHED_LORA"
+}
+```
+

@@ -179,8 +179,9 @@ lifeline_hardware/
   - **Full 16×2 LCD Custom Message Display**: Uses both Row 0 and Row 1 (all 32 characters) for freeform chat/SITREP text with smart word-wrapping, auto-scroll paging, and manual button advance.
   - **Bluetooth Commander Hub**: Ingests direct mobile commands (`MSG:`, `REPLY:`, `EVAC:`) and broadcasts push notifications (`CHAT:`, `ALERT:`, `TELEMETRY:`) to paired smartphones.
   - Multi-Wi-Fi memory (stores up to 3 network credentials with auto-fallback).
-  - Captive Web Setup Portal (`192.168.4.1`) launched via dedicated hardware push-button.
-  - HTTPS Cloud REST API gateway automatically posting emergency alerts to central dashboard.
+  - Captive Web Setup Portal (`192.168.4.1`) launched via dedicated hardware push-button, with local `/send-downlink` dispatch endpoint.
+  - **Two-Way Web-to-LoRa Dispatch Engine**: Automated 3.5s background polling engine pulling pending commands & custom SITREPs from the central cloud website (`API/Read/pending_commands.php`), rendering them on the 16×2 LCD, and immediately transmitting them via 433 MHz LoRa (`CMD<did>,<action>,<msg>`) to off-grid field units with real-time status reporting (`API/Update/command_status.php`).
+  - HTTPS Cloud REST API gateway automatically posting emergency alerts and custom chats to central dashboard.
   - Remote VPS Over-The-Air (OTA) firmware upgrade checking on boot with dual-partition safety.
 
 ### 📟 LifeLine TX Pro (Field Transmitter)

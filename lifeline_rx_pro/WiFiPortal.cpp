@@ -2,6 +2,7 @@
 #include "DisplayUI.h"
 #include "BuzzerLED.h"
 #include "OTAManager.h"
+#include "LoRaComm.h"
 #include <WiFi.h>
 #include <Preferences.h>
 #include <Update.h>
@@ -701,6 +702,28 @@ static void setupServerRoutes() {
     wifiServer.on("/", HTTP_GET, handlePortalRoot);
     wifiServer.on("/save", HTTP_POST, handlePortalSave);
     wifiServer.on("/api-save", HTTP_POST, handleAPISave);
+    
+    wifiServer.on("/send-downlink", HTTP_POST, []() {
+        int devId = wifiServer.hasArg("did") ? wifiServer.arg("did").toInt() : 0;
+        String action = wifiServer.hasArg("action") ? wifiServer.arg("action") : "MSG";
+        String msg = wifiServer.hasArg("msg") ? wifiServer.arg("msg") : "";
+
+        if (msg.length() == 0) {
+            wifiServer.send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'msg' parameter\"}");
+            return;
+        }
+
+        Serial.printf("[WEB LOCAL DISPATCH] LoRa sending to Dev #%d: %s (%s)\n", devId, action.c_str(), msg.c_str());
+        bool txOk = false;
+        if (action.equalsIgnoreCase("EVAC") || (devId == 0 && action.equalsIgnoreCase("EVAC"))) {
+            txOk = sendBroadcastEvacuation(msg.c_str());
+        } else {
+            txOk = sendDownlinkCommand(devId, action.c_str(), msg.c_str());
+        }
+
+        String json = "{\"status\":\"" + String(txOk ? "success" : "failed") + "\",\"did\":" + String(devId) + ",\"lora_tx_ok\":" + String(txOk ? "true" : "false") + "}";
+        wifiServer.send(txOk ? 200 : 500, "application/json", json);
+    });
     
     static size_t rxPortalExpected = 0;
     static size_t rxPortalAccumulated = 0;

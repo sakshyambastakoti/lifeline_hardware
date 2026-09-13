@@ -365,7 +365,25 @@ When an edge LoRa RX Gateway receives an off-grid transmission (e.g. `TX003,1`, 
 
 ---
 
-### 5.3 Endpoints Reference Catalog
+### 5.4 Two-Way Closed-Loop Downlink Dispatch Pipeline
+
+*Endpoints:*  
+- `POST /API/Create/command.php` (Queues outgoing message from website)
+- `GET /API/Read/pending_commands.php?rx_id=<id>` (Polled every 3.5s by Base Station Gateway)
+- `POST /API/Update/command_status.php` (Called by Base Station Gateway to confirm LoRa RF dispatch)  
+*Setup Guide:* [Cloud REST API & Web Dashboard Integration Guide](file:///d:/lifeline_hardware/docs/api/cloud_api_setup_guide.md#8-bidirectional-two-way-communication-website--rx-gateway--tx-handheld)
+
+Enables operators on the central web portal to communicate directly with off-grid field teams:
+1. **Web Dashboard Dispatch Console**: Operator selects target node (`TX #001`, `TX #002`, or `Broadcast to All Units`), chooses action preset (e.g. `MEDIC`, `EVAC`, `DISPATCH`, or custom `MSG`), and types message (up to 48-60 chars).
+2. **Queueing in Cloud Database**: Saved in `downlink_commands` table with status `'PENDING'`.
+3. **Gateway Polling (Every 3.5s)**: The Base Station gateway (`lifeline_rx_pro`) queries `pending_commands.php` over Wi-Fi.
+4. **Local Alert & 433 MHz LoRa Transmission**: The Base Station displays the incoming web message across its full 16×2 LCD screen, sounds an alert tone, and transmits the frame: `CMD<did>,<action>,<message>` over 433 MHz LoRa.
+5. **Gateway Confirmation**: Base Station calls `command_status.php` updating status to `'DISPATCHED_LORA'`.
+6. **Handheld Ingestion (`lifeline_tx_pro`)**: The field unit intercepts the LoRa downlink packet, displays a priority popup dialog on its TFT/OLED screen, beeps the buzzer, and sends a BLE notification to the responder's phone companion app.
+
+---
+
+### 5.5 Endpoints Reference Catalog
 
 #### Authentication Group (`/API/auth/`)
 | Method | Endpoint | Description |
@@ -522,6 +540,19 @@ Stores broadcast alert recipient addresses.
 - `SN`: INT (Primary Key, Auto-increment)
 - `email`: VARCHAR(255, UNIQUE)
 
+#### 7. `downlink_commands` Table
+Queues and audits bidirectional messages dispatched from the web portal to off-grid field units.
+- `id`: INT (Primary Key, Auto-increment)
+- `rx_id`: INT (Target Base Station Gateway ID, default `1`)
+- `target_did`: INT (0 = Broadcast to all units, 1-999 = Specific TX node)
+- `action`: VARCHAR(32) (Command type: `MSG`, `DISPATCH`, `EVAC`, `MEDIC`, `PING`)
+- `message`: VARCHAR(96) (Command text / SITREP payload)
+- `status`: ENUM('PENDING', 'DISPATCHED_LORA', 'TX_FAILED', 'ACK_CONFIRMED')
+- `lora_tx_ok`: TINYINT(1) (1 if transmitted via RF radio, 0 otherwise)
+- `created_at`: TIMESTAMP (Default `CURRENT_TIMESTAMP`)
+- `dispatched_at`: TIMESTAMP (Recorded upon gateway LoRa transmission)
+- `acknowledged_at`: TIMESTAMP (Recorded upon field confirmation)
+
 ---
 
 ## 8. LifeLine Companion Ecosystem & Field Client Tier
@@ -602,6 +633,7 @@ Located in [`bluefy_companion/`](file:///d:/lifeline_hardware/bluefy_companion/)
 | **Web Companion** | Camera QR Pairing | Fast optical BLE pairing via chassis QR code scan | `portal_preview/scan_qr.html` |
 | **Field Transmitter** | "MESSAGE SENDING" Pop Screen | Interactive ST7789 modal with live progress bar and closed-loop ACK badge | `lifeline_tx_pro/DisplayUI.cpp` |
 | **Base Receiver** | Full 16×2 LCD Custom Display | Dedicated 32-character message view with smart word-wrap & auto-paging | `lifeline_rx_pro/DisplayUI.cpp` |
+| **Bidirectional Messaging** | Two-Way Web-to-LoRa Dispatch | Incident commanders dispatch custom SITREPs & orders from web to off-grid field TX units | `API/Create/command.php`, `lifeline_rx_pro/APIClient.cpp` |
 | **API Architecture** | Uniform REST Envelope | Standardized JSON output format across all endpoints | `database.php` |
 | **API Architecture** | Complete CRUD Suites | Full endpoints for auth, create, read, update, and delete | `API/Create/*`, `API/Read/*`, etc. |
 | **Persistence Layer** | PDO Singleton Pool | Reusable, high-performance database connection instance | `database.php` |
