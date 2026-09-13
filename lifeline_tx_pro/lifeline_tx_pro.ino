@@ -76,11 +76,9 @@ void loop() {
     if (hasPendingBLEChatMessage()) {
         String chat = getPendingBLEChatMessage();
         Serial.printf("[BLE CHAT TRIGGER] Transmitting: '%s'\n", chat.c_str());
-        currentScreen = SCREEN_SENDING;
-        drawSendingScreen();
+        triggerBleMessageSendingPopup(chat);
         lastTransmitSuccess = transmitChatMessage(chat);
-        currentScreen = SCREEN_RESULT;
-        drawResultScreen();
+        updateBleMessageSendingResult(lastTransmitSuccess);
     }
     
     // Process incoming BLE mobile alert trigger
@@ -118,7 +116,6 @@ void loop() {
         case SCREEN_OTA:
         case SCREEN_OTA_SELECT:
         case SCREEN_BLE_PORTAL:
-        case SCREEN_MESSAGE_POPUP:
             {
                 char key = getKeyWithRepeat();
                 #if SERIAL_DEBUG_ENABLED
@@ -128,6 +125,23 @@ void loop() {
                 }
                 #endif
                 if (key) handleKeyPress(key);
+            }
+            break;
+
+        case SCREEN_MESSAGE_POPUP:
+            {
+                if (popupAutoDismissMs > 0 && millis() - popupStartTime >= popupAutoDismissMs) {
+                    dismissMessagePopup();
+                } else {
+                    char key = getKeyWithRepeat();
+                    #if SERIAL_DEBUG_ENABLED
+                    if (!key) {
+                        key = readSerialKey();
+                        if (key) Serial.printf("[SERIAL] Key: %c\n", key);
+                    }
+                    #endif
+                    if (key) dismissMessagePopup();
+                }
             }
             break;
 

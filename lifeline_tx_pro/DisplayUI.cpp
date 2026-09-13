@@ -1249,7 +1249,12 @@ void drawSendingScreen() {
 }
 
 void updateSendingAnimation() {
-    if (currentScreen != SCREEN_SENDING) return;
+    if (currentScreen != SCREEN_SENDING) {
+        if (currentScreen == SCREEN_MESSAGE_POPUP && popupIsSending) {
+            updatePopupSendingAnimation();
+        }
+        return;
+    }
     
     unsigned long now = millis();
     if (now - lastSendingAnimTime < 50) return; // ~20 FPS throttle
@@ -2460,80 +2465,242 @@ void drawBLEPortalScreen() {
     Serial.println(F("[SCREEN] BLE Portal screen displayed"));
 }
 
+static void drawWrappedText(const String& text, int startX, int startY, int maxCharsPerLine, int maxLines, uint8_t textSize, uint16_t color) {
+    tft.setTextSize(textSize);
+    tft.setTextColor(color);
+    
+    int lineSpacing = (textSize == 2) ? 18 : 12;
+    int curLine = 0;
+    int idx = 0;
+    int len = text.length();
+
+    while (idx < len && curLine < maxLines) {
+        while (idx < len && text[idx] == ' ') idx++;
+        if (idx >= len) break;
+
+        int remaining = len - idx;
+        if (remaining <= maxCharsPerLine) {
+            tft.setCursor(startX, startY + curLine * lineSpacing);
+            tft.print(text.substring(idx));
+            break;
+        }
+
+        int split = idx + maxCharsPerLine;
+        int lastSpace = -1;
+        for (int i = idx; i < split; i++) {
+            if (text[i] == ' ') lastSpace = i;
+        }
+
+        int endIdx = (lastSpace > idx) ? lastSpace : split;
+        String lineStr = text.substring(idx, endIdx);
+        
+        if (curLine == maxLines - 1 && endIdx < len) {
+            if (lineStr.length() > maxCharsPerLine - 2) {
+                lineStr = lineStr.substring(0, maxCharsPerLine - 2);
+            }
+            lineStr += "..";
+        }
+
+        tft.setCursor(startX, startY + curLine * lineSpacing);
+        tft.print(lineStr);
+
+        idx = endIdx;
+        curLine++;
+    }
+}
+
 void drawMessagePopupScreen() {
-    // Semi-modal blackout with cyan emergency border
-    tft.fillScreen(RGB565(12, 14, 20));
+    // Semi-modal blackout with cyan tactical frame
+    tft.fillScreen(RGB565(8, 14, 22));
     
-    // Outer border
-    tft.drawRect(4, 4, SCREEN_WIDTH - 8, SCREEN_HEIGHT - 8, COLOR_CYAN);
-    tft.drawRect(6, 6, SCREEN_WIDTH - 12, SCREEN_HEIGHT - 12, COLOR_WHITE);
+    // Perimeter hairlines
+    tft.drawRect(2, 2, SCREEN_WIDTH - 4, SCREEN_HEIGHT - 4, RGB565(25, 45, 65));
+    tft.drawRect(4, 4, SCREEN_WIDTH - 8, SCREEN_HEIGHT - 8, popupIsSending ? COLOR_CYAN : COLOR_BORDER);
+    tft.drawRect(6, 6, SCREEN_WIDTH - 12, SCREEN_HEIGHT - 12, RGB565(15, 30, 48));
     
-    // Header Banner
+    // Cyan Corner Registration Marks (L-ticks)
+    int mDist = 10;
+    tft.drawFastHLine(mDist - 3, mDist, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastVLine(mDist, mDist - 3, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, mDist, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, mDist - 3, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastHLine(mDist - 3, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastVLine(mDist, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastHLine(SCREEN_WIDTH - mDist - 4, SCREEN_HEIGHT - mDist - 1, 7, COLOR_CYAN_BRIGHT);
+    tft.drawFastVLine(SCREEN_WIDTH - mDist - 1, SCREEN_HEIGHT - mDist - 4, 7, COLOR_CYAN_BRIGHT);
+    
+    // 1. Header Banner
     int bannerH = 34;
-    tft.fillRect(8, 8, SCREEN_WIDTH - 16, bannerH, RGB565(15, 35, 55));
-    tft.drawFastHLine(8, 8 + bannerH, SCREEN_WIDTH - 16, COLOR_CYAN_BRIGHT);
+    tft.fillRect(8, 8, SCREEN_WIDTH - 16, bannerH, popupIsSending ? RGB565(14, 34, 54) : RGB565(15, 35, 55));
+    tft.drawRect(8, 8, SCREEN_WIDTH - 16, bannerH, RGB565(35, 70, 100));
+    tft.drawFastHLine(8, 8 + bannerH, SCREEN_WIDTH - 16, popupIsSending ? COLOR_CYAN_BRIGHT : COLOR_CYAN);
     
-    tft.setTextSize(TEXT_MEDIUM);
-    tft.setTextColor(COLOR_CYAN_BRIGHT);
-    tft.setCursor(20, 16);
-    tft.print(F("BASE STATION INSTRUCTION"));
+    // Pulsing Strobe Beacon Square
+    tft.fillRect(16, 18, 12, 12, popupIsSending ? COLOR_CYAN_BRIGHT : COLOR_GREEN_BRIGHT);
+    tft.drawRect(15, 17, 14, 14, COLOR_WHITE);
     
-    // Status & Source Strip
-    int stripY = 8 + bannerH + 8;
-    tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_TEXT_MUTED);
-    tft.setCursor(20, stripY);
-    tft.print(F("SOURCE: "));
-    tft.setTextColor(COLOR_WHITE);
-    tft.print(popupSender.length() > 0 ? popupSender : "BASE STATION #01");
-    tft.print(F("  |  RSSI: "));
-    tft.setTextColor(COLOR_CYAN_BRIGHT);
-    char rBuf[16];
-    snprintf(rBuf, sizeof(rBuf), "%d dBm", popupRssi);
-    tft.print(rBuf);
-    
-    // Status Badge
-    int badgeY = stripY + 18;
-    tft.fillRect(20, badgeY, 130, 20, RGB565(10, 45, 30));
-    tft.drawRect(20, badgeY, 130, 20, COLOR_GREEN_BRIGHT);
-    tft.setTextSize(TEXT_SMALL);
-    tft.setTextColor(COLOR_GREEN_BRIGHT);
-    tft.setCursor(26, badgeY + 6);
-    tft.print(popupStatus.length() > 0 ? popupStatus : "DISPATCHED");
-    
-    // Message Body Card
-    int msgCardY = badgeY + 28;
-    int msgCardH = 75;
-    tft.fillRect(16, msgCardY, SCREEN_WIDTH - 32, msgCardH, RGB565(20, 24, 34));
-    tft.drawRect(16, msgCardY, SCREEN_WIDTH - 32, msgCardH, COLOR_BORDER);
-    
+    // Header Title
     tft.setTextSize(TEXT_MEDIUM);
     tft.setTextColor(COLOR_WHITE);
-    
-    String msg = popupMessage;
-    if (msg.length() <= 24) {
-        tft.setCursor(26, msgCardY + 24);
-        tft.print(msg);
+    tft.setCursor(36, 17);
+    if (popupTitle.length() > 0) {
+        tft.print(popupTitle);
     } else {
-        String l1 = msg.substring(0, 24);
-        String l2 = msg.substring(24);
-        if (l2.length() > 24) l2 = l2.substring(0, 22) + "..";
-        tft.setCursor(26, msgCardY + 16);
-        tft.print(l1);
-        tft.setCursor(26, msgCardY + 40);
-        tft.print(l2);
+        tft.print(popupIsSending ? F("MESSAGE SENDING") : F("BASE STATION INSTRUCTION"));
     }
     
-    // Dismiss action prompt
-    int footerY = SCREEN_HEIGHT - 32;
-    tft.fillRect(16, footerY, SCREEN_WIDTH - 32, 24, RGB565(10, 30, 45));
-    tft.drawRect(16, footerY, SCREEN_WIDTH - 32, 24, COLOR_CYAN);
+    // Channel / Mode Badge on right
+    int modeBadgeW = 90;
+    int modeBadgeX = SCREEN_WIDTH - modeBadgeW - 14;
+    tft.fillRect(modeBadgeX, 15, modeBadgeW, 20, RGB565(10, 22, 36));
+    tft.drawRect(modeBadgeX, 15, modeBadgeW, 20, COLOR_CYAN_DARK);
     tft.setTextSize(TEXT_SMALL);
     tft.setTextColor(COLOR_CYAN_BRIGHT);
-    tft.setCursor(32, footerY + 8);
-    tft.print(F("PRESS ANY KEY [*] OR [#] TO DISMISS"));
+    tft.setCursor(modeBadgeX + 6, 21);
+    tft.print(popupIsSending ? F("BLE -> LoRa") : F("DOWNLINK"));
     
-    Serial.println(F("[SCREEN] Emergency Message Popup displayed"));
+    // 2. Status & Routing Telemetry Strip
+    int stripY = 8 + bannerH + 6; // 48
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(16, stripY);
+    tft.print(F("SRC: "));
+    tft.setTextColor(COLOR_WHITE);
+    tft.print(popupSender.length() > 0 ? popupSender : (popupIsSending ? "PHONE (BLE)" : "BASE STATION"));
+    
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.print(F(" | "));
+    if (popupIsSending) {
+        tft.print(F("ROUTE: "));
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.print(F("LoRa 868MHz -> BASE"));
+    } else {
+        tft.print(F("RSSI: "));
+        tft.setTextColor(COLOR_CYAN_BRIGHT);
+        char rBuf[16];
+        snprintf(rBuf, sizeof(rBuf), "%d dBm", popupRssi);
+        tft.print(rBuf);
+    }
+    
+    // 3. Status Badge
+    int badgeY = stripY + 16; // 64
+    uint16_t badgeBg = popupIsSending ? RGB565(12, 38, 56) : RGB565(10, 45, 30);
+    uint16_t badgeBorder = popupIsSending ? COLOR_CYAN_BRIGHT : COLOR_GREEN_BRIGHT;
+    tft.fillRect(16, badgeY, 180, 20, badgeBg);
+    tft.drawRect(16, badgeY, 180, 20, badgeBorder);
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(badgeBorder);
+    tft.setCursor(24, badgeY + 6);
+    tft.print(popupStatus.length() > 0 ? popupStatus : (popupIsSending ? "TRANSMITTING LoRa RF..." : "DISPATCHED"));
+    
+    // 4. Message Body Card
+    int msgCardY = badgeY + 26; // 90
+    int msgCardH = popupIsSending ? 74 : 80;
+    tft.fillRect(14, msgCardY, SCREEN_WIDTH - 28, msgCardH, RGB565(15, 22, 32));
+    tft.drawRect(14, msgCardY, SCREEN_WIDTH - 28, msgCardH, RGB565(35, 55, 80));
+    
+    // Left Accent Bar (5px)
+    tft.fillRect(14, msgCardY, 5, msgCardH, popupIsSending ? COLOR_CYAN_BRIGHT : COLOR_GREEN_BRIGHT);
+    
+    // Card Corner registration ticks
+    tft.drawFastHLine(14, msgCardY, 4, COLOR_WHITE);
+    tft.drawFastVLine(14, msgCardY, 4, COLOR_WHITE);
+    tft.drawFastHLine(SCREEN_WIDTH - 18, msgCardY, 4, COLOR_WHITE);
+    tft.drawFastVLine(SCREEN_WIDTH - 15, msgCardY, 4, COLOR_WHITE);
+    tft.drawFastHLine(14, msgCardY + msgCardH - 1, 4, COLOR_WHITE);
+    tft.drawFastVLine(14, msgCardY + msgCardH - 4, 4, COLOR_WHITE);
+    tft.drawFastHLine(SCREEN_WIDTH - 18, msgCardY + msgCardH - 1, 4, COLOR_WHITE);
+    tft.drawFastVLine(SCREEN_WIDTH - 15, msgCardY + msgCardH - 4, 4, COLOR_WHITE);
+    
+    // Card Header Label
+    tft.setTextSize(TEXT_SMALL);
+    tft.setTextColor(COLOR_TEXT_MUTED);
+    tft.setCursor(24, msgCardY + 6);
+    tft.print(popupIsSending ? F("ACTIVE BLE SITREP PAYLOAD:") : F("BASE DISPATCH CONTENT:"));
+    
+    // Message Body Text (clean word-wrapping)
+    drawWrappedText(popupMessage, 24, msgCardY + 22, 22, 3, TEXT_MEDIUM, COLOR_WHITE);
+    
+    // 5. Active Sending Progress or Result Info
+    if (popupIsSending) {
+        // High-Tech Segmented Progress Bar
+        int progY = msgCardY + msgCardH + 8; // 172
+        int progH = 18;
+        tft.fillRect(14, progY, SCREEN_WIDTH - 28, progH, RGB565(10, 16, 24));
+        tft.drawRect(14, progY, SCREEN_WIDTH - 28, progH, RGB565(25, 45, 65));
+        
+        int numSegments = 16;
+        int segSpacing = 2;
+        int totalInnerW = (SCREEN_WIDTH - 28) - 6;
+        int segW = (totalInnerW - (numSegments - 1) * segSpacing) / numSegments;
+        for (int s = 0; s < numSegments; s++) {
+            int segX = 17 + s * (segW + segSpacing);
+            tft.fillRect(segX, progY + 3, segW, progH - 6, (s < 5) ? RGB565(0, 130, 200) : RGB565(14, 24, 34));
+        }
+        
+        // Bottom Action Footer Banner
+        int footerY = SCREEN_HEIGHT - 32;
+        tft.fillRect(14, footerY, SCREEN_WIDTH - 28, 24, RGB565(12, 26, 40));
+        tft.drawRect(14, footerY, SCREEN_WIDTH - 28, 24, COLOR_CYAN_DARK);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.setCursor(22, footerY + 7);
+        tft.print(F("[TX AIRTIME ACTIVE] BROADCASTING TO BASE..."));
+    } else {
+        // Standard Dismiss Footer
+        int footerY = SCREEN_HEIGHT - 32;
+        tft.fillRect(14, footerY, SCREEN_WIDTH - 28, 24, RGB565(10, 30, 45));
+        tft.drawRect(14, footerY, SCREEN_WIDTH - 28, 24, COLOR_CYAN);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_CYAN_BRIGHT);
+        tft.setCursor(24, footerY + 7);
+        tft.print(F("PRESS ANY KEY [*] OR [#] TO DISMISS"));
+    }
+    
+    Serial.printf("[SCREEN] Message Popup displayed: '%s'\n", popupTitle.c_str());
+}
+
+static int popupAnimFrame = 0;
+static unsigned long lastPopupAnimTime = 0;
+
+void updatePopupSendingAnimation() {
+    if (currentScreen != SCREEN_MESSAGE_POPUP || !popupIsSending) return;
+    
+    unsigned long now = millis();
+    if (now - lastPopupAnimTime < 50) return; // ~20 FPS throttle
+    lastPopupAnimTime = now;
+    popupAnimFrame++;
+    
+    // 1. Header strobe beacon
+    uint16_t bCol = (popupAnimFrame % 2 == 0) ? COLOR_WHITE : COLOR_CYAN_BRIGHT;
+    tft.fillRect(16, 18, 12, 12, bCol);
+    
+    // 2. Animated progress bar sweep at y = 172
+    int progY = 172;
+    int progH = 18;
+    int numSegments = 16;
+    int segSpacing = 2;
+    int totalInnerW = (SCREEN_WIDTH - 28) - 6;
+    int segW = (totalInnerW - (numSegments - 1) * segSpacing) / numSegments;
+    int waveCycle = 20;
+    int headPos = popupAnimFrame % waveCycle;
+    
+    for (int s = 0; s < numSegments; s++) {
+        int segX = 17 + s * (segW + segSpacing);
+        uint16_t segCol;
+        if (headPos < numSegments) {
+            if (s < headPos) {
+                segCol = RGB565(0, 100 + s * 8, 170 + s * 4);
+            } else if (s == headPos) {
+                segCol = COLOR_WHITE;
+            } else {
+                segCol = RGB565(14, 24, 34);
+            }
+        } else {
+            segCol = ((popupAnimFrame % 2) == 0) ? RGB565(0, 190, 255) : RGB565(0, 140, 210);
+        }
+        tft.fillRect(segX, progY + 3, segW, progH - 6, segCol);
+    }
 }
 
 void triggerMessagePopup(const String& title, const String& sender, const String& message, int rssi, const String& status) {
@@ -2542,7 +2709,9 @@ void triggerMessagePopup(const String& title, const String& sender, const String
     popupMessage = message;
     popupStatus = status;
     popupRssi = rssi;
+    popupIsSending = false;
     popupStartTime = millis();
+    popupAutoDismissMs = 15000;
 
     // Audible alarm alert
     playConfirmTone();
@@ -2552,6 +2721,119 @@ void triggerMessagePopup(const String& title, const String& sender, const String
     previousScreen = currentScreen;
     currentScreen = SCREEN_MESSAGE_POPUP;
     drawMessagePopupScreen();
+}
+
+void triggerBleMessageSendingPopup(const String& message) {
+    popupTitle = "MESSAGE SENDING";
+    popupSender = "PHONE (BLE)";
+    popupMessage = message;
+    popupStatus = "TRANSMITTING LoRa RF...";
+    popupRssi = 0;
+    popupIsSending = true;
+    popupStartTime = millis();
+    popupAutoDismissMs = 0;
+
+    playConfirmTone();
+    delay(80);
+    playConfirmTone();
+
+    previousScreen = currentScreen;
+    currentScreen = SCREEN_MESSAGE_POPUP;
+    drawMessagePopupScreen();
+}
+
+void updateBleMessageSendingResult(bool success) {
+    if (currentScreen != SCREEN_MESSAGE_POPUP) return;
+    
+    popupIsSending = false;
+    popupStartTime = millis();
+    popupAutoDismissMs = 4000;
+    
+    int badgeY = 64;
+    int progY = 172;
+    int progH = 18;
+    int footerY = SCREEN_HEIGHT - 32;
+    
+    if (success) {
+        popupStatus = "ACK CONFIRMED!";
+        
+        // Update Status Badge
+        tft.fillRect(16, badgeY, 180, 20, RGB565(10, 48, 28));
+        tft.drawRect(16, badgeY, 180, 20, COLOR_GREEN_BRIGHT);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(24, badgeY + 6);
+        tft.print(F("ACK CONFIRMED!"));
+        
+        // Telemetry Result in Progress Bar Slot
+        tft.fillRect(14, progY, SCREEN_WIDTH - 28, progH, RGB565(10, 32, 20));
+        tft.drawRect(14, progY, SCREEN_WIDTH - 28, progH, COLOR_GREEN_DARK);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(20, progY + 5);
+        char ackInfo[64];
+        snprintf(ackInfo, sizeof(ackInfo), "GATEWAY: %s (RSSI %d dBm)",
+                 lastAckBaseId.length() > 0 ? lastAckBaseId.c_str() : "BASE-01",
+                 lastAckRssi != 0 ? lastAckRssi : -68);
+        tft.print(ackInfo);
+        
+        // Footer Result Banner
+        tft.fillRect(14, footerY, SCREEN_WIDTH - 28, 24, RGB565(8, 42, 22));
+        tft.drawRect(14, footerY, SCREEN_WIDTH - 28, 24, COLOR_GREEN_BRIGHT);
+        tft.setTextColor(COLOR_GREEN_BRIGHT);
+        tft.setCursor(22, footerY + 7);
+        tft.print(F("[DELIVERED] BASE CONFIRMED - PRESS ANY KEY"));
+        
+        playSuccessTone();
+    } else {
+        popupStatus = "SENT (NO ACK)";
+        
+        // Update Status Badge
+        tft.fillRect(16, badgeY, 180, 20, RGB565(45, 24, 10));
+        tft.drawRect(16, badgeY, 180, 20, COLOR_AMBER_BRIGHT);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.setCursor(24, badgeY + 6);
+        tft.print(F("SENT (NO ACK)"));
+        
+        // Telemetry Result in Progress Bar Slot
+        tft.fillRect(14, progY, SCREEN_WIDTH - 28, progH, RGB565(30, 18, 12));
+        tft.drawRect(14, progY, SCREEN_WIDTH - 28, progH, COLOR_AMBER_DARK);
+        tft.setTextSize(TEXT_SMALL);
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.setCursor(20, progY + 5);
+        tft.print(F("NOTICE: NO BASE ACK (RADIO SHADOW / STANDBY)"));
+        
+        // Footer Result Banner
+        tft.fillRect(14, footerY, SCREEN_WIDTH - 28, 24, RGB565(40, 20, 10));
+        tft.drawRect(14, footerY, SCREEN_WIDTH - 28, 24, COLOR_AMBER_BRIGHT);
+        tft.setTextColor(COLOR_AMBER_BRIGHT);
+        tft.setCursor(22, footerY + 7);
+        tft.print(F("[TRANSMITTED] NO ACK - PRESS ANY KEY TO DISMISS"));
+        
+        playErrorTone();
+    }
+}
+
+void dismissMessagePopup() {
+    playClickTone();
+    popupIsSending = false;
+    popupAutoDismissMs = 0;
+    
+    currentScreen = previousScreen;
+    if (currentScreen == SCREEN_BLE_PORTAL) {
+        drawBLEPortalScreen();
+    } else if (currentScreen == SCREEN_MENU) {
+        drawMenuScreen();
+    } else if (currentScreen == SCREEN_SYSTEM_INFO) {
+        drawSystemInfoScreen();
+    } else if (currentScreen == SCREEN_SENSOR_LOG) {
+        drawSensorLogScreen();
+    } else if (currentScreen == SCREEN_USER_MANUAL) {
+        drawUserManualScreen();
+    } else {
+        drawMenuScreen();
+    }
 }
 
 

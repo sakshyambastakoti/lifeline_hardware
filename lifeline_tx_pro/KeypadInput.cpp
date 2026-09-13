@@ -357,17 +357,5 @@ void handleBLEPortalInput(char key) {
 }
 
 void handleMessagePopupInput(char key) {
-    playClickTone();
-    currentScreen = previousScreen;
-    if (currentScreen == SCREEN_BLE_PORTAL) {
-        drawBLEPortalScreen();
-    } else if (currentScreen == SCREEN_MENU) {
-        drawMenuScreen();
-    } else if (currentScreen == SCREEN_SYSTEM_INFO) {
-        drawSystemInfoScreen();
-    } else if (currentScreen == SCREEN_SENSOR_LOG) {
-        drawSensorLogScreen();
-    } else {
-        drawMenuScreen();
-    }
+    dismissMessagePopup();
 }

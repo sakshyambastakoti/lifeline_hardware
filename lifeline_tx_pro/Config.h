@@ -270,6 +270,8 @@ extern String popupMessage;
 extern String popupStatus;
 extern int popupRssi;
 extern unsigned long popupStartTime;
+extern bool popupIsSending;
+extern unsigned long popupAutoDismissMs;
 
 void addReceivedMessageToHistory(const String& sender, const String& status, const String& text, int rssi);
 

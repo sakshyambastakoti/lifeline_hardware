@@ -91,6 +91,8 @@ String popupMessage = "";
 String popupStatus = "";
 int popupRssi = 0;
 unsigned long popupStartTime = 0;
+bool popupIsSending = false;
+unsigned long popupAutoDismissMs = 0;
 
 void addReceivedMessageToHistory(const String& sender, const String& status, const String& text, int rssi) {
     if (rxMessageCount >= RX_MESSAGE_HISTORY_MAX) {

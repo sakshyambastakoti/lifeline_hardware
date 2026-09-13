@@ -49,5 +49,9 @@ void drawSensorLogScreen();
 void drawBLEPortalScreen();
 void drawMessagePopupScreen();
 void triggerMessagePopup(const String& title, const String& sender, const String& message, int rssi, const String& status = "DISPATCH");
+void triggerBleMessageSendingPopup(const String& message);
+void updateBleMessageSendingResult(bool success);
+void updatePopupSendingAnimation();
+void dismissMessagePopup();
 
 #endif // DISPLAY_UI_H
