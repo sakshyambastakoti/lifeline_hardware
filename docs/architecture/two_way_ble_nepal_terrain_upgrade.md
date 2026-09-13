@@ -233,6 +233,10 @@ Both units implement the industry-standard Nordic UART Service GATT specificatio
    * The phone renders the exact pin on offline cached topographic maps (OpenStreetMap / Mapbox offline pack) showing hiking trails, contour lines, nearby water sources, and distance/bearing to the nearest road.
 3. **Live RF Health & Battery Telemetry**:
    * Phone displays real-time battery voltage, packet airtime, transmission counter, and LoRa signal strength.
+4. **On-Device Interactive Modal Pop Screen ("MESSAGE SENDING")**:
+   * When a paired smartphone issues a custom BLE message, the ST7789 display interrupts its active screen and presents a dedicated modal.
+   * Renders a glowing cyan beacon, word-wrapped sitrep body, live ~20 FPS sweeping progress bar covering airtime and 5,000ms ACK wait, and closed-loop confirmation outcome badge (`[ACK CONFIRMED!]` / `[SENT (NO ACK)]`).
+   * Auto-dismisses after 4 seconds or on keypress, restoring the previous screen.
 
 ### 3.4 Base Station Unit (`RX Pro` + Mobile) Capabilities
 1. **Total Off-Grid Command Center**:
@@ -245,15 +249,20 @@ Both units implement the industry-standard Nordic UART Service GATT specificatio
 3. **Store-and-Forward Cloud Sync**:
    * The coordinator's phone caches all distress logs locally in SQLite / IndexedDB.
    * The moment the coordinator walks to a ridge with cellular signal, or connects to an emergency satellite terminal (Starlink), the mobile app automatically syncs all incident logs to the LifeLine Cloud Dashboard.
+4. **Full 16×2 LCD Custom Message Mode**:
+   * Dedicates both Row 0 and Row 1 (all 32 characters) entirely to incoming message text.
+   * Features smart word-wrapping (`formatLCDTwoRows`), 4s hands-free auto-paging for messages > 28 chars, and manual page scroll via GPIO 14 button.
 
-### 3.5 Zero-Install Web Bluetooth Companion App (PWA)
-* In disaster zones, victims and rescuers **cannot download an app from Google Play or Apple App Store** because the internet is down.
-* LifeLine v4.0 provides a single-file, self-contained HTML5/JavaScript Progressive Web App (`index.html`) utilizing the **Web Bluetooth API**.
-* **Access Methods**:
-  1. Stored locally in the ESP32's SPIFFS filesystem and served over local Wi-Fi during initial setup.
-  2. Cached permanently in the mobile phone's browser cache.
-  3. Transferred peer-to-peer via Android Nearby Share or local Wi-Fi Direct.
-* Works seamlessly in Chrome (Android) and Bluefy / WebBLE (iOS) with **zero internet connection required**.
+### 3.5 Companion Client Tier: Native Mobile App & Zero-Install Web PWA
+* **LifeLine Companion Native Mobile App (`lifeline_companion/`)**:
+  * React Native & Expo TypeScript application for iOS and Android.
+  * 60 FPS sweeping Radar HUD with dynamic distance estimation and RSSI metrics.
+  * 48-character LoRa SITREP composer with emergency macros and closed-loop ACK status banner.
+  * Offline Mock BLE simulation engine for training without physical hardware.
+* **Zero-Install Web Bluetooth Companion App (PWA)**:
+  * In disaster zones where internet is down, single-file HTML5/JS PWAs (`bluefy_companion/index.html` & `docs/companion_app/`) run directly in Google Chrome (Android/Windows) and Bluefy Browser (iOS).
+  * Fast optical BLE pairing via chassis QR code scanner (`portal_preview/scan_qr.html`).
+  * **Zero internet connection required**.
 
 ---
 

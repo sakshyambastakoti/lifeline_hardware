@@ -96,6 +96,7 @@ Both devices implement the industry-standard **Nordic UART Service (NUS)**. This
 
 | Command | Example | Description |
 | :--- | :--- | :--- |
+| `MSG:<TEXT>` or `CHAT:<TEXT>` | `MSG:Camp site 2 flooded, move north` | Ingests direct tactical message, rendering on Full 16×2 LCD and broadcasting to paired commander phones. |
 | `REPLY:<DEV_ID>,<STATUS>,<MSG>` | `REPLY:3,DISPATCHED,APF squad airborne ETA 20m` | Transmits downlink LoRa command frame `CMD003,DISPATCHED,...` directly to field unit #3. |
 | `EVAC:ALL,<MSG>` | `EVAC:ALL,Dam breach head to high ridge` | Broadcasts emergency evacuation instruction frame `EVAC,ALL,...` to all listening field units. |
 | `ACK:<DEV_ID>` | `ACK:3` | Manually triggers an acknowledgment downlink frame to unit #3. |
@@ -104,18 +105,43 @@ Both devices implement the industry-standard **Nordic UART Service (NUS)**. This
 
 ## 4. Mobile Client Connection Guide
 
-### Option 1: Dedicated Web Companion Applications (Recommended)
+### Option 1: LifeLine Companion Native Mobile App (React Native / Expo)
 
-LifeLine includes dedicated, offline **Progressive Web Apps (PWAs)** located in `docs/companion_app/`:
+For field responders and incident commanders needing offline tactical dashboards on iOS and Android:
+* **Directory**: [`lifeline_companion/`](file:///d:/lifeline_hardware/lifeline_companion/)
+* **Tech Stack**: React Native, Expo, TypeScript, React Navigation.
+* **Core Screens & Modules**:
+  1. **Tactical Radar Screen (`RadarScreen.tsx`)**:
+     - Visual circular sweeping radar animation with range rings (1 km, 3 km, 5 km).
+     - Live signal strength indicator (RSSI in dBm) and estimated distance calculation.
+     - Active field units card list with status badges (`NOMINAL`, `DISTRESS`, `OFFLINE`).
+  2. **Field SITREP Composer (`SitrepScreen.tsx`)**:
+     - 48-character LoRa message composer with tactical quick-chips ("Trapped at bridge", "Landslide blocked road").
+     - Closed-loop ACK tracker displaying Base Station ID, RSSI, and dispatch note.
+  3. **Settings & Diagnostics (`SettingsScreen.tsx`)**:
+     - Device scanner and filter (`LifeLine-TX-*`, `LifeLine-RX-Base`).
+     - Real-time packet throughput, dropped frames, and hardware uptime.
+     - Built-in **Offline Mock Simulation Engine** for training without hardware.
+* **Running Locally**:
+  ```powershell
+  cd lifeline_companion
+  npm install
+  npx expo start
+  ```
+
+### Option 2: Dedicated Offline Web Companion PWAs
+
+LifeLine includes zero-install, offline **Progressive Web Apps (PWAs)** located in `bluefy_companion/`, `portal_preview/`, and `docs/companion_app/`:
 * **Tactical Mission Hub & Auto-Detector**: [`docs/companion_app/index.html`](file:///d:/lifeline_hardware/docs/companion_app/index.html)
 * **LifeLine TX Pro (Field Communicator)**: [`docs/companion_app/tx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/tx_companion.html)
 * **LifeLine RX Pro (Base Incident Commander)**: [`docs/companion_app/rx_companion.html`](file:///d:/lifeline_hardware/docs/companion_app/rx_companion.html)
+* **Universal Bluefy PWA**: [`bluefy_companion/index.html`](file:///d:/lifeline_hardware/bluefy_companion/index.html) (Optimized for iPhone Bluefy browser & Android Chrome).
 
 #### How to Launch:
-1. **No Internet Required**: Double-click `index.html` (or `tx_companion.html` / `rx_companion.html`) on your PC, or open them in Chrome from your phone's storage / local Wi-Fi share.
+1. **No Internet Required**: Double-click `index.html` (or `bluefy_companion/index.html`) on your PC, or serve locally with `node serve_demo.js`.
 2. **Supported Browsers**:
    - **Android / Windows / macOS / Linux**: Google Chrome, Microsoft Edge, Brave, Opera.
-   - **iOS (iPhone / iPad)**: Bluefy Browser or WebBLE (available free on App Store; Apple Safari does not expose Web Bluetooth).
+   - **iOS (iPhone / iPad)**: Bluefy Browser or WebBLE (free on App Store; Apple Safari does not expose Web Bluetooth).
 
 #### Key Application Capabilities:
 * **LifeLine TX Pro (`tx_companion.html`)**:
@@ -161,13 +187,15 @@ If using a standard utility like **Serial Bluetooth Terminal** by Kai Morich:
 
 ---
 
-## 4. On-Device Hardware Controls & Display Portals
+---
+
+## 5. On-Device Hardware Controls & Display Portals
 
 In addition to phone companion apps, both LifeLine devices feature dedicated hardware UI workflows for field operators without needing any phone attached:
 
-### 4.1 LifeLine TX Pro: Dedicated Bluetooth Portal (Keypad `'D'`)
+### 5.1 LifeLine TX Pro: Dedicated Bluetooth Portal & Tactical "MESSAGE SENDING" Pop Screen
 
-On the LifeLine TX Pro 4×4 tactile matrix keypad:
+On the LifeLine TX Pro 4×4 tactile matrix keypad and ST7789 2.8" SPI TFT display:
 * **Opening Portal**: Press key **`'D'`** from the Main Menu. The ST7789 IPS display opens the high-tech tactical **BLE Manager Portal**.
 * **Portal Features**:
   1. **Radio Power Toggle (`'1'`)**: Toggles the ESP32 2.4 GHz Bluetooth Low Energy radio instantly **ON or OFF**. When disabled, all RF advertising and background listening cease immediately, maximizing battery runtime in cold alpine environments.
@@ -190,30 +218,51 @@ On the LifeLine TX Pro 4×4 tactile matrix keypad:
 └────────────────────────────────────────┘
 ```
 
-#### Universal Downlink Emergency Popup on TX Pro
-Whenever a dispatch command (`CMD`), acknowledgement (`ACK`), or emergency evacuation broadcast (`EVAC`) arrives from the Base Station over LoRa:
-* A high-visibility emergency popup banner **interrupts any active screen** (Home Screen, Alert Menu, BLE Portal, or Sensor Log).
-* The dual piezo sirens buzz and the screen displays the base sender ID, signal RSSI, and the complete text message.
-* Pressing **any key** safely dismisses the popup and returns to the previous workflow.
+#### Interactive "MESSAGE SENDING" Pop Screen on TX Pro
+When a custom situation report or message is sent from the paired smartphone app (`MSG:<TEXT>` or `CHAT:<TEXT>`):
+1. **Instant Modal Interrupt**: The firmware halts background rendering and pops up an interactive tactical modal:
+   - **Header Beacon**: Pulsing cyan indicator with `[>] MESSAGE SENDING...`
+   - **Mode Badge**: `BLE -> LoRa Uplink`
+   - **Payload Card**: Displays the complete word-wrapped custom message body.
+   - **Live Progress Gauge**: A sweeping segmented progress bar animates at ~20 FPS during the radio transmission and 5,000ms Base Station ACK listen window.
+2. **Closed-Loop Outcome Banner**:
+   - **ACK Confirmed**: `[ACK CONFIRMED!]` (Bright Emerald Green) displaying Gateway ID, RSSI, and notes.
+   - **No ACK**: `[SENT (NO ACK)]` (Amber Advisory) if Base Station is out of direct Line-of-Sight.
+3. **Smooth Dismissal**:
+   - Auto-dismisses after 4 seconds, or instantly upon pressing **any keypad button**.
+   - Preserves and restores the exact previous screen state (`SCREEN_BLE_PORTAL`, `SCREEN_MENU`, `SCREEN_SYSTEM_INFO`, etc.).
+
+```text
+┌────────────────────────────────────────┐
+│  [>] MESSAGE SENDING...                │
+│  [BLE -> LoRa Uplink]                  │
+│┌──────────────────────────────────────┐│
+││ SITREP: 3 TRAPPED NEAR BRIDGE NEED   ││
+││ STRETCHER & MEDICAL KIT              ││
+│└──────────────────────────────────────┘│
+│  TX Status: LoRa Airtime & ACK Wait    │
+│  [████████████████░░░░░░░░░░░░░░░░]    │
+│  Base ACK: [ACK CONFIRMED! -68dBm]    │
+│  [Press any key or wait 4s to close]   │
+└────────────────────────────────────────┘
+```
 
 ---
 
-### 4.2 LifeLine RX Pro: 16×2 LCD Custom Message Scrolling (Wi-Fi Button)
+### 5.2 LifeLine RX Pro: Full 16×2 LCD Custom Message Display (Wi-Fi Button & Auto-Page)
 
 On the LifeLine RX Pro Base Station:
-* When custom mobile chat reports or emergency downlink messages arrive from field units over LoRa:
-  - **Row 0** displays the sender ID and signal strength: `M#001 -65dBm [W]`
-  - **Row 1** displays the 16-character window of the message body.
-  - The `[W]` indicator informs the operator that the physical **Wi-Fi button** (GPIO 14) controls scrolling.
-* **Message Scrolling Interaction**:
-  - Tapping the physical Wi-Fi button (short press $< 1\text{ s}$) scrolls through the message horizontally by **12 characters at a time** (maintaining a 4-character visual overlap so words remain readable).
-  - When the end of the message is reached, pressing the button wraps back to the beginning (`Offset 0`).
-  - An affirmative confirmation tick tone (`playSkipConfirmTone()`) sounds on every button press.
-  - The 15-second screen timeout resets with each button tap so the operator can take as long as needed to read long situation reports.
+* When custom mobile chat reports (`MSG:<TEXT>`), commander instructions, or emergency LoRa chat packets arrive:
+  - **Full 16×2 Character Utilization**: The screen switches into dedicated message mode, dedicating **both Row 0 AND Row 1 (all 32 characters)** entirely to the message payload rather than sacrificing half the screen to headers.
+  - **Smart Word-Wrapping (`formatLCDTwoRows`)**: Intelligently breaks lines on spaces within the last 5 characters to avoid slicing words across lines.
+  - **Dual Ingestion**: Direct BLE Bluetooth messages (`MSG:<text>` / `CHAT:<text>`) from incident commander smartphones and remote LoRa frames (`CHAT:<msgId>:<devId>:<text>`) are rendered identically.
+* **Hands-Free Auto-Paging & Manual Scrolling**:
+  - **Hands-Free Auto-Page**: If a message exceeds 28 characters, the screen smoothly cycles to the next page every 4 seconds (`scrollCurrentMessage(false)`) without resetting the 15-second return timer.
+  - **Manual Page Advance**: A short tap on the physical Wi-Fi button (GPIO 14) invokes `scrollCurrentMessage(true)`, sounding an affirmative chirp (`playSkipConfirmTone()`) and advancing the page while refreshing the 15-second reading timer.
 * **Zero Feature Conflict**:
-  - Triple-clicking within 1.5 seconds still reliably triggers **Local Web OTA Mode**.
-  - Holding for 3 seconds still opens the **Wi-Fi Captive Configuration Portal**.
-  - A short tap specifically handles scrolling without disturbing Wi-Fi settings.
+  - Triple-clicking GPIO 14 within 1.5 seconds triggers **Local Web OTA Mode**.
+  - Holding GPIO 14 for 3 seconds opens the **Wi-Fi Captive Configuration Portal**.
+  - Short tap during message display specifically advances message pages.
 
 #### Station Web Dashboard (`http://<RX_IP>`):
 When LifeLine RX Pro connects to your local Wi-Fi router, it displays its assigned IP on the 16×2 LCD (`IP: 192.168.x.x`). Navigating to `http://<RX_IP>` in any web browser opens the **Base Station Command Dashboard**:
@@ -228,7 +277,7 @@ When LifeLine RX Pro connects to your local Wi-Fi router, it displays its assign
 
 ---
 
-## 5. End-to-End Two-Way Communication Flow
+## 6. End-to-End Two-Way Communication Flow
 
 ```mermaid
 sequenceDiagram
@@ -270,7 +319,7 @@ sequenceDiagram
 
 ---
 
-## 6. Flash Partition & Memory Footprint
+## 7. Flash Partition & Memory Footprint
 
 To allow both **NimBLE-Arduino** and **Wi-Fi / OTA** to operate safely on the ESP32 without memory overflow:
 
@@ -297,7 +346,7 @@ lib_deps =
 
 ---
 
-## 7. Field Troubleshooting & Diagnostics
+## 8. Field Troubleshooting & Diagnostics
 
 1. **Smartphone cannot find device in Bluetooth scan**:
    - Ensure phone Bluetooth and **Location Services** (GPS) are turned ON (required by Android OS for BLE scanning).

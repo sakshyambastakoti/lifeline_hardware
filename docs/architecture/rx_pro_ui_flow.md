@@ -11,28 +11,30 @@
 3. [WiFi Splash Screen](#3-wifi-splash-screen)
 4. [Home / Idle Screen](#4-home--idle-screen)
 5. [Alert / Signal Received Screen](#5-alert--signal-received-screen)
-6. [No WiFi Screen](#6-no-wifi-screen)
-7. [WiFi Setup Countdown Screen](#7-wifi-setup-countdown-screen)
-8. [WiFi Portal Active Screen](#8-wifi-portal-active-screen)
-9. [Buzzer & LED Behaviour Table](#9-buzzer--led-behaviour-table)
-10. [Complete State Flow Diagram](#10-complete-state-flow-diagram)
-11. [LCD Pixel Layout Reference](#11-lcd-pixel-layout-reference)
+6. [Custom Message Screen (Full 16×2 LCD)](#6-custom-message-screen-full-162-lcd)
+7. [No WiFi Screen](#7-no-wifi-screen)
+8. [WiFi Setup Countdown Screen](#8-wifi-setup-countdown-screen)
+9. [WiFi Portal Active Screen](#9-wifi-portal-active-screen)
+10. [Buzzer & LED Behaviour Table](#10-buzzer--led-behaviour-table)
+11. [Complete State Flow Diagram](#11-complete-state-flow-diagram)
+12. [LCD Pixel Layout Reference](#12-lcd-pixel-layout-reference)
 
 ---
 
 ## 1. Overview & Screen States
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  SCREEN STATE MACHINE                   │
-│                                                         │
-│  SCREEN_BOOT  →  SCREEN_IDLE  ⇄  SCREEN_ALERT          │
-│                       ↑                                 │
-│            (WiFi splash shown between them)             │
-│                                                         │
-│  SCREEN_NO_WIFI  →  SCREEN_IDLE  (1 min timeout)        │
-│  SCREEN_NO_WIFI  →  SCREEN_PORTAL_COUNTDOWN → PORTAL   │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                      SCREEN STATE MACHINE                        │
+│                                                                  │
+│  SCREEN_BOOT  ──►  SCREEN_IDLE  ◄───►  SCREEN_ALERT              │
+│                         ▲        ◄───►  SCREEN_CUSTOM_MSG (Full) │
+│                         │                                        │
+│              (WiFi splash shown between them)                    │
+│                                                                  │
+│  SCREEN_NO_WIFI  ──►  SCREEN_IDLE  (1 min timeout)               │
+│  SCREEN_NO_WIFI  ──►  SCREEN_PORTAL_COUNTDOWN  ──►  PORTAL       │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 | State ID | Screen Name | Trigger | Duration |
@@ -41,7 +43,8 @@
 | *(transient)* | WiFi Connected Splash | Boot complete + WiFi OK | ~1.5 seconds |
 | *(transient)* | No WiFi Screen | Boot complete + no WiFi | Until input or 60 s |
 | `SCREEN_IDLE` | Home / Idle Screen | After boot/WiFi phase | Indefinite |
-| `SCREEN_ALERT` | Alert Screen | LoRa packet received | 30 seconds then auto-return |
+| `SCREEN_ALERT` | Alert Screen | LoRa standard packet received | 30 seconds then auto-return |
+| `SCREEN_CUSTOM_MSG` | Full 16×2 Custom Message | LoRa `CHAT:` or BLE `MSG:`/`CHAT:` | 15 seconds (auto-pages every 4s) |
 | *(transient)* | Portal Countdown | GPIO 14 held 3 s | 3-second progress bar |
 | `SCREEN_PORTAL` | WiFi Setup Portal | Portal countdown ends | Until saved / 3 min timeout |
 
@@ -265,7 +268,62 @@ R1:  │TX#001 -60dBm OK│
 
 ---
 
-## 6. No WiFi Screen
+## 6. Custom Message Screen (Full 16×2 LCD Freeform Mode)
+
+**Trigger:** Incoming LoRa freeform text (`CHAT:<msgId>:<senderId>:<text>`) OR direct Bluetooth BLE command (`MSG:<text>` / `CHAT:<text>`)  
+**Duration:** 15 seconds auto-return to `SCREEN_IDLE` (with hands-free 4s auto-paging for long text)  
+**Buzzer:** High-priority arrival alert tone (`playAlertTone(0)`), short chirp on page skip (`playSkipConfirmTone()`)  
+**LEDs:** Red Data LED (GPIO 13) flashes rapidly upon ingestion  
+
+### Design Concept: Full 32-Character Utilization
+Standard alert screens reserve Row 1 for RF telemetry (`TX#001 -65dBm CR`). For freeform mission sitreps, chat messages, and doctor instructions, the screen switches into **Full 16×2 LCD Mode**:
+* **Row 0 (16 columns)**: Message characters 1–16 (smart word-wrapped).
+* **Row 1 (16 columns)**: Message characters 17–32 (smart word-wrapped).
+* **Total Instant Read**: Up to 32 characters displayed simultaneously without sacrificing half the screen to headers.
+
+```
+Col: 0123456789012345
+     ┌────────────────┐
+R0:  │TEAM REACHED SEC│  ← Row 0: Full 16 chars message text
+R1:  │TOR 4 WATER OK  │  ← Row 1: Full 16 chars continuation
+     └────────────────┘
+```
+
+### Smart Word-Wrapping Engine (`formatLCDTwoRows`)
+Messages are formatted in real time by `formatLCDTwoRows(message, offset, outRow0, outRow1)`:
+1. **Row 0 Windowing**: Takes up to 16 characters from current offset. If column 16 lands inside a word, scans backward up to 5 characters for a space delimiter and breaks the line cleanly.
+2. **Row 1 Windowing**: Skips leading spaces, fills up to 16 characters, and applies the same 5-character backward space-break rule.
+3. **Return Offset**: Returns the starting character index for the subsequent page, or `0` if the entire message has been displayed.
+
+### Multi-Page Paging & Progression
+For long messages (> 28 characters):
+* **Hands-Free Auto-Paging**: Every 4 seconds, the firmware automatically calls `scrollCurrentMessage(false)`. This smoothly advances to the next two-row page without extending the 15-second return timer, avoiding infinite display locks.
+* **Manual Button Advance**: A short press on the tactile button (GPIO 14) invokes `scrollCurrentMessage(true)`, playing a skip chirp, rendering the next page immediately, and resetting the 15-second idle countdown.
+* **Wrap-Around**: Once the last page is displayed, the next advance loops back to page 1.
+
+#### Multi-Page Example: *"DOCTOR ARRIVED AT HELIPAD NEEDING OXYGEN CYLINDER"*
+
+**Page 1 (Characters 0–31):**
+```
+Col: 0123456789012345
+     ┌────────────────┐
+R0:  │DOCTOR ARRIVED  │  (Broke cleanly after 'ARRIVED')
+R1:  │AT HELIPAD      │  
+     └────────────────┘
+```
+
+**Page 2 (Characters 32+ Auto-Paged after 4s):**
+```
+Col: 0123456789012345
+     ┌────────────────┐
+R0:  │NEEDING OXYGEN  │  
+R1:  │CYLINDER        │  
+     └────────────────┘
+```
+
+---
+
+## 7. No WiFi Screen
 
 **Trigger:** Boot completes with no stored credentials OR all stored networks failed  
 **Duration:** 60 seconds auto-advance to Idle, or user input  
@@ -292,7 +350,7 @@ R1:  │1x=Skip 3s=Setup│
 
 ---
 
-## 7. WiFi Setup Countdown Screen
+## 8. WiFi Setup Countdown Screen
 
 **Trigger:** User holds GPIO 14 button for 3 seconds (from No WiFi or Idle screen)  
 **Duration:** 3-second countdown while button is held  
@@ -330,7 +388,7 @@ R1:  │################│   ← 16 of 16 block chars filled
 
 ---
 
-## 8. WiFi Portal Active Screen
+## 9. WiFi Portal Active Screen
 
 **Trigger:** 3-second countdown completes  
 **Duration:** Up to 3 minutes (`WIFI_PORTAL_TIMEOUT = 180000 ms`) or until saved  
@@ -351,7 +409,7 @@ R1:  │192.168.4.1     │   ← Connect & navigate to this IP
 
 ---
 
-## 9. Buzzer & LED Behaviour Table
+## 10. Buzzer & LED Behaviour Table
 
 ### Buzzer Summary
 
@@ -366,6 +424,8 @@ R1:  │192.168.4.1     │   ← Connect & navigate to this IP
 | Alert — CRITICAL (0) | 2500 Hz | 100 ms | 3× rapid beeps (120 ms gap) |
 | Alert — HIGH (1) | 2200 Hz | 150 ms | 2× beeps (180 ms gap) |
 | Alert — MED / OK / INFO | 2000 Hz | 200 ms | 1× single beep |
+| Custom Message Arrival | 2500 Hz | 100 ms | 3× high-priority beeps |
+| Custom Message Page Advance | 1500 Hz | 50 ms | Single confirmation chirp |
 | Return to Idle auto-timeout | 1200 Hz | 80 ms | Soft single pip |
 
 ### LED Summary
@@ -376,101 +436,100 @@ R1:  │192.168.4.1     │   ← Connect & navigate to this IP
 | WiFi LED (Green) | 21 | No WiFi | OFF |
 | WiFi LED (Green) | 21 | Connecting / countdown | Slow blink (500 ms) |
 | WiFi LED (Green) | 21 | Portal active | Fast blink (100 ms) |
-| Data LED (Red) | 13 | LoRa packet received | 250 ms ON pulse |
+| Data LED (Red) | 13 | LoRa packet / BLE message received | 250 ms ON pulse |
 | Data LED (Red) | 13 | Idle / no activity | OFF |
 
 ---
 
-## 10. Complete State Flow Diagram
+## 11. Complete State Flow Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     LIFELINE RX UI STATE MACHINE                    │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      LIFELINE RX UI STATE MACHINE                       │
+└─────────────────────────────────────────────────────────────────────────┘
 
-              [ POWER ON / RESET ]
-                       │
+               [ POWER ON / RESET ]
+                        │
+                        ▼
+              ┌─────────────────┐
+              │   BOOT SCREEN   │  Buzzer: 1× pip (1500Hz, 80ms)
+              │  LIFELINE RX    │  LEDs: both OFF
+              │  Booting...     │  Duration: ~2 seconds
+              └────────┬────────┘
+                       │ Boot complete
                        ▼
-             ┌─────────────────┐
-             │   BOOT SCREEN   │  Buzzer: 1× pip (1500Hz, 80ms)
-             │  LIFELINE RX    │  LEDs: both OFF
-             │  Booting...     │  Duration: ~2 seconds
-             └────────┬────────┘
-                      │ Boot complete
-                      ▼
-            ┌──────────────────────┐
-            │  WiFi Check Phase    │  Load stored credentials
-            └─────────┬────────────┘
-                      │
-          ┌───────────┴────────────┐
-    Credentials?                    │
-       YES                         NO
-          │                         │
-          ▼                         ▼
-  ┌───────────────┐        ┌────────────────────┐
-  │  Try connect  │        │   NO WIFI SCREEN   │  Buzzer: 2× descending
-  │  (up to 3     │        │  "No Internet!"    │  LEDs: both OFF
-  │   networks,   │        │  "1x=Skip 3s=Setup"│
-  │   8s timeout) │        └──────────┬─────────┘
-  └───────┬───────┘                   │
-          │                ┌──────────┼───────────┐
-   Connected?            Short      60s          Hold
-    YES   NO            press      timeout       3 sec
-     │     │              │           │             │
-     │     │              ▼           ▼             ▼
-     │   ┌────────┐    [IDLE]      [IDLE]     ┌──────────────┐
-     │   │WiFi    │   (no net)    (no net)    │  COUNTDOWN   │
-     │   │Failed  │                           │  SCREEN      │
-     │   │Screen  │                           │ GPIO14 Held  │
-     │   └────┬───┘                           │ [##########] │
-     │        │                               │ bar fills 3s │
-     ▼        ▼                               └──────┬───────┘
-  ┌────────────────────┐                            │ 3s done?
-  │ WIFI CONNECTED     │                     YES ───┘
-  │ SPLASH SCREEN      │                     │
-  │ "WiFi Connected!"  │                     ▼
-  │ "IP:xxx.xxx.x.xx"  │         ┌───────────────────────┐
-  └────────┬───────────┘         │  WIFI PORTAL SCREEN   │
-           │ 1.5s                │  AP:LifeLine-RX-Setup  │
-           │                     │  192.168.4.1           │
-           ▼                     └───────────┬───────────┘
-  ┌─────────────────────────────────────┐    │
-  │          HOME / IDLE SCREEN         │◄───┤ (save & reboot
-  │  "LIFELINE RX   [*]"                │    │  or 3min timeout)
-  │  "433MHz  Alt:NNN"                  │    │
-  │   radar glyph pulses every 600ms    │    │
-  └──────────────┬──────────────────────┘    │
-                 │                            │
-         LoRa packet arrives                 │
-                 │                            │
-                 ▼                            │
-  ┌─────────────────────────────────────┐    │
-  │          ALERT SCREEN               │    │
-  │  "[!] X ALERT NAME      "           │    │
-  │  "TX#NNN -NNdBm   PRIORITY"         │    │
-  │                                     │    │
-  │  Buzzer: priority tone              │    │
-  │  Data LED: 250ms blink              │    │
-  │  API push if WiFi connected         │    │
-  └──────────────┬──────────────────────┘    │
-                 │                            │
-     ┌───────────┴────────────┐              │
-     │                        │              │
-   New packet             30s timeout        │
-   received                   │              │
-     │                        ▼              │
-     │              ┌──────────────────┐     │
-     │              │  HOME / IDLE     │─────┘
-     │              │  SCREEN          │
-     ▼              └──────────────────┘
-  Update alert
-  on screen
-  (reset 30s timer)
+             ┌──────────────────────┐
+             │  WiFi Check Phase    │  Load stored credentials
+             └─────────┬────────────┘
+                       │
+           ┌───────────┴────────────┐
+     Credentials?                    │
+        YES                         NO
+           │                         │
+           ▼                         ▼
+   ┌───────────────┐        ┌────────────────────┐
+   │  Try connect  │        │   NO WIFI SCREEN   │  Buzzer: 2× descending
+   │  (up to 3     │        │  "No Internet!"    │  LEDs: both OFF
+   │   networks,   │        │  "1x=Skip 3s=Setup"│
+   │   8s timeout) │        └──────────┬─────────┘
+   └───────┬───────┘                   │
+           │                ┌──────────┼───────────┐
+    Connected?            Short      60s          Hold
+     YES   NO            press      timeout       3 sec
+      │     │              │           │             │
+      │     │              ▼           ▼             ▼
+      │   ┌────────┐    [IDLE]      [IDLE]     ┌──────────────┐
+      │   │WiFi    │   (no net)    (no net)    │  COUNTDOWN   │
+      │   │Failed  │                           │  SCREEN      │
+      │   │Screen  │                           │ GPIO14 Held  │
+      │   └────┬───┘                           │ [##########] │
+      │        │                               │ bar fills 3s │
+      ▼        ▼                               └──────┬───────┘
+   ┌────────────────────┐                             │ 3s done?
+   │ WIFI CONNECTED     │                      YES ───┘
+   │ SPLASH SCREEN      │                      │
+   │ "WiFi Connected!"  │                      ▼
+   │ "IP:xxx.xxx.x.xx"  │          ┌───────────────────────┐
+   └────────┬───────────┘          │  WIFI PORTAL SCREEN   │
+            │ 1.5s                 │  AP:LifeLine-RX-Setup │
+            │                      │  192.168.4.1          │
+            ▼                      └───────────┬───────────┘
+   ┌─────────────────────────────────────┐     │
+   │          HOME / IDLE SCREEN         │◄────┤ (save & reboot
+   │  "LIFELINE RX   [*]"                │     │  or 3min timeout)
+   │  "433MHz  Alt:NNN"                  │     │
+   │   radar glyph pulses every 600ms    │     │
+   └──────────────┬──────────────────────┘     │
+                  │                            │
+      ┌───────────┴────────────────┐           │
+      │                            │           │
+ Standard LoRa                LoRa CHAT:       │
+ alert packet                  or BLE MSG:     │
+      │                            │           │
+      ▼                            ▼           │
+┌───────────────────────────┐ ┌──────────────────────────────────────┐
+│       ALERT SCREEN        │ │   FULL 16x2 CUSTOM MESSAGE SCREEN    │
+│ "[!] X ALERT NAME       " │ │ "PAGE 1 CHR 0-15                 "   │
+│ "TX#NNN -NNdBm  PRIORITY" │ │ "PAGE 1 CHR 16-31                "   │
+│                           │ │                                      │
+│ Buzzer: priority tone     │ │ • Auto-pages every 4s if > 28 chars  │
+│ Data LED: 250ms blink     │ │ • GPIO14 Short Press: next page      │
+│ API push if WiFi connected│ │ • Full 32 characters dedicated       │
+└─────────────┬─────────────┘ └──────────────────┬───────────────────┘
+              │ 30s timeout                      │ 15s timeout
+              │ (or new alert)                   │ (or new msg)
+              └───────────────┬──────────────────┘
+                              │
+                              ▼
+                    ┌──────────────────┐
+                    │   HOME / IDLE    │
+                    │   SCREEN         │
+                    └──────────────────┘
 ```
 
 ---
 
-## 11. LCD Pixel Layout Reference
+## 12. LCD Pixel Layout Reference
 
 All screens are 16 columns × 2 rows. Column index: 0–15. Row index: 0–1.
 
@@ -486,19 +545,20 @@ All screens are 16 columns × 2 rows. Column index: 0–15. Row index: 0–1.
 
 ### Screen Quick Reference Matrix
 
-| Screen | Row 0 (16 chars) | Row 1 (16 chars) |
-|---|---|---|
-| **Boot** | `  LIFELINE RX  ` | `   Booting...  ` |
-| **WiFi OK splash** | `WiFi Connected!` | `IP:192.168.x.x ` |
-| **WiFi connecting** | `WiFi Connecting` | `1/2:NetworkName` |
-| **WiFi failed** | `WiFi Failed!   ` | `Open Setup AP..` |
-| **Idle (Home)** | `LIFELINE RX  [*]` | `433MHz  Alt:NNN` |
-| **Alert** | `[!] X ALERT NAME  ` | `TX#NNN -NNdBm PRI` |
-| **No WiFi** | `No Internet!   ` | `1x=Skip 3s=Setup` |
-| **Countdown** | `GPIO14 Btn Held` | `################` |
-| **Portal active** | `AP:LifeLine-RX ` | `192.168.4.1    ` |
+| Screen | Row 0 (16 chars) | Row 1 (16 chars) | Description |
+|---|---|---|---|
+| **Boot** | `  LIFELINE RX  ` | `   Booting...  ` | System initialization |
+| **WiFi OK splash** | `WiFi Connected!` | `IP:192.168.x.x ` | Transient IP banner |
+| **WiFi connecting** | `WiFi Connecting` | `1/2:NetworkName` | Active network join attempt |
+| **WiFi failed** | `WiFi Failed!   ` | `Open Setup AP..` | Connection timeout notification |
+| **Idle (Home)** | `LIFELINE RX  [*]` | `433MHz  Alt:NNN` | Ready monitoring state with pulsing radar |
+| **Alert** | `[!] X ALERT NAME  ` | `TX#NNN -NNdBm PRI` | Emergency category & RF telemetry |
+| **Custom Message** | `[Full Text P1] ` | `[Full Text P1] ` | Dedicated 32-char freeform text with auto-page |
+| **No WiFi** | `No Internet!   ` | `1x=Skip 3s=Setup` | Fallback prompt when offline |
+| **Countdown** | `GPIO14 Btn Held` | `################` | Interactive 3-second hold gauge |
+| **Portal active** | `AP:LifeLine-RX ` | `192.168.4.1    ` | SoftAP captive portal server active |
 
 ---
 
 *Document generated for LIFELINE RX v3.1.0 PRO · ESP32 + 16×2 I²C LCD*  
-*Last updated: 2026-07-21*
+*Last updated: 2026-09-13 (Updated with Full 16×2 LCD Custom Message and BLE Hub upgrades)*

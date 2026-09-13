@@ -7,9 +7,10 @@
 ## 📌 Table of Contents
 - [1. System Overview & Architecture](#1-system-overview--architecture)
 - [2. Repository Structure](#2-repository-structure)
-- [3. Firmware Subprojects](#3-firmware-subprojects)
+- [3. Firmware Subprojects & Companion Applications](#3-firmware-subprojects--companion-applications)
   - [LifeLine RX Pro (Base Station Receiver)](#-lifeline-rx-pro-base-station-receiver)
   - [LifeLine TX Pro (Field Transmitter)](#-lifeline-tx-pro-field-transmitter)
+  - [LifeLine Companion Ecosystem (Mobile & Web)](#-lifeline-companion-ecosystem-mobile--web)
   - [LifeLine SPU (Sensor Processing Unit)](#-lifeline-spu-sensor-processing-unit)
   - [LifeLine CCU (Communication Controller Unit)](#-lifeline-ccu-communication-controller-unit)
 - [4. Hardware Pinouts Quick Reference](#4-hardware-pinouts-quick-reference)
@@ -96,24 +97,42 @@ lifeline_hardware/
 │   ├── platformio.ini                      <-- PlatformIO configuration (USB & OTA envs)
 │   ├── lifeline_rx_pro.ino                 <-- Main Arduino sketch entrypoint
 │   ├── APIClient.cpp / .h                  <-- HTTPS Cloud REST API forwarder
+│   ├── BLEManager.cpp / .h                 <-- Bluetooth Low Energy Nordic UART Hub & commander dispatch
 │   ├── BuzzerLED.cpp / .h                  <-- Multi-tone siren & status LED driver
 │   ├── Config.h                            <-- Pinouts, timings, and network defaults
-│   ├── DisplayUI.cpp / .h                  <-- 16x2 I2C LCD renderer & custom glyphs
-│   ├── LoRaComm.cpp / .h                   <-- SX1278 RF receiver & packet parser
+│   ├── DisplayUI.cpp / .h                  <-- Full 16x2 LCD custom message formatter & custom glyphs
+│   ├── LoRaComm.cpp / .h                   <-- SX1278 RF receiver, CHAT parser & 2-way ACK
 │   ├── OTAManager.cpp / .h                 <-- Remote HTTPS OTA client
 │   └── WiFiPortal.cpp / .h                 <-- Captive web portal & Multi-Wi-Fi manager
 │
 ├── lifeline_tx_pro/                        <-- Field Handheld Transmitter Firmware
 │   ├── platformio.ini                      <-- PlatformIO configuration (USB & OTA envs)
 │   ├── lifeline_tx_pro.ino                 <-- Main Arduino sketch entrypoint
+│   ├── BLEManager.cpp / .h                 <-- Bluetooth Low Energy Nordic UART companion interface
 │   ├── BuzzerLED.cpp / .h                  <-- Keypad acoustic feedback & LED driver
-│   ├── Config.cpp / .h                     <-- Alert dictionary, RF frequencies, pinouts
-│   ├── DisplayUI.cpp / .h                  <-- 2.8" SPI TFT (ST7789) graphical dark theme
+│   ├── Config.cpp / .h                     <-- Alert dictionary, RF frequencies, pinouts & popup states
+│   ├── DisplayUI.cpp / .h                  <-- 2.8" SPI TFT (ST7789) dark theme & "MESSAGE SENDING" pop screen
 │   ├── KeypadInput.cpp / .h                <-- 4x4 matrix keypad scanner & debouncer
-│   ├── LoRaComm.cpp / .h                   <-- SX1278 RF transmitter & retry logic
+│   ├── LoRaComm.cpp / .h                   <-- SX1278 RF transmitter & 5,000ms ACK listen window
 │   ├── OTAManager.cpp / .h                 <-- Local SoftAP wireless firmware update
 │   ├── SharedProtocol.h                    <-- Common binary packet structures & CRC16
 │   └── SPUReceiver.h                       <-- Telemetry interface for SPU display
+│
+├── lifeline_companion/                     <-- Tactical Mobile Companion App (React Native / Expo)
+│   ├── src/
+│   │   ├── components/                     <-- TacticalHeader, StatusBadge, LinkQualityIndicator
+│   │   ├── context/                        <-- LifeLineContext provider & BLE state engine
+│   │   ├── screens/                        <-- RadarScreen, SitrepScreen, SettingsScreen, AlertModal
+│   │   ├── services/                       <-- BleService, MockBleService, NotificationService
+│   │   └── theme/                          <-- Military-grade cybernetic dark design tokens
+│   └── App.tsx                             <-- Main navigation & application entrypoint
+│
+├── bluefy_companion/                       <-- Zero-Install Web Bluetooth PWA (iOS Bluefy & Android Chrome)
+│   └── index.html                          <-- Standalone offline Web Bluetooth situational terminal
+│
+├── portal_preview/                         <-- Interactive Web Companion & QR Scanner Demo
+│   ├── companion_app.html                  <-- Standalone Web Bluetooth companion simulator
+│   └── scan_qr.html                        <-- Fast QR-based hardware pairing scanner
 │
 ├── lifeline_tx_spu/                        <-- Autonomous Sensor Processing Unit Firmware
 │   ├── platformio.ini                      <-- PlatformIO configuration
@@ -148,14 +167,17 @@ lifeline_hardware/
 
 ---
 
-## 3. Firmware Subprojects
+## 3. Firmware Subprojects & Companion Applications
 
 ### 📡 LifeLine RX Pro (Base Station Receiver)
 * **Target Board**: ESP32 DevKit V1
 * **Display**: 16×2 Character I2C LCD (PCF8574 @ `0x27`)
 * **RF Transceiver**: SX1278 LoRa @ 433 MHz (SF12, BW 125 kHz, CR 4/8, Sync Word `0x12`)
+* **Bluetooth**: BLE 4.2/5.0 Nordic UART Service (NUS) Advertising (`LifeLine-RX-Base`)
 * **Key Features**:
-  - Continuous low-power RF reception with live RSSI measurement.
+  - Continuous low-power RF reception with live RSSI and SNR telemetry.
+  - **Full 16×2 LCD Custom Message Display**: Uses both Row 0 and Row 1 (all 32 characters) for freeform chat/SITREP text with smart word-wrapping, auto-scroll paging, and manual button advance.
+  - **Bluetooth Commander Hub**: Ingests direct mobile commands (`MSG:`, `REPLY:`, `EVAC:`) and broadcasts push notifications (`CHAT:`, `ALERT:`, `TELEMETRY:`) to paired smartphones.
   - Multi-Wi-Fi memory (stores up to 3 network credentials with auto-fallback).
   - Captive Web Setup Portal (`192.168.4.1`) launched via dedicated hardware push-button.
   - HTTPS Cloud REST API gateway automatically posting emergency alerts to central dashboard.
@@ -163,15 +185,33 @@ lifeline_hardware/
 
 ### 📟 LifeLine TX Pro (Field Transmitter)
 * **Target Board**: ESP32 DevKit V1
-* **Display**: 2.8" SPI Color TFT (ST7789, 240×320 / 320×480)
+* **Display**: 2.8" SPI Color TFT (ST7789, 240×320 / 320×240 landscape)
 * **Input**: 4×4 Tactile Matrix Keypad
 * **RF Transceiver**: SX1278 LoRa @ 433 MHz (+18 dBm boosted output)
+* **Bluetooth**: BLE 4.2/5.0 Nordic UART Service (NUS) Advertising (`LifeLine-TX-XXX`)
 * **Key Features**:
-  - High-contrast graphical dark theme designed for sunlight anti-glare readability.
-  - 15 pre-configured emergency categories tailored for Himalayan health, maternal delivery, and relief supplies (`CRITICAL SOS`, `DELIVERY / LABOR`, `HELI RESCUE`, `MEDICINE SHORTAGE`, `OXYGEN SHORTAGE`, `SEVERE INJURY`, `BLOOD NEEDED`, `ALTITUDE SICKNESS`, `FOOD SHORTAGE`, `WATER SHORTAGE`, `DISEASE OUTBREAK`, `FREEZING / SHELTER`, `LANDSLIDE`, `DOCTOR / NURSE NEED`, `STATUS OK`).
-  - Hotkey mapping on 4x4 keypad (Keys 1–9 and 0 for top 10 time-critical alerts) with double confirmation screen to prevent false dispatches.
-  - Live RF transmission status screen with animated signal indicator.
+  - High-contrast graphical cybernetic dark theme designed for sunlight anti-glare readability.
+  - **Tactical "MESSAGE SENDING" Pop Screen**: When a custom BLE message is sent from the companion phone (`MSG:<text>`), an interactive pop screen appears displaying:
+    - Glowing header transmission beacon and `[BLE -> LoRa]` mode badge.
+    - Word-wrapped SITREP payload card showing the complete custom message.
+    - Live ~20 FPS sweeping segmented progress bar active during airtime and 5,000ms ACK listen window.
+    - Closed-loop Gateway ACK confirmation badge (`[ACK CONFIRMED!]` / `[SENT (NO ACK)]`) with Gateway ID, RSSI, and note.
+    - Auto-dismiss (4s) or manual keypress dismissal, smoothly restoring the previous screen (`SCREEN_BLE_PORTAL`, `SCREEN_MENU`, `SCREEN_SYSTEM_INFO`, etc.).
+  - 15 pre-configured emergency categories tailored for Himalayan health, maternal delivery, and relief supplies.
+  - Hotkey mapping on 4x4 keypad (Keys 1–9 and 0 for top 10 time-critical alerts) with double confirmation screen.
   - Wireless SoftAP OTA update mode triggered by holding Key `0` for 3 seconds.
+
+### 📱 LifeLine Companion Ecosystem (Mobile & Web)
+* **LifeLine Companion Mobile App (`lifeline_companion/`)**:
+  - Built with React Native & Expo for iOS and Android.
+  - Tactical military-grade dark theme with real-time BLE connection management.
+  - Radar Screen with dynamic signal sweeps, distance estimation, and RSSI tracking.
+  - Freeform SITREP composer with one-touch emergency macros.
+  - Acoustic and haptic feedback on incoming distress alerts and ACK receipts.
+* **Zero-Install Web Bluetooth Companion (`bluefy_companion/` & `portal_preview/`)**:
+  - Offline Progressive Web Application (PWA) compatible with iOS (Bluefy Browser) and Android (Google Chrome).
+  - Instant pairing via QR Code camera scanning.
+  - Full packet stream terminal and hardware status monitoring.
 
 ### 🔬 LifeLine SPU (Sensor Processing Unit)
 * **Target Board**: ESP32 DevKit V1
@@ -273,6 +313,20 @@ pio run -d lifeline_tx_ccu
 ### Option C: In Visual Studio Code
 1. Open the multi-project workspace by clicking on [lifeline.code-workspace](file:///d:/lifeline_hardware/lifeline.code-workspace).
 2. Press `Ctrl+Shift+B` to launch the build task menu and choose your target.
+
+### Option D: Running the Mobile & Web Companion Applications
+```powershell
+# 1. Launch the React Native Expo Mobile App
+cd lifeline_companion
+npm install
+npx expo start
+
+# 2. Launch the Web Companion & Offline QR Pairing Demo Server
+cd ..
+node serve_demo.js
+# Access: http://localhost:8080/portal_preview/companion_app.html
+# Or open bluefy_companion/index.html on iOS (Bluefy) or Android (Chrome)
+```
 
 ---
 

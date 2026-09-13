@@ -21,13 +21,24 @@ The **LifeLine TX Pro** is a ruggedized, handheld emergency communication transm
   * **Preamble Length**: 16 symbols
   * **Transmit Power**: +18 dBm (~63 mW boosted RF output)
   * **Sync Word**: `0x12` (Isolated emergency channel network)
-* **Compact Packet Protocol**: Standard payload syntax: `TX[ID],[ALERT_CODE]` (e.g., `TX003,A`).
+* **Compact Packet Protocol**: Standard payload syntax: `TX[ID],[ALERT_CODE]` (e.g., `TX003,A`) and freeform chat uplink `TX[ID],CHAT,[MESSAGE]`.
+* **Bluetooth Low Energy (BLE) Companion Core**:
+  * Nordic UART Service (NUS) GATT advertising (`LifeLine-TX-XXX`).
+  * Ingests mobile app distress commands (`ALERT:<code-or-text>`) and freeform situation reports (`MSG:<text>`).
+  * 5,000ms ACK listen window listening for downlink Base Station confirmation packets.
 
 ### 📟 Display & Visual Interface
 * **2.8" SPI Color TFT Display (ST7789)**:
   * **Adaptive Resolution Engine**: Supports both 240×320 and 320×480 screen configurations in landscape orientation.
   * **High-Contrast Dark Theme**: Ultra-modern dark palette (RGB565 `#0D0D0F` background, neon green `#00FF87`, electric red `#FF3B3B`, cyan `#00D4FF`) designed for anti-glare sunlight readability.
   * **Animated Boot Sequence**: Displays radar sweeping graphic, peripheral self-test, and firmware version.
+  * **Tactical "MESSAGE SENDING" Pop Screen**:
+    * Interactive modal popup triggered whenever a paired mobile app dispatches a custom BLE message.
+    * Glowing cyan transmission beacon and `[BLE -> LoRa Uplink]` status badge.
+    * Word-wrapped SITREP card displaying full text payload.
+    * Live ~20 FPS sweeping progress bar active during radio airtime and 5,000ms ACK wait window.
+    * Closed-loop confirmation outcome badge: `[ACK CONFIRMED!]` (Green) or `[SENT (NO ACK)]` (Amber).
+    * Auto-dismisses after 4 seconds or on any keypress, cleanly restoring the previous screen.
   * **15 Pre-configured Categorized Alerts**:
     1. `EMERGENCY` (Critical)
     2. `MEDICAL EMERGENCY` (Critical)
@@ -61,9 +72,13 @@ The **LifeLine TX Pro** is a ruggedized, handheld emergency communication transm
 
 The **LifeLine RX Pro** is a high-availability base station installed in emergency command centers, medical posts, or village administrative hubs.
 
-### 📡 Wireless Reception Core
+### 📡 Wireless Reception & Bluetooth Hub
 * **LoRa SX1278 Receiver (433 MHz)**: Continuous low-power RF listening matching TX Pro and CCU transmission parameters.
-* **Real-time Signal Quality Assessment**: Computes Received Signal Strength Indicator (RSSI in dBm) for each incoming packet to estimate sender proximity.
+* **Real-time Signal Quality Assessment**: Computes Received Signal Strength Indicator (RSSI in dBm) and SNR for each incoming packet to estimate sender proximity.
+* **Bluetooth Low Energy (BLE) Commander Hub**:
+  * Advertises Nordic UART Service (`LifeLine-RX-Base`).
+  * Direct mobile chat ingestion (`MSG:<text>` / `CHAT:<text>`) from incident commander phones.
+  * Streams incoming field distress alerts and situation reports to paired phones in real time.
 
 ### 📟 Display & Audio Interface
 * **16×2 Character I2C LCD Display (PCF8574 @ 0x27)**:
@@ -73,6 +88,11 @@ The **LifeLine RX Pro** is a high-availability base station installed in emergen
   * `SCREEN_BOOT`: Initialization sequence and peripheral validation.
   * `SCREEN_IDLE`: Listening screen with radar sweep, active Wi-Fi SSID, NTP clock, and alert counter.
   * `SCREEN_ALERT`: Instant high-priority popup showing Device ID, Alert Name, Priority, RSSI, and timestamp.
+  * **`SCREEN_CUSTOM_MSG` (Full 16×2 LCD Custom Message Mode)**:
+    * Deducates both Row 0 and Row 1 (all 32 characters) entirely to message text.
+    * Smart word-wrapping (`formatLCDTwoRows`) avoiding mid-word line splits.
+    * Hands-free auto-paging every 4 seconds for messages > 28 chars without resetting the 15-second return timer.
+    * Manual page advancement via short press on the physical Wi-Fi button (GPIO 14) with confirmation chirp.
   * `SCREEN_NO_WIFI`: Offline fallback screen with 60-second auto-timeout back to local RF monitoring.
   * `SCREEN_COUNTDOWN`: Visual progress bar when holding the Wi-Fi setup button.
   * `SCREEN_PORTAL`: Setup Access Point name (`LifeLine-RX-Setup`) and IP address (`192.168.4.1`).
@@ -146,17 +166,41 @@ The **LifeLine CCU** is a dedicated RF transmission node running on ESP32 #2, de
 
 ---
 
-## 5. System Comparison Matrix
+---
+
+## 5. LifeLine Companion Ecosystem (Mobile & Web)
+
+The **LifeLine Companion Ecosystem** provides off-grid situational awareness and tactical control without requiring cellular towers or internet connections.
+
+### 📱 LifeLine Companion Mobile App (`lifeline_companion/`)
+* **Framework**: React Native & Expo TypeScript for iOS and Android.
+* **Tactical Cybernetic Design**: Deep obsidian background (`#0A0F1D`) with high-contrast electric accents (`#00F3FF`, `#FF003C`).
+* **Tactical Header**: Real-time BLE link status, battery telemetry, and ping indicator.
+* **Radar Screen**: 60 FPS sweeping radar HUD with 1/3/5 km concentric distance rings, dynamic RSSI tracking, and field unit status cards.
+* **SITREP Composer**: 48-character LoRa text report composer with field emergency macros and closed-loop base station ACK tracker.
+* **Mock BLE Engine**: Standalone offline simulation mode for training and exercises without physical hardware.
+
+### 🌐 Zero-Install Web Bluetooth Companion (`bluefy_companion/` & `portal_preview/`)
+* **Zero App Installation**: Runs inside Google Chrome (Android/Windows) and Bluefy Browser (iOS) via Web Bluetooth API.
+* **Fast Chassis QR Pairing**: Scans QR code on device hardware for one-touch pairing.
+* **Real-time Terminal & Diagnostics**: Bidirectional live packet stream and system log monitor.
+
+---
+
+## 6. System Comparison Matrix
 
 | Feature | LifeLine TX Pro | LifeLine RX Pro | LifeLine SPU | LifeLine CCU |
 | :--- | :---: | :---: | :---: | :---: |
 | **Primary Role** | Handheld SOS Field Unit | Command Base Station | Autonomous Sensor Node | Sensor RF Transmitter |
 | **Microcontroller** | ESP32 | ESP32 | ESP32 | ESP32 |
 | **RF Transceiver** | SX1278 (433 MHz) | SX1278 (433 MHz) | Optional via CCU | SX1278 (433 MHz) |
+| **Bluetooth BLE Link** | BLE 4.2/5.0 NUS (Peripheral) | BLE 4.2/5.0 NUS (Hub & Peripheral) | N/A | N/A |
 | **Display** | 2.8" ST7789 Color TFT | 16×2 Character LCD | Status LED | Status LED |
+| **Custom Chat / SITREP** | App Composer + Modal Pop Screen | Full 16×2 LCD + Auto-Page | N/A | Binary Relay Frame |
 | **User Input** | 4×4 Matrix Keypad | Push Button (Wi-Fi) | Wi-Fi Web Portal | N/A |
 | **GPS Tracking** | Optional / SPU Telemetry | N/A | NEO-6M Core | Relayed via SPU |
 | **Sensors** | N/A | RSSI Signal Meter | DHT22, MPU6050, MQ135 | N/A |
+| **Companion App Support** | Mobile App + Web PWA | Mobile App + Web PWA | Web Setup Portal | N/A |
 | **Wi-Fi Portal** | Local AP OTA Mode | Captive Portal Setup | Captive Portal Setup | N/A |
 | **Cloud REST API** | N/A | HTTPS Alert Forwarding | Direct Telemetry Upload | Relayed via RX Pro |
 | **Audio Feedback** | Piezo Chimes | High-Decibel Siren | Piezo Status Tones | N/A |

@@ -28,7 +28,11 @@
 7. [Database Architecture & Persistence Layer](#7-database-architecture--persistence-layer)
    - [7.1 Database Engine & Singleton Pattern](#71-database-engine--singleton-pattern)
    - [7.2 Relational Schema & MySQL JSON Querying](#72-relational-schema--mysql-json-querying)
-8. [Comprehensive Software Feature Matrix](#8-comprehensive-software-feature-matrix)
+8. [LifeLine Companion Ecosystem & Field Client Tier](#8-lifeline-companion-ecosystem--field-client-tier)
+   - [8.1 Tactical Mobile Companion App (React Native / Expo)](#81-tactical-mobile-companion-app-react-native--expo)
+   - [8.2 Zero-Install Web Bluetooth Suite (PWA & Bluefy)](#82-zero-install-web-bluetooth-suite-pwa--bluefy)
+   - [8.3 Interactive Hardware Displays (TX Pop Screen & RX Full 16×2 LCD)](#83-interactive-hardware-displays-tx-pop-screen--rx-full-162-lcd)
+9. [Comprehensive Software Feature Matrix](#9-comprehensive-software-feature-matrix)
 
 ---
 
@@ -507,7 +511,40 @@ Stores broadcast alert recipient addresses.
 
 ---
 
-## 8. Comprehensive Software Feature Matrix
+## 8. LifeLine Companion Ecosystem & Field Client Tier
+
+To bridge the gap between rugged field hardware and modern smartphone-equipped rescue squads, LifeLine introduces a cross-platform companion tier supporting both dedicated mobile applications (React Native / Expo) and zero-install offline Web Bluetooth Progressive Web Apps (PWAs).
+
+### 8.1 Tactical Mobile Companion App (React Native / Expo)
+Located in [`lifeline_companion/`](file:///d:/lifeline_hardware/lifeline_companion/), this cross-platform application provides responders with situational awareness directly on iOS and Android smartphones without requiring internet or cellular connectivity:
+- **Military-Grade Cybernetic Theme**: Deep tactical dark aesthetic (`#0A0F1D` obsidian canvas, `#00F3FF` telemetry cyan, `#FF003C` emergency red) with high-contrast text and crisp tactile feedback.
+- **Persistent Tactical Header (`TacticalHeader.tsx`)**: Displays device connection status, active hardware battery percentage, link quality gauge (`[STRONG -64dBm]`), and ping latency.
+- **Dynamic Radar HUD (`RadarScreen.tsx`)**:
+  - Sweeping circular radar beam animating at 60 FPS with concentric distance rings (1 km, 3 km, 5 km).
+  - Node discovery list plotting active field units with status badges (`NOMINAL`, `DISTRESS`, `OFFLINE`), distance estimations, and RSSI metrics.
+- **Field SITREP Composer (`SitrepScreen.tsx`)**:
+  - Freeform 48-character LoRa text report composer with situational quick-chips (`"TRAPPED AT BRIDGE"`, `"ROAD BLOCKED BY LANDSLIDE"`).
+  - Closed-loop Base Station ACK tracker with real-time status updates and dispatcher response notes.
+- **Diagnostics & Settings Engine (`SettingsScreen.tsx`)**:
+  - Device scanner filtering by hardware prefix (`LifeLine-TX-*`, `LifeLine-RX-*`).
+  - Offline Mock BLE Simulation Engine allowing realistic field drill testing without physical hardware.
+
+### 8.2 Zero-Install Web Bluetooth Suite (PWA & Bluefy)
+Located in [`bluefy_companion/`](file:///d:/lifeline_hardware/bluefy_companion/), [`portal_preview/`](file:///d:/lifeline_hardware/portal_preview/), and [`docs/companion_app/`](file:///d:/lifeline_hardware/docs/companion_app/):
+- **Universal Browser Compatibility**: Runs directly inside Google Chrome (Android/Desktop) and Bluefy Browser (iOS) with zero App Store installations.
+- **Instant Hardware QR Pairing (`portal_preview/scan_qr.html`)**: Field responders can scan a QR code printed on the physical unit chassis to initiate immediate Web Bluetooth bonding.
+- **Standalone Terminal & Telemetry**: Full bidirectional serial monitor streaming raw LoRa packets, sensor telemetry, and dispatch commands.
+
+### 8.3 Interactive Hardware Displays (TX Pop Screen & RX Full 16×2 LCD)
+- **LifeLine TX Pro "MESSAGE SENDING" Pop Screen**:
+  - Whenever a paired smartphone issues a custom message uplink (`MSG:<text>`), the ST7789 display interrupts its current state and opens a dedicated modal with glowing beacon, word-wrapped sitrep body, live ~20 FPS sweeping progress bar covering airtime and the 5,000ms ACK listen window, closed-loop confirmation banner (`[ACK CONFIRMED!]` / `[SENT (NO ACK)]`), and automatic 4s / keypress dismissal restoring previous screens.
+- **LifeLine RX Pro Full 16×2 LCD Custom Message Display**:
+  - When a custom LoRa or BLE message arrives, the base station dedicates both Row 0 and Row 1 (all 32 characters) entirely to the message text with smart word-wrapping (`formatLCDTwoRows`).
+  - Features hands-free auto-paging every 4 seconds for messages > 28 chars, plus manual page advancement via short-press of the GPIO 14 button with confirmation chimes.
+
+---
+
+## 9. Comprehensive Software Feature Matrix
 
 | Functional Area | Feature | Description | Implementation File(s) |
 |---|---|---|---|
@@ -545,6 +582,13 @@ Stores broadcast alert recipient addresses.
 | **Alert Dispatch** | SMTP Email Dispatch | Sends rich HTML emergency alerts to registered subscribers | `API/email_helper.php` |
 | **Alert Dispatch** | Firebase Web Push | Dispatches Google FCM v1 push notifications to browsers | `API/fcm_helper.php` |
 | **Alert Dispatch** | Email Subscriber Manager | Manage email distribution list for emergency broadcasts | `portal/emails.php`, `portal/js/emails.js` |
+| **Mobile Companion** | Tactical Radar Screen | 60 FPS circular sweeping radar with RSSI and distance estimation | `lifeline_companion/src/screens/RadarScreen.tsx` |
+| **Mobile Companion** | Field SITREP Composer | 48-char LoRa text report composer with macros and closed-loop ACK HUD | `lifeline_companion/src/screens/SitrepScreen.tsx` |
+| **Mobile Companion** | Mock BLE Engine | Offline simulation mode generating synthetic packets for training | `lifeline_companion/src/services/MockBleService.ts` |
+| **Web Companion** | Zero-Install PWA | Offline Web Bluetooth client compatible with iPhone Bluefy and Android Chrome | `bluefy_companion/index.html` |
+| **Web Companion** | Camera QR Pairing | Fast optical BLE pairing via chassis QR code scan | `portal_preview/scan_qr.html` |
+| **Field Transmitter** | "MESSAGE SENDING" Pop Screen | Interactive ST7789 modal with live progress bar and closed-loop ACK badge | `lifeline_tx_pro/DisplayUI.cpp` |
+| **Base Receiver** | Full 16×2 LCD Custom Display | Dedicated 32-character message view with smart word-wrap & auto-paging | `lifeline_rx_pro/DisplayUI.cpp` |
 | **API Architecture** | Uniform REST Envelope | Standardized JSON output format across all endpoints | `database.php` |
 | **API Architecture** | Complete CRUD Suites | Full endpoints for auth, create, read, update, and delete | `API/Create/*`, `API/Read/*`, etc. |
 | **Persistence Layer** | PDO Singleton Pool | Reusable, high-performance database connection instance | `database.php` |
