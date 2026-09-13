@@ -193,6 +193,20 @@ void loop() {
         sendBLEString(String(confirm));
         Serial.println(confirm);
     }
+
+    // Process Commander BLE custom message (MSG: or CHAT:)
+    if (hasPendingBLEChat()) {
+        String chat = getPendingBLEChatMessage();
+        Serial.printf("[BASE BLE MSG] Incoming Custom BLE Message on Base: '%s'\n", chat.c_str());
+        hasActiveChatMessage = true;
+        currentChatMessage = chat;
+        currentChatDeviceId = 0;
+        currentChatRssi = -50;
+        currentChatScrollOffset = 0;
+        currentScreen = SCREEN_CUSTOM_MSG;
+        playAlertTone(0);
+        drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+    }
     
     if (isLocalOTAModeActive()) {
         checkWiFiPortalButton();
@@ -283,6 +297,17 @@ void loop() {
             checkWiFiPortalButton();
             
             handleIncomingLoRaTelemetry();
+
+            // Auto-advance multi-page custom message every 4 seconds if longer than fits in one screen
+            {
+                static unsigned long lastAutoMsgScroll = 0;
+                if (currentChatMessage.length() > 28) {
+                    if (millis() - lastAutoMsgScroll >= 4000) {
+                        lastAutoMsgScroll = millis();
+                        scrollCurrentMessage(false);
+                    }
+                }
+            }
             
             if (shouldReturnToIdle()) {
                 hasActiveChatMessage = false;

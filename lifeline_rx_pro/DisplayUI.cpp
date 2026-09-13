@@ -329,45 +329,95 @@ bool shouldReturnToIdle() {
     return (millis() - alertReceivedTime >= ALERT_DISPLAY_TIME);
 }
 
-void drawCustomMessageScreen(int deviceId, const String& message, int rssi, int scrollOffset) {
-    // Row 0: M#001 -65dBm [W]  ([W] indicates Wi-Fi button scrolls message)
-    char row0[17];
-    snprintf(row0, sizeof(row0), "M#%03d %4ddBm [W]", deviceId % 1000, rssi);
-    printLCDLine(0, row0);
-
-    // Row 1: 16 chars from scrollOffset
-    char row1[17];
-    memset(row1, ' ', 16);
-    row1[16] = '\0';
-
-    int msgLen = message.length();
-    if (scrollOffset < msgLen) {
-        int copyLen = msgLen - scrollOffset;
-        if (copyLen > 16) copyLen = 16;
-        memcpy(row1, message.c_str() + scrollOffset, copyLen);
+static int formatLCDTwoRows(const String& message, int offset, String& outRow0, String& outRow1) {
+    int len = message.length();
+    if (offset >= len) {
+        outRow0 = "";
+        outRow1 = "";
+        return 0;
     }
+
+    // Skip any leading spaces at current offset
+    while (offset < len && message[offset] == ' ') offset++;
+
+    // 1. Calculate Row 0 (up to 16 chars)
+    int r0Start = offset;
+    int r0Max = min(r0Start + 16, len);
+    int r0End = r0Max;
+
+    // Word break on space if available within the last 5 characters
+    if (r0Max < len && message[r0Max] != ' ') {
+        int lastSpace = -1;
+        for (int i = r0Start + 10; i < r0Max; i++) {
+            if (message[i] == ' ') lastSpace = i;
+        }
+        if (lastSpace > r0Start) {
+            r0End = lastSpace;
+        }
+    }
+
+    outRow0 = message.substring(r0Start, r0End);
+    outRow0.trim();
+
+    // Move to Row 1
+    int r1Start = r0End;
+    while (r1Start < len && message[r1Start] == ' ') r1Start++;
+
+    if (r1Start >= len) {
+        outRow1 = "";
+        return 0; // Completed entire message
+    }
+
+    // 2. Calculate Row 1 (up to 16 chars)
+    int r1Max = min(r1Start + 16, len);
+    int r1End = r1Max;
+
+    if (r1Max < len && message[r1Max] != ' ') {
+        int lastSpace = -1;
+        for (int i = r1Start + 10; i < r1Max; i++) {
+            if (message[i] == ' ') lastSpace = i;
+        }
+        if (lastSpace > r1Start) {
+            r1End = lastSpace;
+        }
+    }
+
+    outRow1 = message.substring(r1Start, r1End);
+    outRow1.trim();
+
+    // Next offset calculation
+    int nextStart = r1End;
+    while (nextStart < len && message[nextStart] == ' ') nextStart++;
+    return (nextStart < len) ? nextStart : 0;
+}
+
+void drawCustomMessageScreen(int deviceId, const String& message, int rssi, int scrollOffset, bool resetTimer) {
+    String row0 = "";
+    String row1 = "";
+    int nextOffset = formatLCDTwoRows(message, scrollOffset, row0, row1);
+
+    // Use full 16x2 LCD display entirely for the message
+    printLCDLine(0, row0);
     printLCDLine(1, row1);
 
     lastDeviceId = deviceId;
     lastRssi = rssi;
-    alertReceivedTime = millis();
-    Serial.printf("[SCREEN] Custom Message displayed: Dev=%d, Offset=%d, Text='%s'\n",
-                  deviceId, scrollOffset, message.c_str());
+    if (resetTimer) {
+        alertReceivedTime = millis();
+    }
+    Serial.printf("[SCREEN] Full 16x2 LCD Message: R0='%s' | R1='%s' (Dev=%d, Offset=%d, NextOff=%d, Text='%s')\n",
+                  row0.c_str(), row1.c_str(), deviceId, scrollOffset, nextOffset, message.c_str());
 }
 
-void scrollCurrentMessage() {
+void scrollCurrentMessage(bool resetTimer) {
     if (!hasActiveChatMessage || currentChatMessage.length() == 0) return;
-    int msgLen = currentChatMessage.length();
 
-    // Advance by 12 characters (giving 4-character overlap for continuous reading)
-    if (currentChatScrollOffset + 16 < msgLen) {
-        currentChatScrollOffset += 12;
-    } else {
-        // Wrap back to beginning
-        currentChatScrollOffset = 0;
-    }
+    String r0, r1;
+    int nextOffset = formatLCDTwoRows(currentChatMessage, currentChatScrollOffset, r0, r1);
+    
+    currentChatScrollOffset = nextOffset;
     playSkipConfirmTone();
-    drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset);
+    drawCustomMessageScreen(currentChatDeviceId, currentChatMessage, currentChatRssi, currentChatScrollOffset, resetTimer);
 }
 
 void drawWiFiConnectingScreen(const String& ssid, int currentIdx, int totalCount) {

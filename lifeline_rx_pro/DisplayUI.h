@@ -59,8 +59,8 @@ extern String currentChatMessage;
 extern int currentChatDeviceId;
 extern int currentChatRssi;
 extern int currentChatScrollOffset;
-void drawCustomMessageScreen(int deviceId, const String& message, int rssi, int scrollOffset = 0);
-void scrollCurrentMessage();
+void drawCustomMessageScreen(int deviceId, const String& message, int rssi, int scrollOffset = 0, bool resetTimer = true);
+void scrollCurrentMessage(bool resetTimer = true);
 
 // WiFi Screens
 void drawNoWiFiScreen();

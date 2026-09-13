@@ -26,5 +26,7 @@ bool hasPendingBLEReply();
 void getPendingBLEReply(int& devId, String& action, String& message);
 bool hasPendingBLEEvac();
 String getPendingBLEEvacMessage();
+bool hasPendingBLEChat();
+String getPendingBLEChatMessage();
 
 #endif // BLE_MANAGER_H

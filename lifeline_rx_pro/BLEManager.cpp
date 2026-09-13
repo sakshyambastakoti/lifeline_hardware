@@ -16,6 +16,9 @@ static String pendingReplyMsg = "";
 static bool hasPendingEvacFlag = false;
 static String pendingEvacMsg = "";
 
+static bool hasPendingChatFlag = false;
+static String pendingChatMsg = "";
+
 void processIncomingBaseCommand(const String& cmd) {
     if (cmd.startsWith("REPLY:") || cmd.startsWith("CMD:")) {
         // Format: REPLY:<devId>,<action>,<message>
@@ -41,6 +44,11 @@ void processIncomingBaseCommand(const String& cmd) {
         pendingEvacMsg.trim();
         hasPendingEvacFlag = true;
         Serial.printf("[BASE CMD] Queued Broadcast EVAC: '%s'\n", pendingEvacMsg.c_str());
+    } else if (cmd.startsWith("MSG:") || cmd.startsWith("CHAT:")) {
+        pendingChatMsg = cmd.substring(cmd.indexOf(':') + 1);
+        pendingChatMsg.trim();
+        hasPendingChatFlag = true;
+        Serial.printf("[BASE CMD] Queued Custom BLE Message: '%s'\n", pendingChatMsg.c_str());
     } else if (cmd.equalsIgnoreCase("STATUS") || cmd.equalsIgnoreCase("PING")) {
         notifyBLEStatus();
     } else {
@@ -174,4 +182,13 @@ bool hasPendingBLEEvac() {
 String getPendingBLEEvacMessage() {
     hasPendingEvacFlag = false;
     return pendingEvacMsg;
+}
+
+bool hasPendingBLEChat() {
+    return hasPendingChatFlag;
+}
+
+String getPendingBLEChatMessage() {
+    hasPendingChatFlag = false;
+    return pendingChatMsg;
 }
