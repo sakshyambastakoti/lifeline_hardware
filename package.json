@@ -5,6 +5,7 @@
   "description": "LifeLine Emergency Hardware and Mobile Companion",
   "scripts": {
     "start": "npm --prefix lifeline_companion start",
+    "demo": "node serve_demo.js",
     "tunnel": "npm --prefix lifeline_companion run start -- --tunnel",
     "web": "npm --prefix lifeline_companion run web",
     "companion": "npm --prefix lifeline_companion start"

@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   nodeBanner: {
-    borderRadius: 0,
+    borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '48%',
-    borderRadius: 0,
+    borderRadius: 14,
     padding: 16,
     borderWidth: 1,
   },
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   gpsCard: {
-    borderRadius: 0,
+    borderRadius: 16,
     padding: 18,
     borderWidth: 1,
   },

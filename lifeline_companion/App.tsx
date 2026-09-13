@@ -8,8 +8,9 @@ import { RadarScreen } from './src/screens/RadarScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { SosScreen } from './src/screens/SosScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 
-type TabKey = 'RADAR' | 'TELEMETRY' | 'CHAT' | 'SOS';
+type TabKey = 'RADAR' | 'TELEMETRY' | 'CHAT' | 'SOS' | 'SETTINGS';
 
 const MainAppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('RADAR');
@@ -20,13 +21,14 @@ const MainAppContent: React.FC = () => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.bg0 }]}>
       <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
-      <TacticalHeader />
+      <TacticalHeader onOpenSettings={() => setActiveTab('SETTINGS')} />
 
       <View style={[styles.screenContainer, { backgroundColor: theme.colors.bg0 }]}>
         {activeTab === 'RADAR' && <RadarScreen />}
         {activeTab === 'TELEMETRY' && <DashboardScreen />}
         {activeTab === 'CHAT' && <ChatScreen />}
         {activeTab === 'SOS' && <SosScreen />}
+        {activeTab === 'SETTINGS' && <SettingsScreen />}
       </View>
 
       {/* Austere Luxury Tactical Bottom Navigation */}
@@ -138,6 +140,27 @@ const MainAppContent: React.FC = () => {
             ]}
           >
             DISTRESS
+          </Text>
+        </TouchableOpacity>
+
+        {/* Settings / Configuration Tab */}
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setActiveTab('SETTINGS')}
+          activeOpacity={0.75}
+        >
+          <Ionicons
+            name={activeTab === 'SETTINGS' ? 'settings' : 'settings-outline'}
+            size={20}
+            color={activeTab === 'SETTINGS' ? theme.colors.text0 : theme.colors.text3}
+          />
+          <Text
+            style={[
+              styles.navText,
+              { color: activeTab === 'SETTINGS' ? theme.colors.text0 : theme.colors.text3 },
+            ]}
+          >
+            CONFIG
           </Text>
         </TouchableOpacity>
       </View>

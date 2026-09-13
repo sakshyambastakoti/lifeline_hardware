@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '85%',
-    borderRadius: 0,
+    borderRadius: 16,
     padding: 14,
     borderWidth: 1,
   },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    borderRadius: 0,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 13,

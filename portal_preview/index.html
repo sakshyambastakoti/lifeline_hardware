@@ -327,6 +327,9 @@
         <button class="seg-tab" id="btn_select_rx" onclick="selectDevice('rx')">
           <span>RX BASE STATION</span>
         </button>
+        <button class="seg-tab" id="btn_select_companion" onclick="selectDevice('companion')">
+          <span>COMPANION MOBILE APP</span>
+        </button>
       </div>
 
       <div class="vp-group">
@@ -360,6 +363,7 @@
     const stageFrame = document.getElementById('stage_frame');
     const btnTx = document.getElementById('btn_select_tx');
     const btnRx = document.getElementById('btn_select_rx');
+    const btnCompanion = document.getElementById('btn_select_companion');
     const btnFullscreen = document.getElementById('btn_fullscreen');
 
     const sunSvg = `<svg class="theme-icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -398,16 +402,19 @@
 
     function selectDevice(device) {
       currentDevice = device;
+      [btnTx, btnRx, btnCompanion].forEach(b => b && b.classList.remove('active'));
       if (device === 'tx') {
         btnTx.classList.add('active');
-        btnRx.classList.remove('active');
         iframe.src = 'tx_portal.html';
         btnFullscreen.href = 'tx_portal.html';
-      } else {
+      } else if (device === 'rx') {
         btnRx.classList.add('active');
-        btnTx.classList.remove('active');
         iframe.src = 'rx_portal.html';
         btnFullscreen.href = 'rx_portal.html';
+      } else if (device === 'companion') {
+        btnCompanion.classList.add('active');
+        iframe.src = 'companion_app.html';
+        btnFullscreen.href = 'companion_app.html';
       }
       iframe.onload = function() {
         try {

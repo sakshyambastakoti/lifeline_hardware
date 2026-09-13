@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     marginBottom: 20,
-    borderRadius: 0,
+    borderRadius: 12,
   },
   standbyDot: {
     width: 6,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   activeSosCard: {
     borderWidth: 1,
-    borderRadius: 0,
+    borderRadius: 18,
     padding: 18,
     marginBottom: 24,
   },
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   ackBox: {
-    borderRadius: 0,
+    borderRadius: 12,
     padding: 14,
     borderWidth: 1,
     marginBottom: 14,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   sosCard: {
-    borderRadius: 0,
+    borderRadius: 16,
     padding: 18,
     marginBottom: 14,
     borderWidth: 1,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 0,
+    borderRadius: 6,
   },
   codeText: {
     fontSize: 10,

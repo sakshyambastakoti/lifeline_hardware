@@ -151,8 +151,21 @@ export const RadarScreen: React.FC = () => {
           <Ionicons name="bluetooth-outline" size={32} color={theme.colors.text3} />
           <Text style={[styles.emptyText, { color: theme.colors.text1 }]}>NO ACTIVE RF NODES DETECTED</Text>
           <Text style={[styles.emptySubText, { color: theme.colors.text3 }]}>
-            Ensure your LifeLine TX Pro or RX Pro hardware is powered ON and within 10 meters BLE range.
+            Ensure your LifeLine ESP32 field unit (TX or RX) is powered on and advertising. Tap "DISCOVER FIELD NODES" to pair.
           </Text>
+          {connectionState !== 'SCANNING' && (
+            <TouchableOpacity
+              style={[styles.emptyScanPill, { backgroundColor: theme.colors.buttonFill }]}
+              onPress={startScan}
+              disabled={connectionState === 'CONNECTING'}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="search-outline" size={14} color={theme.colors.buttonText} />
+              <Text style={[styles.emptyScanPillText, { color: theme.colors.buttonText }]}>
+                START BLE DISCOVERY
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <FlatList
@@ -172,7 +185,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   consoleCard: {
-    borderRadius: 0,
+    borderRadius: 18,
     padding: 22,
     alignItems: 'center',
     borderWidth: 1,
@@ -181,7 +194,7 @@ const styles = StyleSheet.create({
   radarVisualFrame: {
     width: 68,
     height: 68,
-    borderRadius: 0,
+    borderRadius: 16,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -255,7 +268,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   deviceCard: {
-    borderRadius: 0,
+    borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -265,7 +278,7 @@ const styles = StyleSheet.create({
   deviceIconFrame: {
     width: 40,
     height: 40,
-    borderRadius: 0,
+    borderRadius: 10,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -309,9 +322,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   emptyState: {
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 40,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderStyle: 'dashed',
   },
@@ -324,8 +339,23 @@ const styles = StyleSheet.create({
   emptySubText: {
     fontSize: 11,
     textAlign: 'center',
-    marginTop: 4,
-    paddingHorizontal: 24,
-    lineHeight: 16,
+    marginTop: 6,
+    paddingHorizontal: 20,
+    lineHeight: 17,
+    marginBottom: 18,
+  },
+  emptyScanPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 9999,
+  },
+  emptyScanPillText: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    fontFamily: 'monospace',
   },
 });

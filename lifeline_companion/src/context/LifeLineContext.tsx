@@ -14,6 +14,7 @@ interface LifeLineContextType {
   themeMode: ThemeMode;
   theme: typeof DARK_THEME;
   toggleTheme: () => void;
+  setThemeMode: (mode: ThemeMode) => void;
   availableDevices: LifeLineDevice[];
   connectedDevice: LifeLineDevice | null;
   telemetry: LifeLineTelemetry | null;
@@ -27,6 +28,7 @@ interface LifeLineContextType {
   sendChatMessage: (text: string) => Promise<boolean>;
   triggerSos: (code: string, name: string) => Promise<boolean>;
   clearSos: () => void;
+  simulateDemoNode: (type?: 'alpha' | 'base' | 'sentry') => void;
 }
 
 const LifeLineContext = createContext<LifeLineContextType | undefined>(undefined);
@@ -234,6 +236,24 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     setChatMessages(prev => [...prev, newMsg]);
 
+    if (connectedDevice?.id?.startsWith('SIM')) {
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: 'Command Base [001]',
+            text: `[BASE 001]: Roger "${text}". Sitrep acknowledged over 433 MHz LoRa. SAR dispatched to coordinates.`,
+            timestamp: new Date(),
+            isOutgoing: false,
+            status: 'CONFIRMED',
+            rssi: -54,
+          },
+        ]);
+      }, 1200);
+      return true;
+    }
+
     try {
       await bleService.sendCommand(`MSG:${text}`);
       return true;
@@ -258,6 +278,19 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
       ackRssi: null,
       ackSnr: null,
     });
+
+    if (connectedDevice?.id?.startsWith('SIM')) {
+      setTimeout(() => {
+        setSosStatus(prev => ({
+          ...prev,
+          ackStatus: 'CONFIRMED',
+          ackNote: `[BASE STATION ACK // VERIFIED]: EMERGENCY CODE [${code}] CONFIRMED. Helivac Squad 4 airborne. Target coordinates locked. Time to target: 14 mins.`,
+          ackRssi: -52,
+          ackSnr: 12,
+        }));
+      }, 2000);
+      return true;
+    }
 
     try {
       await bleService.sendCommand(`ALERT:${code}`);
@@ -285,6 +318,54 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
     });
   };
 
+  const simulateDemoNode = (type: 'alpha' | 'base' | 'sentry' = 'alpha') => {
+    const isBase = type === 'base';
+    const isSentry = type === 'sentry';
+    const devName = isBase
+      ? 'LifeLine RX-Pro Base (001)'
+      : isSentry
+      ? 'LifeLine TX-SPU Sentry (009)'
+      : 'LifeLine TX-Pro Alpha (003)';
+
+    const devId = isBase ? 'SIM-RX-001' : isSentry ? 'SIM-TX-009' : 'SIM-TX-003';
+
+    const simDevice: LifeLineDevice = {
+      id: devId,
+      name: devName,
+      rssi: isBase ? -48 : isSentry ? -79 : -62,
+    };
+
+    setConnectedDevice(simDevice);
+    setConnectionState('CONNECTED');
+    setStatusMessage(`Connected to ${devName} [SIMULATION]`);
+
+    setTelemetry({
+      deviceId: isBase ? '001' : isSentry ? '009' : '003',
+      batteryPct: isBase ? 100 : isSentry ? 88 : 94,
+      loraStatus: 'OK (ACTIVE)',
+      version: 'v3.1.0 PRO',
+      lastUpdated: new Date(),
+      latitude: 27.717240,
+      longitude: 85.324020,
+      altitude: isBase ? 1340 : isSentry ? 1420 : 1354,
+      temperature: isBase ? 20.4 : isSentry ? 19.2 : 21.8,
+      humidity: 58.2,
+      gasPpm: isBase ? 12 : isSentry ? 16 : 18,
+    });
+
+    setChatMessages([
+      {
+        id: 'sim-init-1',
+        sender: 'Command Base [001]',
+        text: 'LifeLine tactical comms stream online. Monitoring LoRa 433 MHz channel 1. Report team sitrep.',
+        timestamp: new Date(),
+        isOutgoing: false,
+        status: 'CONFIRMED',
+        rssi: -58,
+      },
+    ]);
+  };
+
   return (
     <LifeLineContext.Provider
       value={{
@@ -292,6 +373,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         themeMode,
         theme,
         toggleTheme,
+        setThemeMode,
         availableDevices,
         connectedDevice,
         telemetry,
@@ -305,6 +387,7 @@ export const LifeLineProvider: React.FC<{ children: ReactNode }> = ({ children }
         sendChatMessage,
         triggerSos,
         clearSos,
+        simulateDemoNode,
       }}
     >
       {children}

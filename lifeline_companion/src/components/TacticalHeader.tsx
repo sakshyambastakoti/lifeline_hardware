@@ -3,7 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeLine } from '../context/LifeLineContext';
 
-export const TacticalHeader: React.FC = () => {
+interface TacticalHeaderProps {
+  onOpenSettings?: () => void;
+}
+
+export const TacticalHeader: React.FC<TacticalHeaderProps> = ({ onOpenSettings }) => {
   const {
     connectionState,
     connectedDevice,
@@ -18,14 +22,6 @@ export const TacticalHeader: React.FC = () => {
 
   return (
     <View style={[styles.headerContainer, { backgroundColor: theme.colors.bg0, borderBottomColor: theme.colors.border }]}>
-      {/* Holographic Ambient Accent Top Bar */}
-      <View style={styles.holographicBar}>
-        <View style={[styles.barSegment, { backgroundColor: theme.colors.electricIndigo }]} />
-        <View style={[styles.barSegment, { backgroundColor: theme.colors.cyanStream }]} />
-        <View style={[styles.barSegment, { backgroundColor: theme.colors.digitalViolet }]} />
-        <View style={[styles.barSegment, { backgroundColor: theme.colors.solarAmber }]} />
-      </View>
-
       <View style={styles.contentWrap}>
         {/* Brand Bar */}
         <View style={styles.topRow}>
@@ -38,7 +34,7 @@ export const TacticalHeader: React.FC = () => {
           </View>
 
           <View style={styles.rightControls}>
-            {/* Dark / Light Mode Toggle */}
+            {/* Dark / Light Mode Quick Toggle */}
             <TouchableOpacity
               style={[
                 styles.themeTogglePill,
@@ -53,6 +49,20 @@ export const TacticalHeader: React.FC = () => {
                 color={theme.colors.text0}
               />
             </TouchableOpacity>
+
+            {/* Settings Config Gear */}
+            {onOpenSettings && (
+              <TouchableOpacity
+                style={[
+                  styles.themeTogglePill,
+                  { backgroundColor: theme.colors.bg2, borderColor: theme.colors.borderStrong },
+                ]}
+                onPress={onOpenSettings}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="settings-outline" size={14} color={theme.colors.text0} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -166,6 +176,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    borderRadius: 6,
   },
   brandBadgeText: {
     fontSize: 9,
@@ -193,6 +204,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
+    borderRadius: 10,
   },
   statusGroup: {
     flexDirection: 'row',
