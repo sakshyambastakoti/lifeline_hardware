@@ -1,7 +1,7 @@
 # 🌐 LifeLine — Master Cloud API & VPS Deployment Guide
 
 > **The Complete, Production-Ready Server & API Deployment Specification for the LifeLine Off-Grid Emergency Response System**  
-> **Firmware Version Compatibility:** v4.2 PRO (LifeLine RX Pro Gateway, TX Pro Handheld & SPU)  
+> **Firmware Version Compatibility:** v4.2 PRO (LifeLine RX Pro Gateway & TX Pro Handheld)  
 > **Server Stack:** Ubuntu / Debian Linux, Nginx, PHP 8.1+ (FPM), MariaDB / MySQL 8.0+  
 > **Default Gateway Ingestion Target:** `https://<YOUR_DOMAIN>/lifeline/API/Create/message.php`  
 > **Default Gateway Downlink Poller Target:** `https://<YOUR_DOMAIN>/lifeline/API/Read/pending_commands.php`  
@@ -98,7 +98,7 @@ The **LifeLine Emergency Ecosystem** bridges off-grid Himalayan disaster zones w
 │   │                      Web Portal & Command Center Dashboard                      │   │
 │   │  • Live Incident Map (Google Maps / Leaflet)                                    │   │
 │   │  • Two-Way Web-to-LoRa Dispatch Console                                         │   │
-│   │  • Fleet Status & Battery / Sensor Telemetry HUD                                │   │
+│   │  • Fleet Status & Node Heartbeat Telemetry HUD                                 │   │
 │   └─────────────────────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -115,26 +115,18 @@ The ESP32 Base Station (`lifeline_rx_pro`) acts as an intelligent edge computer.
 | :--- | :--- | :--- | :--- |
 | `DID` | Integer | `1` | **Device ID**. `1-999` for field handheld units; `0` indicates a local message initiated at the Base Station gateway itself. |
 | `message_code` | Integer | `0` to `14` | **Emergency Alert Code index**: `0` = Critical SOS, `1` = Delivery/Labor, `2` = Heli Rescue, `3` = Medicine, `4` = Oxygen, `5` = Injury, `6` = Blood, `7` = Altitude, `8` = Food, `9` = Water, `10` = Outbreak, `11` = Shelter, `12` = Landslide, `13` = Doctor, `14` = Status OK. For freeform chat, `0` is passed for priority attention. |
-| `code` | String | `"M"` | **Single-letter protocol identifier**: `'A'-'O'` (Standard Alerts), `'M'` (Custom Chat/SITREP), `'N'` (Full Multi-Sensor Telemetry). |
+| `code` | String | `"M"` | **Single-letter protocol identifier**: `'A'-'O'` (Standard Alerts) or `'M'` (Custom Chat/SITREP). |
 | `RSSI` | Integer | `-68` | **Received Signal Strength Indicator** in dBm. Ranges from `-40` dBm (very close) to `-125` dBm (extreme fringe limit). |
 | `snr` | Float | `8.5` | **Signal-to-Noise Ratio** in dB provided directly by the SX1278 hardware register. Allows the dashboard to distinguish true signal strength from RF noise. |
 | `distance_km` | Float | `1.45` | **Estimated distance in kilometers** calculated on the ESP32 in real time using the calibrated log-distance path loss model and GPS reference coordinates. |
 | `is_chat` | Boolean | `true` | `true` if this packet is a freeform custom text report (SITREP); `false` if it is a pre-defined hardware alert code. |
 | `custom_msg` | String | `"Trapped on north trail"` | **Verbatim text of the message**. Sanitized by the ESP32 to escape quotes and remove carriage returns. Maximum 48 to 96 characters for RF efficiency. |
 | `source` | String | `"LORA"` / `"BLE"` | Identifies the physical transmission interface: `"LORA"` for off-grid radio transmissions from field handhelds; `"BLE"` for local mobile commander entries. |
-| `temp` | Float | `22.4` | Ambient temperature in °C (from SPU sensor node). |
-| `humidity` | Float | `68.0` | Relative humidity in % (from SPU sensor node). |
-| `gas_ppm` | Integer | `280` | Hazardous gas / smoke / air pollution reading in PPM (MQ135 sensor). |
-| `lat` | Double | `27.717245` | GPS Latitude coordinate in decimal degrees. |
-| `lon` | Double | `85.324000` | GPS Longitude coordinate in decimal degrees. |
-| `alt` | Integer | `1350` | GPS Altitude in meters above sea level. |
-| `health` | Integer | `98` | Edge node hardware health score (0–100%). |
-| `risk` | Integer | `15` | Composite environmental hazard score (0–100%). |
 | `api_key` | String | `"LF_PRO_KEY_2026"` | Pre-shared authentication key configured in the ESP32 NVS settings. |
 
 ---
 
-### 2.2 The Three Payload Modes Sent by the Gateway
+### 2.2 The Two Primary Payload Modes Sent by the Gateway
 
 #### Mode 1: Custom Freeform SITREP Chat Message (Uplinked from Field or Base BLE)
 Sent via `pushCustomChatMessageToAPI(...)` when a responder types a custom report on their mobile companion app (`CHAT:<devId>:<text>`) or when the base station commander types locally:
@@ -163,31 +155,6 @@ Sent via `pushAlertToAPI(...)` when a field responder presses an emergency key o
   "RSSI": -62,
   "snr": 9.8,
   "distance_km": 0.85,
-  "is_chat": false,
-  "custom_msg": "",
-  "source": "LORA"
-}
-```
-
-#### Mode 3: Periodic Full Multi-Sensor Telemetry Log
-Sent via `pushFullTelemetryToAPI(...)` containing comprehensive environmental, seismic, and health data:
-```json
-{
-  "api_key": "LF_PRO_KEY_2026",
-  "DID": 1,
-  "message_code": 4,
-  "code": "N",
-  "temp": 18.2,
-  "humidity": 78.4,
-  "gas_ppm": 210,
-  "lat": 27.717245,
-  "lon": 85.324000,
-  "alt": 1380,
-  "health": 98,
-  "risk": 15,
-  "RSSI": -65,
-  "snr": 9.0,
-  "distance_km": 1.10,
   "is_chat": false,
   "custom_msg": "",
   "source": "LORA"
@@ -620,7 +587,7 @@ Save this file as `/var/www/html/lifeline/API/Create/message.php`. This is the *
 /**
  * LifeLine Emergency Telemetry & SITREP Ingestion Endpoint
  * File: /var/www/html/lifeline/API/Create/message.php
- * Handles: SOS alerts, Freeform SITREP Chats, Signal Metrics (RSSI, SNR, Distance), and Sensor Data.
+ * Handles: SOS alerts, Freeform SITREP Chats, and Physical Signal Metrics (RSSI, SNR, Distance).
  */
 
 header('Content-Type: application/json; charset=utf-8');
