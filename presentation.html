@@ -3,40 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LifeLine — ICT Award 2026 Project Dossier & Presentation</title>
+  <title>LifeLine: Autonomous Off-Grid Disaster & Emergency Telemetry System — Technical Whitepaper & Dossier</title>
   
-  <!-- Modern Typography: Plus Jakarta Sans & Inter & JetBrains Mono -->
+  <!-- Modern Typography: Plus Jakarta Sans, Inter, & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <style>
     /* ==========================================================================
-       HIMALIX-INSPIRED DESIGN SYSTEM — MINIMALIST, CLEAN, HIGH-CONTRAST
+       HIMALIX MINIMALIST DESIGN SYSTEM — RESEARCH & TECHNICAL WHITE PAPER SPEC
        ========================================================================== */
     :root {
-      --bg-canvas: #FAFAFA;
+      --bg-canvas: #F8F9FA;
       --bg-surface: #FFFFFF;
-      --bg-subtle: #F3F4F6;
-      --bg-card: #F8F9FA;
+      --bg-subtle: #F1F3F5;
+      --bg-card: #FFFFFF;
       --border-subtle: #E5E7EB;
-      --border-strong: #D1D5DB;
-      --text-primary: #111827;
-      --text-secondary: #4B5563;
-      --text-muted: #6B7280;
-      --text-subtle: #9CA3AF;
+      --border-medium: #D1D5DB;
+      --border-strong: #9CA3AF;
+      --text-primary: #0F172A;
+      --text-secondary: #334155;
+      --text-muted: #64748B;
+      --text-subtle: #94A3B8;
       --accent-black: #0F172A;
-      --accent-red: #E11D48;
-      --accent-red-subtle: #FFE4E6;
-      --accent-emerald: #10B981;
-      --accent-cyan: #0284C7;
+      --accent-crimson: #BE123C;
+      --accent-crimson-bg: #FFF1F2;
+      --accent-emerald: #047857;
+      --accent-emerald-bg: #ECFDF5;
+      --accent-blue: #0369A1;
+      --accent-blue-bg: #F0F9FF;
+      --radius-xs: 4px;
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 16px;
       --radius-full: 9999px;
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-      --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+      --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -50,27 +54,28 @@
       background-color: var(--bg-canvas);
       color: var(--text-primary);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.6;
+      line-height: 1.65;
+      font-size: 14.5px;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Container constraint */
     .container {
-      max-width: 1240px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 0 28px;
     }
 
     /* ==========================================================================
-       TOP NAVIGATION BAR (HIMALIX HEADER REPLICA)
+       TOP NAVIGATION BAR (HIMALIX REPLICA)
        ========================================================================== */
     header.site-header {
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-subtle);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1000;
+      backdrop-filter: blur(8px);
     }
 
     .header-inner {
@@ -90,34 +95,30 @@
     }
 
     .brand-logo-icon {
-      width: 38px;
-      height: 38px;
-      background: #0F172A;
+      width: 36px;
+      height: 36px;
+      background: var(--accent-black);
       color: #FFFFFF;
       border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 20px;
-      letter-spacing: -1px;
+      font-size: 18px;
     }
 
     .brand-title {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 800;
-      font-size: 22px;
+      font-size: 21px;
       letter-spacing: 2px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .brand-badge {
       background: var(--bg-subtle);
       border: 1px solid var(--border-subtle);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       padding: 2px 8px;
       border-radius: var(--radius-full);
       color: var(--text-secondary);
@@ -131,10 +132,8 @@
       display: none;
     }
 
-    @media (min-width: 900px) {
-      .header-search {
-        display: block;
-      }
+    @media (min-width: 992px) {
+      .header-search { display: block; }
     }
 
     .header-search input {
@@ -148,6 +147,7 @@
       color: var(--text-primary);
       outline: none;
       transition: var(--transition);
+      font-family: 'Inter', sans-serif;
     }
 
     .header-search input:focus {
@@ -166,49 +166,42 @@
     nav.header-nav {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 18px;
+      overflow-x: auto;
     }
 
     nav.header-nav a {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12.5px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--text-secondary);
       text-decoration: none;
       transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      white-space: nowrap;
     }
 
     nav.header-nav a:hover, nav.header-nav a.active {
       color: var(--text-primary);
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* Print / PDF Button */
     .btn-pdf-export {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: #0F172A;
+      background: var(--accent-black);
       color: #FFFFFF;
       padding: 8px 16px;
       border-radius: var(--radius-full);
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12.5px;
+      font-weight: 700;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      border: 1px solid #0F172A;
+      border: 1px solid var(--accent-black);
       cursor: pointer;
       transition: var(--transition);
       text-decoration: none;
+      white-space: nowrap;
     }
 
     .btn-pdf-export:hover {
@@ -224,9 +217,9 @@
       border-bottom: 1px solid var(--border-subtle);
       overflow: hidden;
       white-space: nowrap;
-      padding: 10px 0;
+      padding: 9px 0;
       font-size: 11.5px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
       color: var(--text-muted);
@@ -235,7 +228,7 @@
     .ticker-content {
       display: inline-flex;
       gap: 28px;
-      animation: ticker 40s linear infinite;
+      animation: ticker 45s linear infinite;
     }
 
     .ticker-item {
@@ -257,10 +250,10 @@
     }
 
     /* ==========================================================================
-       HERO & PRESENTATION INTRO
+       HERO & PAPER METADATA BLOCK
        ========================================================================== */
-    .presentation-hero {
-      padding: 60px 0 36px;
+    .paper-hero {
+      padding: 50px 0 32px;
       text-align: center;
     }
 
@@ -272,7 +265,7 @@
       background: var(--bg-surface);
       padding: 6px 14px;
       border-radius: var(--radius-full);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -281,29 +274,62 @@
     }
 
     .category-badge svg {
-      color: var(--accent-red);
+      color: var(--accent-crimson);
     }
 
-    .hero-title {
+    .paper-title {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 48px;
+      font-size: 42px;
       font-weight: 800;
       letter-spacing: -1.2px;
       color: var(--text-primary);
       margin-bottom: 16px;
-      line-height: 1.15;
+      line-height: 1.18;
+      max-width: 1040px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    .hero-subtitle {
-      font-size: 17px;
+    .paper-subtitle {
+      font-size: 16.5px;
       color: var(--text-secondary);
-      max-width: 780px;
+      max-width: 840px;
+      margin: 0 auto 28px;
+      line-height: 1.6;
+    }
+
+    /* Research Paper Metadata Box */
+    .paper-meta-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      max-width: 960px;
       margin: 0 auto 36px;
-      font-weight: 400;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .meta-item strong {
+      display: block;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .meta-item span {
+      color: var(--text-primary);
+      font-weight: 600;
     }
 
     /* ==========================================================================
-       SEGMENTED TABS (HIMALIX STYLE CONTROLS)
+       SEGMENTED TABS (HIMALIX REPLICA)
        ========================================================================== */
     .tabs-wrapper {
       display: flex;
@@ -328,10 +354,10 @@
       gap: 8px;
       border: none;
       background: transparent;
-      padding: 10px 18px;
+      padding: 10px 16px;
       border-radius: var(--radius-sm);
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -351,12 +377,10 @@
       box-shadow: var(--shadow-sm);
     }
 
-    /* ==========================================================================
-       TAB PANELS & CONTENT BLOCKS
-       ========================================================================== */
+    /* Tab panels */
     .tab-panel {
       display: none;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.25s ease;
     }
 
     .tab-panel.active {
@@ -369,20 +393,21 @@
     }
 
     /* ==========================================================================
-       MAIN FEATURE CARD (SPLIT-GRID REPLICA FROM REFERENCE IMAGE)
+       CARDS & CONTENT SECTIONS (HIMALIX STYLE)
        ========================================================================== */
     .feature-card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 44px;
+      padding: 40px;
       display: grid;
       grid-template-columns: 1fr;
       gap: 40px;
       margin-bottom: 40px;
+      box-shadow: var(--shadow-card);
     }
 
-    @media (min-width: 960px) {
+    @media (min-width: 992px) {
       .feature-card {
         grid-template-columns: 1.15fr 1fr;
         align-items: start;
@@ -391,25 +416,26 @@
 
     .feature-left h3 {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 800;
       letter-spacing: -0.8px;
       color: var(--text-primary);
       margin-bottom: 12px;
+      line-height: 1.25;
     }
 
     .feature-lead {
-      font-size: 15.5px;
+      font-size: 15px;
       color: var(--text-secondary);
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       line-height: 1.6;
     }
 
     .checklist-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 16px;
-      margin-bottom: 36px;
+      gap: 14px;
+      margin-bottom: 30px;
     }
 
     @media (min-width: 600px) {
@@ -420,9 +446,9 @@
 
     .checklist-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 600;
       color: var(--text-primary);
     }
@@ -436,19 +462,20 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: var(--text-primary);
+      font-size: 11px;
+      margin-top: 2px;
     }
 
     .btn-pill-action {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       border: 1.5px solid var(--text-primary);
       background: transparent;
-      padding: 12px 24px;
+      padding: 10px 22px;
       border-radius: var(--radius-full);
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -463,12 +490,12 @@
       color: #FFFFFF;
     }
 
-    /* RIGHT COLUMN: STEPPER BOX (HIMALIX REPLICA) */
+    /* STEPPER BOX (HIMALIX REPLICA) */
     .stepper-box {
-      background: var(--bg-surface);
+      background: var(--bg-canvas);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 30px;
+      padding: 28px;
     }
 
     .stepper-header {
@@ -476,88 +503,204 @@
       align-items: center;
       gap: 8px;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--text-muted);
-      padding-bottom: 16px;
+      padding-bottom: 14px;
       border-bottom: 1px dotted var(--border-subtle);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
     .stepper-list {
       display: flex;
       flex-direction: column;
-      gap: 22px;
+      gap: 20px;
     }
 
     .step-entry {
       display: flex;
       align-items: flex-start;
-      gap: 16px;
+      gap: 14px;
     }
 
     .step-number {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--border-strong);
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border-medium);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 12.5px;
+      font-weight: 800;
       color: var(--text-primary);
       flex-shrink: 0;
-      background: var(--bg-canvas);
+      background: #FFFFFF;
     }
 
     .step-content h4 {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .step-content p {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-secondary);
       line-height: 1.5;
     }
 
     /* ==========================================================================
-       DEVELOPMENT PROCESS GALLERY (FEATURING REAL ASSETS)
+       RESEARCH ARTICLE SECTION STYLES (MATHEMATICS, PROTOCOLS, TABLES)
        ========================================================================== */
-    .section-header {
-      margin-bottom: 28px;
+    .research-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      margin-bottom: 36px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-title-wrap {
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
     }
 
-    .section-header-text h3 {
+    .section-title-wrap h2 {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.6px;
       color: var(--text-primary);
-      margin-bottom: 6px;
     }
 
-    .section-header-text p {
-      font-size: 14.5px;
+    .section-num-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      padding: 3px 8px;
+      border-radius: var(--radius-xs);
+    }
+
+    .prose {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .prose p {
+      margin-bottom: 16px;
+    }
+
+    .prose h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 24px 0 10px;
+    }
+
+    /* Math Formula Display Box */
+    .math-card {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin: 18px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      color: var(--text-primary);
+      overflow-x: auto;
+    }
+
+    .math-caption {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      margin-top: 6px;
+    }
+
+    /* Code Block Display */
+    .code-block {
+      background: #0F172A;
+      color: #F8FAFC;
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    .code-block .keyword { color: #F472B6; font-weight: 600; }
+    .code-block .type { color: #38BDF8; }
+    .code-block .comment { color: #64748B; font-style: italic; }
+    .code-block .num { color: #FBBF24; }
+
+    /* Academic Data Tables */
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-medium);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    table.data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
       color: var(--text-secondary);
     }
 
+    table.data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.data-table tr:hover td {
+      background: #FAFBFD;
+    }
+
+    /* ==========================================================================
+       DEVELOPMENT PROCESS GALLERY (ALL 12 AUTHENTIC PROJECT PHOTOS)
+       ========================================================================== */
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
-      margin-bottom: 48px;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 22px;
+      margin-bottom: 30px;
     }
 
     .gallery-card {
@@ -598,21 +741,21 @@
 
     .gallery-tag {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      background: rgba(15, 23, 42, 0.85);
+      top: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(4px);
       color: #FFFFFF;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       padding: 3px 8px;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-xs);
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
 
     .gallery-info {
-      padding: 18px;
+      padding: 16px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -621,10 +764,10 @@
 
     .gallery-title {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .gallery-desc {
@@ -646,92 +789,26 @@
     }
 
     /* ==========================================================================
-       TECHNICAL SPECIFICATIONS & HARDWARE SPECS
+       AWARDS SHOWCASE (HIMALIX STYLE)
        ========================================================================== */
-    .specs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .spec-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 28px;
-    }
-
-    .spec-card-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--accent-red);
-      background: var(--accent-red-subtle);
-      padding: 2px 8px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 12px;
-    }
-
-    .spec-card h4 {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--text-primary);
-      margin-bottom: 16px;
-    }
-
-    .spec-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .spec-table tr {
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .spec-table tr:last-child {
-      border-bottom: none;
-    }
-
-    .spec-table td {
-      padding: 10px 0;
-    }
-
-    .spec-table td.label {
-      color: var(--text-muted);
-      font-weight: 500;
-      width: 42%;
-    }
-
-    .spec-table td.value {
-      color: var(--text-primary);
-      font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* ==========================================================================
-       AWARDS & RECOGNITIONS SECTION
-       ========================================================================== */
-    .awards-container {
+    .awards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
-      margin-bottom: 40px;
+      margin: 24px 0;
     }
 
-    .award-box {
-      background: var(--bg-surface);
+    .award-card {
+      background: var(--bg-canvas);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 24px;
-      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    .award-rank-pill {
+    .award-rank {
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -743,44 +820,41 @@
       border-radius: var(--radius-full);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      align-self: flex-start;
     }
 
-    .award-box h4 {
+    .award-card h4 {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 16px;
       font-weight: 800;
       color: var(--text-primary);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       line-height: 1.35;
     }
 
-    .award-box p {
+    .award-card p {
       font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.5;
     }
 
-    .award-venue {
-      margin-top: 14px;
-      font-size: 12px;
+    .award-foot {
+      margin-top: 16px;
+      font-size: 11.5px;
       font-weight: 600;
       color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
     }
 
     /* ==========================================================================
-       IMAGE LIGHTBOX MODAL
+       MODAL LIGHTBOX
        ========================================================================== */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(8px);
       display: none;
       align-items: center;
@@ -789,19 +863,17 @@
       padding: 24px;
     }
 
-    .modal-overlay.open {
-      display: flex;
-    }
+    .modal-overlay.open { display: flex; }
 
     .modal-content {
       background: #FFFFFF;
-      max-width: 900px;
+      max-width: 960px;
       width: 100%;
       border-radius: var(--radius-lg);
       overflow: hidden;
       box-shadow: var(--shadow-modal);
       position: relative;
-      max-height: 90vh;
+      max-height: 92vh;
       display: flex;
       flex-direction: column;
     }
@@ -812,20 +884,20 @@
       overflow-y: auto;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 800px) {
       .modal-body {
         flex-direction: row;
-        max-height: 580px;
+        max-height: 600px;
       }
     }
 
     .modal-image-wrap {
-      flex: 1.2;
+      flex: 1.25;
       background: #000000;
       display: flex;
       align-items: center;
       justify-content: center;
-      max-height: 480px;
+      max-height: 520px;
     }
 
     .modal-image-wrap img {
@@ -850,7 +922,7 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       border: 1px solid var(--border-subtle);
       font-size: 20px;
       cursor: pointer;
@@ -866,7 +938,7 @@
     footer.site-footer {
       background: var(--bg-surface);
       border-top: 1px solid var(--border-subtle);
-      padding: 48px 0 32px;
+      padding: 44px 0 32px;
       margin-top: 60px;
       font-size: 13px;
       color: var(--text-muted);
@@ -875,7 +947,7 @@
     .footer-inner {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
     @media (min-width: 768px) {
@@ -886,28 +958,49 @@
       }
     }
 
-    .footer-credits strong {
-      color: var(--text-primary);
+    /* Floating Print Button */
+    .floating-print-helper {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 900;
+      background: var(--accent-black);
+      color: #FFFFFF;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      padding: 12px 20px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: var(--transition);
+    }
+
+    .floating-print-helper:hover {
+      background: #1E293B;
+      transform: translateY(-2px);
     }
 
     /* ==========================================================================
-       PRINT-TO-PDF ENGINE (@media print)
-       FLAWLESS, PUBLICATION-READY A4 DOSSIER LAYOUT
+       PRINT-TO-PDF PUBLICATION ENGINE (@media print)
        ========================================================================== */
     @media print {
       @page {
         size: A4 portrait;
-        margin: 14mm 16mm 14mm 16mm;
+        margin: 12mm 14mm 14mm 14mm;
       }
 
       body {
         background: #FFFFFF !important;
         color: #000000 !important;
-        font-size: 11pt;
+        font-size: 10pt;
         line-height: 1.45;
       }
 
-      /* Hide non-printable web UI elements */
       header.site-header,
       .ticker-strip,
       .tabs-wrapper,
@@ -919,43 +1012,53 @@
         display: none !important;
       }
 
-      /* Make all tab panels visible in sequence when printing */
+      /* Make all sections flow sequentially in print */
       .tab-panel {
         display: block !important;
         opacity: 1 !important;
         transform: none !important;
-        margin-bottom: 24pt;
+        margin-bottom: 20pt;
         page-break-inside: auto;
       }
 
-      .feature-card {
+      .feature-card, .research-section {
         background: #FFFFFF !important;
-        border: 1pt solid #CCCCCC !important;
+        border: 1pt solid #D1D5DB !important;
         padding: 16pt !important;
-        margin-bottom: 20pt !important;
+        margin-bottom: 18pt !important;
+        box-shadow: none !important;
         page-break-inside: avoid;
       }
 
-      .stepper-box {
+      .stepper-box, .math-card, .code-block {
         background: #F8F9FA !important;
-        border: 1pt solid #CCCCCC !important;
-        padding: 14pt !important;
+        border: 1pt solid #E5E7EB !important;
+        color: #000000 !important;
+        page-break-inside: avoid;
       }
+
+      .code-block {
+        color: #111827 !important;
+        background: #F1F5F9 !important;
+      }
+      .code-block .keyword { color: #BE123C !important; }
+      .code-block .type { color: #0284C7 !important; }
+      .code-block .comment { color: #64748B !important; }
 
       .gallery-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12pt !important;
+        gap: 10pt !important;
         page-break-inside: auto;
       }
 
       .gallery-card {
-        border: 1pt solid #DDDDDD !important;
+        border: 1pt solid #E5E7EB !important;
         page-break-inside: avoid;
-        margin-bottom: 10pt;
+        margin-bottom: 8pt;
       }
 
       .gallery-media {
-        height: 150pt !important;
+        height: 140pt !important;
       }
 
       .gallery-media img {
@@ -963,27 +1066,21 @@
         -webkit-print-color-adjust: exact;
       }
 
-      .specs-grid {
+      .awards-grid {
         grid-template-columns: repeat(2, 1fr) !important;
         page-break-inside: avoid;
       }
 
-      .awards-container {
-        grid-template-columns: repeat(2, 1fr) !important;
-        page-break-inside: avoid;
-      }
-
-      .page-break-print {
+      .print-page-break {
         page-break-after: always;
         break-after: page;
       }
 
-      /* Header/Footer watermark on print */
       .print-header {
         display: block !important;
         border-bottom: 2pt solid #000000;
         padding-bottom: 6pt;
-        margin-bottom: 16pt;
+        margin-bottom: 14pt;
         font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
@@ -991,7 +1088,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 9pt;
+        font-size: 8.5pt;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -999,66 +1096,35 @@
       }
 
       .print-header-title {
-        font-size: 16pt;
+        font-size: 14pt;
         font-weight: 800;
         color: #000000;
-        margin-top: 4pt;
+        margin-top: 3pt;
       }
     }
 
-    .print-header {
-      display: none;
-    }
-
-    /* Floating Quick-Action for Printing */
-    .floating-print-helper {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 1000;
-      background: #0F172A;
-      color: #FFFFFF;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
-      padding: 12px 20px;
-      border-radius: var(--radius-full);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 13.5px;
-      font-weight: 700;
-      border: 1px solid rgba(255,255,255,0.2);
-      transition: var(--transition);
-    }
-
-    .floating-print-helper:hover {
-      background: #1E293B;
-      transform: translateY(-2px);
-    }
+    .print-header { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- PRINT ONLY HEADER (APPEARS AT TOP OF PRINTED A4 PAGES) -->
+  <!-- PRINT-ONLY HEADER BANNER -->
   <div class="print-header container">
     <div class="print-header-top">
-      <span>Official Project Dossier // ICT Award 2026</span>
-      <span>Category: Rising Star Innovation (IoT & Embedded Systems)</span>
+      <span>Official Technical Whitepaper // ICT Award 2026</span>
+      <span>Category: Rising Star Innovation (IoT &amp; Embedded Systems)</span>
     </div>
     <div class="print-header-title">
-      LifeLine: Autonomous Off-Grid Disaster & Emergency Telemetry System
+      LifeLine: Autonomous Off-Grid Disaster &amp; Emergency Telemetry System
     </div>
   </div>
 
-  <!-- SITE HEADER (HIMALIX REPLICA) -->
+  <!-- STICKY SITE HEADER (HIMALIX REPLICA) -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="#" class="brand-group">
         <div class="brand-logo-icon">▲</div>
-        <div class="brand-title">
-          LIFELINE
-        </div>
+        <div class="brand-title">LIFELINE</div>
         <span class="brand-badge">ICT AWARD 2026</span>
       </a>
 
@@ -1068,132 +1134,142 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="projectSearch" placeholder="Search hardware, LoRa, SPU, tests..." onkeyup="filterContent(this.value)" />
+        <input type="text" id="projectSearch" placeholder="Search RF link budget, DSP, pinouts, photos..." onkeyup="filterContent(this.value)" />
       </div>
 
       <!-- Navigation Links -->
       <nav class="header-nav">
         <a href="#overview" onclick="switchTab('overview')">Overview</a>
         <a href="#problem" onclick="switchTab('problem')">The Crisis</a>
-        <a href="#hardware" onclick="switchTab('hardware')">Hardware</a>
+        <a href="#architecture" onclick="switchTab('architecture')">Architecture</a>
+        <a href="#dsp" onclick="switchTab('dsp')">DSP &amp; Formulas</a>
+        <a href="#rf" onclick="switchTab('rf')">Radio Physics</a>
         <a href="#gallery" onclick="switchTab('gallery')">Lab Photos</a>
-        <a href="#software" onclick="switchTab('software')">Software</a>
+        <a href="#software" onclick="switchTab('software')">Software &amp; BLE</a>
         <a href="#roadmap" onclick="switchTab('roadmap')">Roadmap</a>
         <a href="#awards" onclick="switchTab('awards')">Awards</a>
       </nav>
 
-      <!-- Action Button -->
-      <div class="header-actions">
+      <!-- Print Action -->
+      <div>
         <button class="btn-pdf-export" onclick="window.print()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 9V2h12v7"></path>
             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
             <rect x="6" y="14" width="12" height="8"></rect>
           </svg>
-          Export PDF / Print
+          Export PDF Dossier
         </button>
       </div>
     </div>
   </header>
 
-  <!-- TICKER SUB-BANNER (HIMALIX STYLE) -->
+  <!-- TICKER STRIP -->
   <div class="ticker-strip">
     <div class="ticker-content">
-      <span class="ticker-item">OFF-GRID TELEMETRY</span><span class="ticker-dot"></span>
-      <span class="ticker-item">&lt;/&gt; SUB-GHZ LORA 433MHZ</span><span class="ticker-dot"></span>
-      <span class="ticker-item">DUAL-ESP32 CORES</span><span class="ticker-dot"></span>
-      <span class="ticker-item">ZERO INTERNET FIELD OPERATION</span><span class="ticker-dot"></span>
-      <span class="ticker-item">2-WAY ACKNOWLEDGMENT</span><span class="ticker-dot"></span>
+      <span class="ticker-item">RESEARCH WHITEPAPER</span><span class="ticker-dot"></span>
+      <span class="ticker-item">SUB-GHZ LORA 433MHZ</span><span class="ticker-dot"></span>
+      <span class="ticker-item">DUAL-ESP32 SPLIT CORE</span><span class="ticker-dot"></span>
+      <span class="ticker-item">EDGE DSP ACCELEROMETRY</span><span class="ticker-dot"></span>
+      <span class="ticker-item">CRC-16-CCITT FRAMING</span><span class="ticker-dot"></span>
       <span class="ticker-item">WEB BLUETOOTH PWA</span><span class="ticker-dot"></span>
-      <span class="ticker-item">ZERO SUBSCRIPTION FEES</span><span class="ticker-dot"></span>
-      <span class="ticker-item">KARNALI &amp; JUMLA READY</span><span class="ticker-dot"></span>
+      <span class="ticker-item">ZERO TELECOM DEPENDENCY</span><span class="ticker-dot"></span>
+      <span class="ticker-item">KARNALI &amp; JUMLA FIELD READY</span><span class="ticker-dot"></span>
       <span class="ticker-item">ICT AWARD 2026 CANDIDATE</span><span class="ticker-dot"></span>
-      <!-- Repeated for continuous seamless ticker -->
-      <span class="ticker-item">OFF-GRID TELEMETRY</span><span class="ticker-dot"></span>
-      <span class="ticker-item">&lt;/&gt; SUB-GHZ LORA 433MHZ</span><span class="ticker-dot"></span>
-      <span class="ticker-item">DUAL-ESP32 CORES</span><span class="ticker-dot"></span>
-      <span class="ticker-item">ZERO INTERNET FIELD OPERATION</span><span class="ticker-dot"></span>
-      <span class="ticker-item">2-WAY ACKNOWLEDGMENT</span><span class="ticker-dot"></span>
+      <!-- Repeated -->
+      <span class="ticker-item">RESEARCH WHITEPAPER</span><span class="ticker-dot"></span>
+      <span class="ticker-item">SUB-GHZ LORA 433MHZ</span><span class="ticker-dot"></span>
+      <span class="ticker-item">DUAL-ESP32 SPLIT CORE</span><span class="ticker-dot"></span>
+      <span class="ticker-item">EDGE DSP ACCELEROMETRY</span><span class="ticker-dot"></span>
+      <span class="ticker-item">CRC-16-CCITT FRAMING</span><span class="ticker-dot"></span>
     </div>
   </div>
 
-  <!-- FLOATING ACTION HELPER -->
+  <!-- FLOATING PRINT HELPER -->
   <div class="floating-print-helper" onclick="window.print()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="6 9 6 2 18 2 18 9"></polyline>
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
       <rect x="6" y="14" width="12" height="8"></rect>
     </svg>
-    Save as Official PDF Dossier
+    Save as Research Paper PDF
   </div>
 
-  <!-- MAIN CONTAINER -->
+  <!-- MAIN DOCUMENT BODY -->
   <main class="container">
     
-    <!-- HERO TITLE AREA -->
-    <section class="presentation-hero">
+    <!-- PAPER HEADER HERO -->
+    <section class="paper-hero">
       <div class="category-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10"></circle>
         </svg>
-        PROJECT DOSSIER // ICT AWARD 2026 NOMINATION
+        ICT AWARD 2026 // TECHNICAL RESEARCH MONOGRAPH
       </div>
-      <h1 class="hero-title">Four units. One unbreakable Lifeline.</h1>
-      <p class="hero-subtitle">
-        An indigenous, off-grid emergency telemetry and rescue ecosystem engineered to eliminate fatal telecommunication blackouts in remote mountain districts of Nepal.
+      <h1 class="paper-title">LifeLine: Autonomous Off-Grid Disaster &amp; Emergency Telemetry System</h1>
+      <p class="paper-subtitle">
+        A Dual-MCU Sub-GHz LPWAN Radio Architecture and Web Bluetooth Tactical Gateway for Emergency Telecommunications in Cellular-Deprived Himalayan Regions.
       </p>
 
-      <!-- SEGMENTED TABS CONTROLLER (HIMALIX STYLE) -->
+      <!-- RESEARCH METADATA CARD -->
+      <div class="paper-meta-card">
+        <div class="meta-item">
+          <strong>Nomination Track</strong>
+          <span>Rising Star Innovation (IoT / Embedded)</span>
+        </div>
+        <div class="meta-item">
+          <strong>Technology Readiness</strong>
+          <span>TRL 6 (Demonstrated Prototype)</span>
+        </div>
+        <div class="meta-item">
+          <strong>Primary Target Region</strong>
+          <span>Karnali Province (Jumla, Dolpa) &amp; DRR Zones</span>
+        </div>
+        <div class="meta-item">
+          <strong>RF Spectrum &amp; Modulation</strong>
+          <span>433.00 MHz LoRa (SX1278, SF12, BW125)</span>
+        </div>
+      </div>
+
+      <!-- SEGMENTED TABS CONTROLLER (HIMALIX REPLICA) -->
       <div class="tabs-wrapper">
         <div class="segmented-tabs" role="tablist">
-          <button class="tab-btn active" onclick="switchTab('overview')">
-            <span>⊞</span> Overview
-          </button>
-          <button class="tab-btn" onclick="switchTab('problem')">
-            <span>⊞</span> The Jumla Crisis
-          </button>
-          <button class="tab-btn" onclick="switchTab('hardware')">
-            <span>⊞</span> Hardware &amp; RF
-          </button>
-          <button class="tab-btn" onclick="switchTab('gallery')">
-            <span>⊞</span> Lab &amp; Prototyping Photos
-          </button>
-          <button class="tab-btn" onclick="switchTab('software')">
-            <span>&lt;/&gt;</span> Web BLE &amp; Cloud
-          </button>
-          <button class="tab-btn" onclick="switchTab('roadmap')">
-            <span>⊞</span> Tri-Bearer Roadmap
-          </button>
-          <button class="tab-btn" onclick="switchTab('awards')">
-            <span>★</span> Track Record
-          </button>
+          <button class="tab-btn active" onclick="switchTab('overview')"><span>⊞</span> Overview</button>
+          <button class="tab-btn" onclick="switchTab('problem')"><span>⊞</span> Problem &amp; Reality</button>
+          <button class="tab-btn" onclick="switchTab('architecture')"><span>⊞</span> Dual-MCU Architecture</button>
+          <button class="tab-btn" onclick="switchTab('dsp')"><span>∑</span> Edge DSP &amp; Math</button>
+          <button class="tab-btn" onclick="switchTab('rf')"><span>📡</span> Radio Physics</button>
+          <button class="tab-btn" onclick="switchTab('gallery')"><span>📷</span> Lab &amp; Field Photos</button>
+          <button class="tab-btn" onclick="switchTab('software')"><span>&lt;/&gt;</span> Web BLE &amp; Cloud</button>
+          <button class="tab-btn" onclick="switchTab('roadmap')"><span>⊞</span> Tri-Bearer Roadmap</button>
+          <button class="tab-btn" onclick="switchTab('awards')"><span>★</span> Track Record</button>
         </div>
       </div>
     </section>
 
     <!-- ======================================================================
-         TAB 1: OVERVIEW (SPLIT-GRID REPLICA OF HIMALIX CARD)
+         TAB 1: OVERVIEW (HIMALIX SPLIT-GRID REPLICA)
          ====================================================================== -->
     <div id="tab-overview" class="tab-panel active">
       <div class="feature-card">
         <div class="feature-left">
-          <h3>LifeLine Ecosystem</h3>
+          <h3>System Abstract &amp; Architectural Triad</h3>
           <p class="feature-lead">
-            Bridging the fatal communication gap between remote mountain villages, rural health posts, and central disaster management authorities without requiring commercial cellular reception.
+            During natural catastrophes and in routine off-grid mountain environments across Nepal, terrestrial mobile telecommunications (NTC/Ncell) suffer severe outages or complete absence. LifeLine solves this through an autonomous, decentralized hardware ecosystem coupling <strong>Sub-GHz LoRa (433 MHz)</strong> radio links, dual-ESP32 edge DSP compute, and zero-install Web Bluetooth terminals.
           </p>
 
           <div class="checklist-grid">
             <div class="checklist-item">
               <div class="check-icon">✓</div>
-              <span>10+ km Sub-GHz Line-of-Sight</span>
+              <span>10+ km Sub-GHz Line of Sight</span>
             </div>
             <div class="checklist-item">
               <div class="check-icon">✓</div>
-              <span>Zero SIM or Cellular Dependency</span>
+              <span>Zero SIM or Cellular Reliance</span>
             </div>
             <div class="checklist-item">
               <div class="check-icon">✓</div>
-              <span>Guaranteed 2-Way ACK Delivery</span>
+              <span>Guaranteed 2-Way ACK Confirmation</span>
             </div>
             <div class="checklist-item">
               <div class="check-icon">✓</div>
@@ -1201,7 +1277,7 @@
             </div>
             <div class="checklist-item">
               <div class="check-icon">✓</div>
-              <span>&lt; 10% Cost of Satellite Gear</span>
+              <span>&lt; 10% Cost of Satellite Communicators</span>
             </div>
             <div class="checklist-item">
               <div class="check-icon">✓</div>
@@ -1209,51 +1285,51 @@
             </div>
           </div>
 
-          <a href="#gallery" class="btn-pill-action" onclick="switchTab('gallery')">
+          <button class="btn-pill-action" onclick="switchTab('gallery')">
             EXPLORE HARDWARE GALLERY →
-          </a>
+          </button>
         </div>
 
         <div class="feature-right">
           <div class="stepper-box">
             <div class="stepper-header">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              HOW LIFELINE SAVES LIVES (PROCESS FLOW)
+              END-TO-END TELEMETRY PIPELINE
             </div>
             
             <div class="stepper-list">
               <div class="step-entry">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                  <h4>1. Instant Distress Trigger</h4>
-                  <p>Villager or patient presses a single tactile key on the TX Pro handheld to select emergency type (Medical, Maternal, Critical, Evacuation).</p>
+                  <h4>Field Distress Input (TX Pro / SPU)</h4>
+                  <p>A villager triggers an alert via the 4×4 keypad on the TX Pro handheld, or the SPU automatically detects a seismic shock or slope movement exceeding 1.8g.</p>
                 </div>
               </div>
 
               <div class="step-entry">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                  <h4>2. Sub-GHz Radio Propagation</h4>
-                  <p>SX1278 LoRa radio broadcasts packet across 10+ km at 433 MHz, bending around mountain ridges and penetrating dense pine forest.</p>
+                  <h4>Sub-GHz RF Modulation (LoRa 433 MHz)</h4>
+                  <p>SX1278 transceiver modulates a 48-byte binary packet with CRC-16-CCITT checksum at SF12/125kHz, diffracting around terrain obstacles over 10+ km.</p>
                 </div>
               </div>
 
               <div class="step-entry">
                 <div class="step-number">3</div>
                 <div class="step-content">
-                  <h4>3. Base Station Acoustic Alert</h4>
-                  <p>RX Pro at ward health post receives beacon, activates loud multi-tone siren, displays caller coordinates on LCD, and flashes status LEDs.</p>
+                  <h4>Base Station Gateway &amp; Acoustic Siren (RX Pro)</h4>
+                  <p>Community base station decodes frame, verifies CRC, triggers a high-decibel multi-tone siren, displays caller coordinates on LCD, and sends immediate ACK.</p>
                 </div>
               </div>
 
               <div class="step-entry">
                 <div class="step-number">4</div>
                 <div class="step-content">
-                  <h4>4. Two-Way ACK &amp; Cloud Dispatch</h4>
-                  <p>Base station transmits encrypted ACK back to the caller's display ("RESCUE DISPATCHED"), then flushes incident to central cloud dashboard.</p>
+                  <h4>Two-Way Verification &amp; Cloud Dispatch</h4>
+                  <p>Victim's display flashes green ("ACK CONFIRMED / RESCUE DISPATCHED"); base station synchronizes incident over HTTPS to the Central Operations Portal.</p>
                 </div>
               </div>
             </div>
@@ -1263,631 +1339,762 @@
     </div>
 
     <!-- ======================================================================
-         TAB 2: THE JUMLA CRISIS & PROBLEM STATEMENT
+         TAB 2: THE JUMLA CRISIS & COMPARATIVE BENCHMARKING
          ====================================================================== -->
     <div id="tab-problem" class="tab-panel">
-      <div class="feature-card">
-        <div class="feature-left">
-          <h3>The Humanitarian Crisis</h3>
-          <p class="feature-lead">
-            In remote Himalayan districts like Jumla, Dolpa, and northern Karnali, thousands of families live in total telecommunications blind zones. When medical emergencies or natural hazards strike, the absence of basic communication turns treatable conditions into fatal tragedies.
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>1. The Humanitarian Crisis: Communication Poverty in Jumla &amp; Karnali</h2>
+          <span class="section-num-tag">SECTION 01</span>
+        </div>
+
+        <div class="prose">
+          <p>
+            In the rugged Himalayan geography of Nepal, over <strong>80% of the landmass</strong> consists of steep valleys, fragile tectonic zones, and isolated mountain settlements. In districts such as <strong>Jumla, Dolpa, Kalikot, and Humla</strong>, thousands of citizens reside in permanent telecommunication blind zones with zero cellular (NTC/Ncell) reception.
+          </p>
+          <p>
+            When a villager experiences a critical medical emergency—such as postpartum hemorrhage during childbirth, sudden stroke, or trail injury—the absence of telecommunication turns treatable conditions into fatal tragedies. Families must physically carry patients on wicker baskets (doko) or stretchers across mountain passes for 10 to 18 hours just to notify the nearest health post. By the time help is coordinated, it is frequently too late.
+          </p>
+        </div>
+
+        <h4 style="font-family:'Plus Jakarta Sans',sans-serif; font-size:18px; font-weight:800; margin:28px 0 14px;">
+          Comparative Benchmark: LifeLine vs. Existing Technologies
+        </h4>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Evaluation Parameter</th>
+                <th>LifeLine Ecosystem</th>
+                <th>Garmin InReach / Iridium</th>
+                <th>Standard Mobile (NTC/Ncell)</th>
+                <th>VHF / UHF Walkie-Talkies</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Capital Cost (Hardware)</strong></td>
+                <td><strong>&lt; NPR 7,000 (~$50)</strong></td>
+                <td>NPR 60,000 – 90,000 ($450–$650)</td>
+                <td>NPR 15,000 – 40,000</td>
+                <td>NPR 8,000 – 20,000</td>
+              </tr>
+              <tr>
+                <td><strong>Recurring Monthly Fees</strong></td>
+                <td><strong>Zero (NPR 0)</strong></td>
+                <td>NPR 3,500 – 6,000 / month ($25–$45)</td>
+                <td>Data pack / recharge dependent</td>
+                <td>Zero</td>
+              </tr>
+              <tr>
+                <td><strong>Cellular / Tower Dependency</strong></td>
+                <td><strong>None (100% Off-Grid RF)</strong></td>
+                <td>None (Requires orbital line-of-sight)</td>
+                <td>100% Dependent (Dead in valleys)</td>
+                <td>None (Line of Sight only)</td>
+              </tr>
+              <tr>
+                <td><strong>Terrain Diffraction</strong></td>
+                <td><strong>High (Sub-GHz 433 MHz)</strong></td>
+                <td>Fails under canopy / deep ravines</td>
+                <td>Blocked by ridges (2.1 GHz)</td>
+                <td>Moderate (VHF / UHF Line of Sight)</td>
+              </tr>
+              <tr>
+                <td><strong>Two-Way Confirmation (ACK)</strong></td>
+                <td><strong>Yes (Automatic 5s window)</strong></td>
+                <td>Yes (High latency: 30s–5min)</td>
+                <td>Call confirmation only</td>
+                <td>Manual voice check only</td>
+              </tr>
+              <tr>
+                <td><strong>Digital Literacy Required</strong></td>
+                <td><strong>Low (Single Tactile Keypad)</strong></td>
+                <td>Moderate to High</td>
+                <td>High (Smartphone apps / touch)</td>
+                <td>Moderate (Channel tuning / squelch)</td>
+              </tr>
+              <tr>
+                <td><strong>Local Assembly / Repairability</strong></td>
+                <td><strong>100% Local in Nepal</strong></td>
+                <td>Proprietary (Factory service abroad)</td>
+                <td>Imported consumer electronics</td>
+                <td>Imported commercial electronics</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 3: DUAL-MCU ARCHITECTURE & HARDWARE ENGINEERING
+         ====================================================================== -->
+    <div id="tab-architecture" class="tab-panel">
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>2. Dual-ESP32 Split-Core Microcontroller Architecture</h2>
+          <span class="section-num-tag">SECTION 02</span>
+        </div>
+
+        <div class="prose">
+          <p>
+            Standard single-microcontroller IoT nodes frequently lock up or drop radio airtime frames when concurrently running heavy digital signal processing (DSP), high-frequency floating-point vector math, GPS NMEA parsing, and LoRa spread-spectrum modulation.
+          </p>
+          <p>
+            To achieve fail-safe industrial reliability, LifeLine implements a <strong>Dual-ESP32 architecture</strong>, physically decoupling edge sensor sampling from long-range RF modulation across two microcontrollers interconnected via a high-speed UART telemetry bus.
+          </p>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subsystem Core</th>
+                <th>Dedicated Microcontroller</th>
+                <th>Clock &amp; Core Allocation</th>
+                <th>Primary Responsibilities</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Sensor Processing Unit (SPU)</strong></td>
+                <td>ESP32-WROOM-32D</td>
+                <td>240 MHz (Core 0: Sensors, Core 1: DSP Math)</td>
+                <td>5 Hz sensor acquisition, MPU-6050 moving average vector math, MQ-135 gas PPM thresholding, NEO-6M GPS fix decoding, quantitative health &amp; risk calculation.</td>
+              </tr>
+              <tr>
+                <td><strong>Communication Controller Unit (CCU)</strong></td>
+                <td>ESP32-WROOM-32D</td>
+                <td>240 MHz (Core 0: LoRa RF, Core 1: UART / Ring Buffer)</td>
+                <td>Ring buffer UART frame parser, CRC-16 validation, LoRa SX1278 SPI modulation, exponential backoff retries, bidirectional ACK management.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="font-family:'Plus Jakarta Sans',sans-serif; font-size:16px; font-weight:800; margin:24px 0 10px;">
+          Hardware Pinout &amp; Inter-MCU Parallel Header Mapping
+        </h4>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ESP32 Pin Header</th>
+                <th>SPU Pin Assignment (Sensor Node)</th>
+                <th>CCU Pin Assignment (RF Dispatcher)</th>
+                <th>Signal Description &amp; Interface</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>GPIO 16 (Pin 25)</strong></td>
+                <td>UART2 RX (From CCU TX2)</td>
+                <td>UART2 RX (From SPU TX2)</td>
+                <td>High-speed asynchronous inter-MCU telemetry stream (115200 Baud)</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 17 (Pin 24)</strong></td>
+                <td>UART2 TX (To CCU RX2)</td>
+                <td>UART2 TX (To SPU RX2)</td>
+                <td>High-speed asynchronous inter-MCU telemetry stream (115200 Baud)</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 21 (Pin 20)</strong></td>
+                <td>MPU-6050 I2C SDA</td>
+                <td>Reserved / Expansion</td>
+                <td>6-DoF Accelerometer &amp; Gyroscope data bus (400 kHz Fast I2C)</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 22 (Pin 17)</strong></td>
+                <td>MPU-6050 I2C SCL</td>
+                <td>Reserved / Expansion</td>
+                <td>6-DoF Accelerometer &amp; Gyroscope clock line (400 kHz Fast I2C)</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 34 (Pin 4)</strong></td>
+                <td>MQ-135 Gas Analog (AO)</td>
+                <td>Not Used</td>
+                <td>ADC1_CH6 12-bit analog input for air quality / gas leak detection</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 23 (Pin 16)</strong></td>
+                <td>DHT11 / DHT22 Data</td>
+                <td>SX1278 Hardware Reset</td>
+                <td>Single-wire atmospheric bus on SPU / Hardware reset line on CCU</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 4 &amp; 15</strong></td>
+                <td>Hardware Serial 1 (NEO-6M GPS)</td>
+                <td>Not Used</td>
+                <td>UART1 dedicated to continuous 9600 baud NMEA GPS sentence streaming</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 5, 18, 19, 27</strong></td>
+                <td>Reserved</td>
+                <td>SX1278 SPI (SCK, CS, MISO, MOSI)</td>
+                <td>High-speed SPI bus dedicated to LoRa RF transceiver configuration</td>
+              </tr>
+              <tr>
+                <td><strong>GPIO 26 (Pin 9)</strong></td>
+                <td>Instant SOS Pushbutton Interrupt</td>
+                <td>LoRa DIO0 Hardware Interrupt</td>
+                <td>Active-Low hardware trigger on SPU / Packet RxDone interrupt on CCU</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 4: EDGE DSP & MATHEMATICAL FORMULATIONS
+         ====================================================================== -->
+    <div id="tab-dsp" class="tab-panel">
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>3. Edge Signal Processing, Sensor Fusion &amp; Scoring Mathematics</h2>
+          <span class="section-num-tag">SECTION 03</span>
+        </div>
+
+        <div class="prose">
+          <p>
+            Rather than flooding low-bandwidth radio channels with continuous raw sensor readings, the SPU executes mathematical filtering and sensor fusion directly at the hardware edge.
           </p>
 
-          <div class="checklist-grid" style="grid-template-columns: 1fr;">
-            <div class="checklist-item">
-              <div class="check-icon" style="color: var(--accent-red); border-color: var(--accent-red);">!</div>
-              <span><strong>Maternal Mortality:</strong> Mothers in labor suffer postpartum hemorrhage and cannot call health post stretchers in time.</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon" style="color: var(--accent-red); border-color: var(--accent-red);">!</div>
-              <span><strong>Delayed Trauma Evacuation:</strong> Victims of falls, landslides, or sudden cardiac events die during 12-hour foot journeys.</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon" style="color: var(--accent-red); border-color: var(--accent-red);">!</div>
-              <span><strong>Telecom Infrastructure Failure:</strong> Commercial NTC/Ncell towers fail first during monsoons, landslides, and earthquakes.</span>
-            </div>
+          <h4>A. Accelerometer Moving Average &amp; Vector Magnitude</h4>
+          <p>
+            To isolate true seismic ground tremors or catastrophic landslide displacement from accidental mechanical bumps, the 3-axis acceleration vectors ($a_x, a_y, a_z$) sampled from the MPU-6050 undergo real-time vector magnitude transformation and 10-sample circular window averaging:
+          </p>
+
+          <div class="math-card">
+            A_raw = sqrt( a_x^2 + a_y^2 + a_z^2 )
+            <br />
+            A_bar[k] = (1 / N) * SUM_{i=0}^{N-1} A_raw[k - i],  where N = 10 samples (at 5 Hz)
+            <br />
+            theta_tilt = arccos( a_z / A_raw ) * (180 / pi)
+            <div class="math-caption">Equation 1: 3-Axis Vector Magnitude, 10-Sample Moving Average, and Tilt Angle.</div>
           </div>
 
-          <button class="btn-pill-action" onclick="switchTab('hardware')">
-            SEE TECHNICAL SOLUTION →
-          </button>
-        </div>
+          <h4>B. Quantitative Node Health Score ($H_{\text{node}} \in [0, 100]\%$)</h4>
+          <p>
+            The device computes a self-diagnostic operational health metric determining whether sensor degradation, satellite occlusion, or battery starvation has compromised node accuracy:
+          </p>
 
-        <div class="feature-right">
-          <div class="stepper-box">
-            <div class="stepper-header">
-              WHY EXISTING ALTERNATIVES FAIL
-            </div>
-            
-            <div class="stepper-list">
-              <div class="step-entry">
-                <div class="step-number" style="background:#FFE4E6; color:#991B1B; border-color:#F87171;">✕</div>
-                <div class="step-content">
-                  <h4>Cellular Smartphones &amp; Mobile Apps</h4>
-                  <p>100% dependent on commercial mobile towers, electrical grid, and data packs. Completely inoperable in mountain blind-spots.</p>
-                </div>
-              </div>
+          <div class="math-card">
+            H_node = 100 - P_ENV - P_GPS - P_BAT
+            <br /><br />
+            Where:
+            <br />
+            P_ENV = 15  (if DHT sensor read fails), else 0
+            <br />
+            P_GPS = 10  (if GPS fix is invalid / 0 satellites), else 0
+            <br />
+            P_BAT = max( 0, (50 - Battery_Percent) / 2 )  (when battery drops &lt; 50%)
+            <div class="math-caption">Equation 2: Quantitative Hardware Health Metric.</div>
+          </div>
 
-              <div class="step-entry">
-                <div class="step-number" style="background:#FFE4E6; color:#991B1B; border-color:#F87171;">✕</div>
-                <div class="step-content">
-                  <h4>Commercial Satellite Messengers</h4>
-                  <p>Garmin InReach and Iridium cost NPR 50,000–80,000 per unit plus mandatory recurring dollar subscriptions (NPR 4,000/mo) that rural Gaunpalikas cannot sustain.</p>
-                </div>
-              </div>
+          <h4>C. Environmental Hazard Risk Score ($R_{\text{env}} \in [0, 100]\%$)</h4>
+          <p>
+            The environmental risk engine fuses atmospheric temperature, toxic combustible gas PPM, and kinetic seismic movement into an aggregated risk metric:
+          </p>
 
-              <div class="step-entry">
-                <div class="step-number" style="background:#D1FAE5; color:#065F46; border-color:#34D399;">✓</div>
-                <div class="step-content">
-                  <h4>The LifeLine Difference</h4>
-                  <p>Costs under NPR 7,000 per node with <strong>zero recurring fees</strong>. Operates 100% off-grid on Sub-GHz RF, with battery/solar backup, and provides bidirectional confirmation.</p>
-                </div>
-              </div>
-            </div>
+          <div class="math-card">
+            R_env = min( 100, R_gas + R_temp + R_seismic )
+            <br /><br />
+            R_gas = min( 40, (Gas_PPM - 100) / 15 )  (for PPM &gt; 100)
+            <br />
+            R_temp = (Temp - 35) * 2.5  (if Temp &gt; 35 deg C), or (5 - Temp) * 2.0 (if Temp &lt; 5 deg C)
+            <br />
+            R_seismic = 30 (Earthquake sustained |A_raw - 1.0g| &gt; 0.8g for &gt;= 15 samples), 
+                        20 (Landslide tilt &gt; 60 deg &amp; impact &gt; 3.0g), 5 (minor motion)
+            <div class="math-caption">Equation 3: Multi-Domain Environmental Risk Aggregation.</div>
+          </div>
+
+          <h4>D. 48-Byte Binary Framing &amp; CRC-16-CCITT Polynomial</h4>
+          <p>
+            To prevent payload corruption over serial UART and radio channels, telemetry is serialized into a packed 48-byte binary frame with strict byte-alignment:
+          </p>
+
+          <div class="code-block">
+<span class="comment">// Standard 48-Byte Binary Packet Definition (SharedProtocol.h)</span>
+<span class="keyword">typedef struct</span> __attribute__((packed)) {
+    <span class="type">uint8_t</span>  magic1;          <span class="comment">// 'L' (0x4C)</span>
+    <span class="type">uint8_t</span>  magic2;          <span class="comment">// 'F' (0x46)</span>
+    <span class="type">uint8_t</span>  version;         <span class="comment">// 0x01</span>
+    <span class="type">uint16_t</span> node_id;         <span class="comment">// Unique Transmitter ID</span>
+    <span class="type">uint8_t</span>  emergency_code;  <span class="comment">// ASCII Emergency Code ('F', 'Q', 'S', 'N')</span>
+    <span class="type">uint8_t</span>  priority;        <span class="comment">// Priority Level (1 to 5)</span>
+    <span class="type">uint8_t</span>  health_score;    <span class="comment">// 0 - 100%</span>
+    <span class="type">uint8_t</span>  risk_score;      <span class="comment">// 0 - 100%</span>
+    <span class="type">uint8_t</span>  battery_percent; <span class="comment">// 0 - 100%</span>
+    <span class="type">int32_t</span>  lat_deg_e7;      <span class="comment">// Latitude * 10,000,000</span>
+    <span class="type">int32_t</span>  lon_deg_e7;      <span class="comment">// Longitude * 10,000,000</span>
+    <span class="type">int16_t</span>  alt_meters;      <span class="comment">// Altitude in meters</span>
+    <span class="type">uint8_t</span>  sat_count;       <span class="comment">// Visible satellites</span>
+    <span class="type">uint8_t</span>  gps_fix;         <span class="comment">// 1 = 3D Fix, 0 = No Fix</span>
+    <span class="type">int16_t</span>  temp_c_x10;     <span class="comment">// Temperature * 10</span>
+    <span class="type">uint16_t</span> humidity_x10;    <span class="comment">// Humidity * 10</span>
+    <span class="type">uint16_t</span> pressure_hpa;    <span class="comment">// Pressure in hPa</span>
+    <span class="type">uint16_t</span> gas_ppm;         <span class="comment">// Gas PPM</span>
+    <span class="type">int16_t</span>  accel_x_mg;      <span class="comment">// Accel X (mG)</span>
+    <span class="type">int16_t</span>  accel_y_mg;      <span class="comment">// Accel Y (mG)</span>
+    <span class="type">int16_t</span>  accel_z_mg;      <span class="comment">// Accel Z (mG)</span>
+    <span class="type">uint16_t</span> crc16;           <span class="comment">// CRC-16-CCITT Checksum (Polynomial 0x1021)</span>
+} <span class="type">TelemetryPacket</span>;
           </div>
         </div>
       </div>
     </div>
 
     <!-- ======================================================================
-         TAB 3: HARDWARE & TECHNICAL SPECIFICATIONS
+         TAB 5: RADIO PHYSICS & LORA LINK BUDGET
          ====================================================================== -->
-    <div id="tab-hardware" class="tab-panel">
-      <div class="section-header">
-        <div class="section-header-text">
-          <h3>Hardware Architecture &amp; System Specifications</h3>
-          <p>Built with ruggedized microcontrollers, Sub-GHz RF transceivers, and dedicated power management.</p>
-        </div>
-      </div>
-
-      <div class="specs-grid">
-        <!-- TX Pro Handheld Specs -->
-        <div class="spec-card">
-          <span class="spec-card-badge">FIELD HANDHELD</span>
-          <h4>LifeLine TX Pro</h4>
-          <table class="spec-table">
-            <tr>
-              <td class="label">Microcontroller</td>
-              <td class="value">ESP32 Xtensa Dual-Core 240MHz</td>
-            </tr>
-            <tr>
-              <td class="label">RF Modulation</td>
-              <td class="value">LoRa SX1278 (433 MHz, Ra-02)</td>
-            </tr>
-            <tr>
-              <td class="label">RF Range</td>
-              <td class="value">10+ km Line of Sight</td>
-            </tr>
-            <tr>
-              <td class="label">User Display</td>
-              <td class="value">2.8" SPI TFT (ST7789, 240×320)</td>
-            </tr>
-            <tr>
-              <td class="label">Keypad Interface</td>
-              <td class="value">4×4 Tactile Matrix (16 Keys)</td>
-            </tr>
-            <tr>
-              <td class="label">Power Reserve</td>
-              <td class="value">Dual 18650 Li-ion (3.7V, 9800mAh)</td>
-            </tr>
-            <tr>
-              <td class="label">Chassis</td>
-              <td class="value">3D-Printed High-Impact PLA Shell</td>
-            </tr>
-          </table>
+    <div id="tab-rf" class="tab-panel">
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>4. Sub-GHz Radio Propagation Physics &amp; RF Link Budget</h2>
+          <span class="section-num-tag">SECTION 04</span>
         </div>
 
-        <!-- RX Pro Base Station Specs -->
-        <div class="spec-card">
-          <span class="spec-card-badge">BASE STATION</span>
-          <h4>LifeLine RX Pro</h4>
-          <table class="spec-table">
-            <tr>
-              <td class="label">Microcontroller</td>
-              <td class="value">ESP32 SoC + BLE 4.2 Hub</td>
-            </tr>
-            <tr>
-              <td class="label">Local Display</td>
-              <td class="value">16×2 Blue Backlit HD44780 LCD</td>
-            </tr>
-            <tr>
-              <td class="label">Audio Siren</td>
-              <td class="value">High-Decibel Multi-Tone Acoustic Piezo</td>
-            </tr>
-            <tr>
-              <td class="label">Status Visuals</td>
-              <td class="value">Triple LED Tri-Color Status Indicator</td>
-            </tr>
-            <tr>
-              <td class="label">Failover Gateways</td>
-              <td class="value">Multi-SSID Auto-Failover Wi-Fi / SoftAP</td>
-            </tr>
-            <tr>
-              <td class="label">Cloud Ingestion</td>
-              <td class="value">Direct HTTPS RESTful API Client</td>
-            </tr>
-            <tr>
-              <td class="label">Enclosure</td>
-              <td class="value">Clear Acrylic Frontplate &amp; Label Wrap</td>
-            </tr>
-          </table>
-        </div>
+        <div class="prose">
+          <p>
+            Commercial 2.4 GHz Wi-Fi and 5 GHz cellular backhauls fail in mountainous topography because higher radio frequencies exhibit severe Fresnel zone obstruction and low knife-edge diffraction. LifeLine operates in the <strong>Sub-GHz 433 MHz band</strong>, providing physical wavelength properties ($\lambda \approx 69.3\text{ cm}$) capable of bending around sharp terrain ridges and penetrating dense pine forest canopy.
+          </p>
 
-        <!-- SPU & CCU Sensor Node Specs -->
-        <div class="spec-card">
-          <span class="spec-card-badge">AUTONOMOUS TELEMETRY</span>
-          <h4>LifeLine SPU / CCU</h4>
-          <table class="spec-table">
-            <tr>
-              <td class="label">Architecture</td>
-              <td class="value">Dual-ESP32 (SPU + CCU Split Core)</td>
-            </tr>
-            <tr>
-              <td class="label">Seismic / Tremor</td>
-              <td class="value">MPU-6050 6-DoF Accelerometer/Gyro</td>
-            </tr>
-            <tr>
-              <td class="label">Gas / Smoke</td>
-              <td class="value">MQ Chemical Anomaly Sensor</td>
-            </tr>
-            <tr>
-              <td class="label">Atmospheric</td>
-              <td class="value">DHT Precision Temp &amp; Humidity</td>
-            </tr>
-            <tr>
-              <td class="label">Geospatial</td>
-              <td class="value">NEO-6M GPS Module + Patch Antenna</td>
-            </tr>
-            <tr>
-              <td class="label">Telemetry Bus</td>
-              <td class="value">High-Speed UART Shared Protocol</td>
-            </tr>
-            <tr>
-              <td class="label">Deployment</td>
-              <td class="value">Solar Charged Autonomous Sentinel</td>
-            </tr>
-          </table>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>RF Parameter</th>
+                  <th>Configured Value</th>
+                  <th>Engineering Justification</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Carrier Frequency</strong></td>
+                  <td><strong>433.00 MHz (ISM Band)</strong></td>
+                  <td>Optimal diffraction around mountain ridges with minimal path loss.</td>
+                </tr>
+                <tr>
+                  <td><strong>Spreading Factor</strong></td>
+                  <td><strong>SF12 (4096 chips/symbol)</strong></td>
+                  <td>Maximizes receiver sensitivity down to -148 dBm for extreme range.</td>
+                </tr>
+                <tr>
+                  <td><strong>Bandwidth</strong></td>
+                  <td><strong>125 kHz</strong></td>
+                  <td>Industry standard balance between data throughput and receiver noise floor.</td>
+                </tr>
+                <tr>
+                  <td><strong>Coding Rate</strong></td>
+                  <td><strong>4/8 (Forward Error Correction)</strong></td>
+                  <td>Maximum FEC redundancy to recover damaged packets in high noise.</td>
+                </tr>
+                <tr>
+                  <td><strong>Transmit Power</strong></td>
+                  <td><strong>+18 dBm (~63 mW boosted)</strong></td>
+                  <td>High RF output power within legal unlicensed power envelopes.</td>
+                </tr>
+                <tr>
+                  <td><strong>Sync Word</strong></td>
+                  <td><strong>0x12 (Isolated Network)</strong></td>
+                  <td>Prevents packet collision with commercial 433 MHz weather stations.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>Link Budget Calculation</h4>
+          <div class="math-card">
+            Link Budget = P_TX + G_TX + G_RX - Sensitivity_RX
+            <br />
+            Link Budget = (+18 dBm) + (2.15 dBi) + (2.15 dBi) - (-148 dBm) = 170.3 dB
+            <div class="math-caption">Equation 4: Total System Link Budget yielding theoretical range exceeding 15 km Line-of-Sight.</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ======================================================================
-         TAB 4: LAB & PROTOTYPING DEVELOPMENT GALLERY (REAL ASSETS)
+         TAB 6: LAB & DEVELOPMENT GALLERY (ALL 12 AUTHENTIC REAL PHOTOS)
          ====================================================================== -->
     <div id="tab-gallery" class="tab-panel">
-      <div class="section-header">
-        <div class="section-header-text">
-          <h3>Prototyping &amp; Lab Engineering Gallery</h3>
-          <p>Photographic proof of physical hardware manufacturing, component soldering, display testing, and system integration.</p>
-        </div>
-        <span class="category-badge">10 DOCUMENTED ARTIFACTS</span>
-      </div>
-
-      <div class="gallery-grid">
-        
-        <!-- Photo 1: Full System Assembly -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.39 PM (1).jpeg', 'LifeLine Complete Ecosystem Assembly', 'Top: SPU Autonomous Sensor Node (ESP32, MQ Gas, DHT, GPS, MPU-6050). Middle: TX Pro Handheld with keypad & ST7789 display. Bottom: RX Pro Base Station with 16x2 LCD in high-visibility enclosure.', 'STAGE: INTEGRATED SYSTEM BENCH TEST')">
-          <div class="gallery-media">
-            <span class="gallery-tag">ECOSYSTEM TRIAD</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.39 PM (1).jpeg" alt="LifeLine Complete Triad" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Complete Hardware Triad</h4>
-              <p class="gallery-desc">Full deployment set: SPU autonomous sensor unit, TX Pro field handheld, and RX Pro emergency base station.</p>
-            </div>
-            <div class="gallery-meta">
-              <span>PHOTO #01</span>
-              <span>VERIFIED HARDWARE</span>
-            </div>
-          </div>
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>5. Prototyping &amp; Lab Engineering Photographic Artifacts</h2>
+          <span class="section-num-tag">SECTION 05</span>
         </div>
 
-        <!-- Photo 2: SPU Handheld Sensor Board -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.40 PM.jpeg', 'Sensor Processing Unit (SPU) Handheld Inspection', 'Handheld inspection of the SPU perfboard over the workbench. Clearly visible: ESP32 SoC, MPU-6050 IMU for seismic/tremor detection, MQ gas sensor, DHT sensor, and NEO-6M GPS module with ceramic patch antenna.', 'STAGE: EDGE SENSOR DSP FABRICATION')">
-          <div class="gallery-media">
-            <span class="gallery-tag">SPU SENSOR BOARD</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.40 PM.jpeg" alt="SPU Sensor Board" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Sensor Processing Unit (SPU)</h4>
-              <p class="gallery-desc">Edge telemetry board with ESP-32, MPU-6050 vibration sensor, MQ gas detector, and NEO-6M GPS antenna.</p>
-            </div>
-            <div class="gallery-meta">
-              <span>PHOTO #02</span>
-              <span>EDGE COMPUTING</span>
-            </div>
-          </div>
-        </div>
+        <p class="prose" style="margin-bottom: 24px;">
+          The following photographic records document the actual physical hardware development, component soldering, display testing, 3D casing, and outdoor mountain terrain testing of the LifeLine ecosystem.
+        </p>
 
-        <!-- Photo 3: Side-by-Side Live Bench Test -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.41 PM.jpeg', 'TX Pro & RX Pro Live Bench Test', 'Side-by-side verification on cutting mat. Left: TX Pro showing active alert selection menu and dedicated OK key. Right: RX Pro showing listening state at 433 MHz, status LEDs, and USB-C telemetry uplink.', 'STAGE: RF COMMUNICATION VERIFICATION')">
-          <div class="gallery-media">
-            <span class="gallery-tag">LIVE BENCH TEST</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.41 PM.jpeg" alt="Live Bench Testing" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Active 433 MHz Radio Link</h4>
-              <p class="gallery-desc">TX Pro displaying emergency category menu alongside RX Pro base station in active listening state.</p>
+        <div class="gallery-grid">
+          
+          <!-- Photo 1: Full System Assembly -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.39 PM (1).jpeg', 'LifeLine Complete Ecosystem Assembly', 'Top: SPU Autonomous Sensor Node (ESP32, MQ Gas, DHT, GPS, MPU-6050). Middle: TX Pro Handheld with keypad & ST7789 display. Bottom: RX Pro Base Station with 16x2 LCD in high-visibility enclosure.', 'STAGE: INTEGRATED SYSTEM BENCH TEST')">
+            <div class="gallery-media">
+              <span class="gallery-tag">SYSTEM TRIAD</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.39 PM (1).jpeg" alt="LifeLine Triad" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #03</span>
-              <span>2-WAY RF ACK</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Complete Hardware Triad</h4>
+                <p class="gallery-desc">Full deployment set: SPU autonomous sensor unit, TX Pro field handheld, and RX Pro emergency base station.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #01</span>
+                <span>INTEGRATED SYSTEM</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 4: 3D Enclosures & Internal Wiring -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.42 PM.jpeg', 'Chassis Integration & Cable Management', 'Dual 3D-printed enclosures open on workbench. Top: RX unit with high-contrast display and side typography: A Digital Lifeline for Remote Nepal. Bottom: TX unit with color-coded ribbon bus and SMA antenna connector.', 'STAGE: MECHANICAL & PACKAGING')">
-          <div class="gallery-media">
-            <span class="gallery-tag">CHASSIS INTEGRATION</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.42 PM.jpeg" alt="Enclosure Wiring" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Modular Enclosure Assembly</h4>
-              <p class="gallery-desc">High-impact 3D-printed cases featuring custom ribbon routing, SMA antenna connectors, and chassis branding.</p>
+          <!-- Photo 2: SPU Handheld Sensor Board -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.40 PM.jpeg', 'Sensor Processing Unit (SPU) Handheld Inspection', 'Handheld inspection of the SPU perfboard over the workbench. Clearly visible: ESP32 SoC, MPU-6050 IMU for seismic/tremor detection, MQ gas sensor, DHT sensor, and NEO-6M GPS module with ceramic patch antenna.', 'STAGE: EDGE SENSOR DSP FABRICATION')">
+            <div class="gallery-media">
+              <span class="gallery-tag">SPU SENSOR BOARD</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.40 PM.jpeg" alt="SPU Sensor Board" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #04</span>
-              <span>INDUSTRIAL DESIGN</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Sensor Processing Unit (SPU)</h4>
+                <p class="gallery-desc">Edge telemetry board with ESP-32, MPU-6050 vibration sensor, MQ gas detector, and NEO-6M GPS antenna.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #02</span>
+                <span>EDGE COMPUTING</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 5: Battery Power Subsystem -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.45 PM (1).jpeg', 'Dual 18650 Li-Ion Power Subsystem', 'Inspection of the lower power chamber: Dual 18650 3.7V 9800mAh Li-ion battery pack, TP4056 charge management IC, Ra-02 LoRa transceiver, and buzzer acoustic module.', 'STAGE: POWER & AUTONOMY')">
-          <div class="gallery-media">
-            <span class="gallery-tag">POWER MANAGEMENT</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.45 PM (1).jpeg" alt="Battery Power Management" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Li-Ion Power Management</h4>
-              <p class="gallery-desc">Dual 18650 rechargeable battery pack providing days of continuous off-grid operation with onboard charging.</p>
+          <!-- Photo 3: Side-by-Side Live Bench Test -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.41 PM.jpeg', 'TX Pro & RX Pro Live Bench Test', 'Side-by-side verification on cutting mat. Left: TX Pro showing active alert selection menu and dedicated OK key. Right: RX Pro showing listening state at 433 MHz, status LEDs, and USB-C telemetry uplink.', 'STAGE: RF COMMUNICATION VERIFICATION')">
+            <div class="gallery-media">
+              <span class="gallery-tag">LIVE BENCH TEST</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.41 PM.jpeg" alt="Live Bench Testing" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #05</span>
-              <span>OFF-GRID POWER</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Active 433 MHz Radio Link</h4>
+                <p class="gallery-desc">TX Pro displaying emergency category menu alongside RX Pro base station in active listening state.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #03</span>
+                <span>2-WAY RF ACK</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 6: ST7789 Modular Display Harness -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.45 PM.jpeg', 'Display Module Harness & Ergonomics', 'Lifting the 2.8-inch SPI TFT (ST7789) backboard to inspect the modular jumper harness, isolation barrier, and lower ESP32 logic controller.', 'STAGE: MODULAR ELECTRONICS')">
-          <div class="gallery-media">
-            <span class="gallery-tag">DISPLAY HARNESS</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.45 PM.jpeg" alt="Display Module Harness" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Display &amp; Logic Decoupling</h4>
-              <p class="gallery-desc">Modular wiring harness allowing fast maintenance and easy component replacement in remote field settings.</p>
+          <!-- Photo 4: 3D Enclosures & Internal Wiring -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.42 PM.jpeg', 'Chassis Integration & Cable Management', 'Dual 3D-printed enclosures open on workbench. Top: RX unit with high-contrast display and side typography: A Digital Lifeline for Remote Nepal. Bottom: TX unit with color-coded ribbon bus and SMA antenna connector.', 'STAGE: MECHANICAL & PACKAGING')">
+            <div class="gallery-media">
+              <span class="gallery-tag">CHASSIS INTEGRATION</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.42 PM.jpeg" alt="Enclosure Wiring" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #06</span>
-              <span>MAINTAINABILITY</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Modular Enclosure Assembly</h4>
+                <p class="gallery-desc">High-impact 3D-printed cases featuring custom ribbon routing, SMA antenna connectors, and chassis branding.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #04</span>
+                <span>INDUSTRIAL DESIGN</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 7: Firmware UI State Testing on Rig -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.44 PM (1).jpeg', 'Firmware UI State Machine Testing', 'Rig testing with soldering tools and wire cutters. ST7789 TFT shows live categories: EVACUATION, STATUS OK, INJURY, FOOD SHORT. Tested under low-power sleep state transitions.', 'STAGE: FIRMWARE VALIDATION')">
-          <div class="gallery-media">
-            <span class="gallery-tag">UI TESTING RIG</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.44 PM (1).jpeg" alt="Firmware UI Testing" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Tactical UI State Machine</h4>
-              <p class="gallery-desc">Testing emergency category selection screens: Evacuation, Status OK, Injury, and Food Shortage.</p>
+          <!-- Photo 5: Battery Power Subsystem -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.45 PM (1).jpeg', 'Dual 18650 Li-Ion Power Subsystem', 'Inspection of the lower power chamber: Dual 18650 3.7V 9800mAh Li-ion battery pack, TP4056 charge management IC, Ra-02 LoRa transceiver, and buzzer acoustic module.', 'STAGE: POWER & AUTONOMY')">
+            <div class="gallery-media">
+              <span class="gallery-tag">POWER MANAGEMENT</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.45 PM (1).jpeg" alt="Battery Power Management" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #07</span>
-              <span>EMBEDDED C++</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Li-Ion Power Management</h4>
+                <p class="gallery-desc">Dual 18650 rechargeable battery pack providing days of continuous off-grid operation with onboard charging.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #05</span>
+                <span>OFF-GRID POWER</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 8: Finished TX Pro Enclosure -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.46 PM.jpeg', 'Finished TX Pro Field Handheld Unit', 'Top-down view of fully assembled LifeLine TX Pro handheld. Features external omni-directional rubber duck antenna, status LEDs, 2.8-inch color display, and tactile 4x4 keypad.', 'STAGE: FIELD-READY PROTOTYPE')">
-          <div class="gallery-media">
-            <span class="gallery-tag">FINISHED HANDHELD</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.46 PM.jpeg" alt="Finished TX Pro" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Finished LifeLine TX Pro</h4>
-              <p class="gallery-desc">Compact, weather-resilient handheld featuring high-contrast display, tactile keypad, and high-gain antenna.</p>
+          <!-- Photo 6: ST7789 Modular Display Harness -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.45 PM.jpeg', 'Display Module Harness & Ergonomics', 'Lifting the 2.8-inch SPI TFT (ST7789) backboard to inspect the modular jumper harness, isolation barrier, and lower ESP32 logic controller.', 'STAGE: MODULAR ELECTRONICS')">
+            <div class="gallery-media">
+              <span class="gallery-tag">DISPLAY HARNESS</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.45 PM.jpeg" alt="Display Module Harness" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #08</span>
-              <span>TRL 6 PROTOTYPE</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Display &amp; Logic Decoupling</h4>
+                <p class="gallery-desc">Modular wiring harness allowing fast maintenance and easy component replacement in remote field settings.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #06</span>
+                <span>MAINTAINABILITY</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 9: Industrial Graphic & Wrap Design -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.47 PM (1).jpeg', 'Industrial Branding & Vinyl Wrap Sheets', 'Printed vinyl wraps featuring high-resolution LifeLine branding, mountain silhouette graphic, Web Portal QR code, and regulatory specs ready for enclosure application.', 'STAGE: PRODUCTION FINISHING')">
-          <div class="gallery-media">
-            <span class="gallery-tag">CHASSIS GRAPHICS</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.47 PM (1).jpeg" alt="Branding & Vinyl Wraps" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Industrial Wrap &amp; Identity</h4>
-              <p class="gallery-desc">Custom vinyl wraps with portal QR code and branding: "A Digital Lifeline for Remote Nepal".</p>
+          <!-- Photo 7: Firmware UI State Testing on Rig -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.44 PM (1).jpeg', 'Firmware UI State Machine Testing', 'Rig testing with soldering tools and wire cutters. ST7789 TFT shows live categories: EVACUATION, STATUS OK, INJURY, FOOD SHORT. Tested under low-power sleep state transitions.', 'STAGE: FIRMWARE VALIDATION')">
+            <div class="gallery-media">
+              <span class="gallery-tag">UI TESTING RIG</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.44 PM (1).jpeg" alt="Firmware UI Testing" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #09</span>
-              <span>HUMAN-CENTERED UX</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Tactical UI State Machine</h4>
+                <p class="gallery-desc">Testing emergency category selection screens: Evacuation, Status OK, Injury, and Food Shortage.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #07</span>
+                <span>EMBEDDED C++</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 10: Night-Mode Base Station Testing -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.49 PM.jpeg', 'Dark/Night Environment Radio Verification', 'Testing RX Pro display readability in total darkness. Display reads: LIFELINE RX - LIVE / LoRa 433MHz / SF:12 / CRC: ON / Waiting for Emergency Signal...', 'STAGE: OPERATIONAL RELIABILITY')">
-          <div class="gallery-media">
-            <span class="gallery-tag">NIGHT TEST</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.49 PM.jpeg" alt="Night Mode Testing" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">24/7 Night-Mode Reliability</h4>
-              <p class="gallery-desc">High-contrast readability test in complete blackout conditions verifying continuous 433 MHz listener loop.</p>
+          <!-- Photo 8: Finished TX Pro Enclosure -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.46 PM.jpeg', 'Finished TX Pro Field Handheld Unit', 'Top-down view of fully assembled LifeLine TX Pro handheld. Features external omni-directional rubber duck antenna, status LEDs, 2.8-inch color display, and tactile 4x4 keypad.', 'STAGE: FIELD-READY PROTOTYPE')">
+            <div class="gallery-media">
+              <span class="gallery-tag">FINISHED HANDHELD</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.46 PM.jpeg" alt="Finished TX Pro" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #10</span>
-              <span>ALWAYS-ON STANDBY</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Finished LifeLine TX Pro</h4>
+                <p class="gallery-desc">Compact, weather-resilient handheld featuring high-contrast display, tactile keypad, and high-gain antenna.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #08</span>
+                <span>TRL 6 PROTOTYPE</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 11: Outdoor Mountain Line-of-Sight Test -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.43 PM (2).jpeg', 'Outdoor Mountain Line-of-Sight Range Test', 'Outdoor rooftop deployment facing Himalayan mountain ridges. In foreground: RX Base Station enclosure with sealed USB-C charging port, portal QR code, and coil antenna. Background: TX Pro active with bright status LED and display.', 'STAGE: FIELD TERRAIN VALIDATION')">
-          <div class="gallery-media">
-            <span class="gallery-tag" style="background:#047857;">MOUNTAIN FIELD TEST</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.43 PM (2).jpeg" alt="Outdoor Mountain Field Test" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Mountain Skyline Field Test</h4>
-              <p class="gallery-desc">Live outdoor radio propagation verification against rugged valley topography with base station portal QR code.</p>
+          <!-- Photo 9: Industrial Graphic & Wrap Design -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.47 PM (1).jpeg', 'Industrial Branding & Vinyl Wrap Sheets', 'Printed vinyl wraps featuring high-resolution LifeLine branding, mountain silhouette graphic, Web Portal QR code, and regulatory specs ready for enclosure application.', 'STAGE: PRODUCTION FINISHING')">
+            <div class="gallery-media">
+              <span class="gallery-tag">CHASSIS GRAPHICS</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.47 PM (1).jpeg" alt="Branding & Vinyl Wraps" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #11</span>
-              <span>FIELD TERRAIN TEST</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Industrial Wrap &amp; Identity</h4>
+                <p class="gallery-desc">Custom vinyl wraps with portal QR code and branding: "A Digital Lifeline for Remote Nepal".</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #09</span>
+                <span>HUMAN-CENTERED UX</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Photo 12: Keypad Matrix Decoding Bench Test -->
-        <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.48 PM (1).jpeg', 'Keypad Matrix & LoRa Interfacing Test', 'Rig verification of 4x4 matrix keypad scanner bus directly connected to ESP32 GPIOs with pull-up resistor matrix, piezoelectric buzzer acoustic trigger, and Ra-02 LoRa transceiver on test perfboard.', 'STAGE: HARDWARE BUS VERIFICATION')">
-          <div class="gallery-media">
-            <span class="gallery-tag">BUS BENCH TEST</span>
-            <img src="assests/WhatsApp Image 2026-09-15 at 4.46.48 PM (1).jpeg" alt="Keypad Matrix Bench Test" loading="lazy" />
-          </div>
-          <div class="gallery-info">
-            <div>
-              <h4 class="gallery-title">Keypad Matrix &amp; RF Interfacing</h4>
-              <p class="gallery-desc">Hardware debounce and bus validation linking the tactile 16-key matrix to the ESP32 and SX1278 transceiver.</p>
+          <!-- Photo 10: Night-Mode Base Station Testing -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.49 PM.jpeg', 'Dark/Night Environment Radio Verification', 'Testing RX Pro display readability in total darkness. Display reads: LIFELINE RX - LIVE / LoRa 433MHz / SF:12 / CRC: ON / Waiting for Emergency Signal...', 'STAGE: OPERATIONAL RELIABILITY')">
+            <div class="gallery-media">
+              <span class="gallery-tag">NIGHT TEST</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.49 PM.jpeg" alt="Night Mode Testing" loading="lazy" />
             </div>
-            <div class="gallery-meta">
-              <span>PHOTO #12</span>
-              <span>CIRCUIT PROTOTYPING</span>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">24/7 Night-Mode Reliability</h4>
+                <p class="gallery-desc">High-contrast readability test in complete blackout conditions verifying continuous 433 MHz listener loop.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #10</span>
+                <span>ALWAYS-ON STANDBY</span>
+              </div>
             </div>
           </div>
-        </div>
 
+          <!-- Photo 11: Outdoor Mountain Line-of-Sight Test -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.43 PM (2).jpeg', 'Outdoor Mountain Line-of-Sight Range Test', 'Outdoor rooftop deployment facing Himalayan mountain ridges. In foreground: RX Base Station enclosure with sealed USB-C charging port, portal QR code, and coil antenna. Background: TX Pro active with bright status LED and display.', 'STAGE: FIELD TERRAIN VALIDATION')">
+            <div class="gallery-media">
+              <span class="gallery-tag" style="background:#047857;">MOUNTAIN FIELD TEST</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.43 PM (2).jpeg" alt="Outdoor Mountain Field Test" loading="lazy" />
+            </div>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Mountain Skyline Field Test</h4>
+                <p class="gallery-desc">Live outdoor radio propagation verification against rugged valley topography with base station portal QR code.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #11</span>
+                <span>FIELD TERRAIN TEST</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo 12: Keypad Matrix Decoding Bench Test -->
+          <div class="gallery-card" onclick="openModal('assests/WhatsApp Image 2026-09-15 at 4.46.48 PM (1).jpeg', 'Keypad Matrix & LoRa Interfacing Test', 'Rig verification of 4x4 matrix keypad scanner bus directly connected to ESP32 GPIOs with pull-up resistor matrix, piezoelectric buzzer acoustic trigger, and Ra-02 LoRa transceiver on test perfboard.', 'STAGE: HARDWARE BUS VERIFICATION')">
+            <div class="gallery-media">
+              <span class="gallery-tag">BUS BENCH TEST</span>
+              <img src="assests/WhatsApp Image 2026-09-15 at 4.46.48 PM (1).jpeg" alt="Keypad Matrix Bench Test" loading="lazy" />
+            </div>
+            <div class="gallery-info">
+              <div>
+                <h4 class="gallery-title">Keypad Matrix &amp; RF Interfacing</h4>
+                <p class="gallery-desc">Hardware debounce and bus validation linking the tactile 16-key matrix to the ESP32 and SX1278 transceiver.</p>
+              </div>
+              <div class="gallery-meta">
+                <span>PHOTO #12</span>
+                <span>CIRCUIT PROTOTYPING</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
     <!-- ======================================================================
-         TAB 5: SOFTWARE ECOSYSTEM & WEB BLE PWA
+         TAB 7: SOFTWARE ECOSYSTEM, WEB BLE & CLOUD PORTAL
          ====================================================================== -->
     <div id="tab-software" class="tab-panel">
-      <div class="feature-card">
-        <div class="feature-left">
-          <h3>Companion Software &amp; Cloud Intelligence</h3>
-          <p class="feature-lead">
-            Physical hardware is paired with a zero-friction software ecosystem: from browser-based Web Bluetooth terminals to central incident dispatch engines.
-          </p>
-
-          <div class="checklist-grid">
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Web Bluetooth API (Zero Install)</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>No Play/App Store Required</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Central Command Portal (/portal/)</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Interactive Google GIS Mapping</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Automated FCM v1 Push Engine</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Emergency SMTP Email Dispatch</span>
-            </div>
-          </div>
-
-          <button class="btn-pill-action" onclick="switchTab('roadmap')">
-            VIEW HYBRID ROADMAP →
-          </button>
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>6. Companion Software, Zero-Install Web Bluetooth &amp; Cloud Dispatch</h2>
+          <span class="section-num-tag">SECTION 06</span>
         </div>
 
-        <div class="feature-right">
-          <div class="stepper-box">
-            <div class="stepper-header">
-              SOFTWARE ARCHITECTURE TIERS
-            </div>
-            
-            <div class="stepper-list">
-              <div class="step-entry">
-                <div class="step-number">A</div>
-                <div class="step-content">
-                  <h4>Web Bluetooth PWA (Bluefy Suite)</h4>
-                  <p>Enables any smartphone to connect directly to LifeLine hardware over BLE Nordic UART through a mobile web browser with zero internet.</p>
-                </div>
-              </div>
+        <div class="prose">
+          <p>
+            Emergency responders and rural health volunteers often cannot download specialized mobile apps during disasters due to dead internet connections and restricted app store access. LifeLine solves this through a <strong>Zero-Install Web Bluetooth PWA architecture</strong>.
+          </p>
 
-              <div class="step-entry">
-                <div class="step-number">B</div>
-                <div class="step-content">
-                  <h4>RESTful API Ingestion Gateway</h4>
-                  <p>Handles incoming JSON telemetry packets from RX base stations, normalizes timestamps, verifies auth tokens, and triggers alert pipelines.</p>
-                </div>
-              </div>
+          <h4>A. Web Bluetooth API &amp; Nordic UART Service (NUS)</h4>
+          <p>
+            Using modern browser-level Web Bluetooth APIs, any standard smartphone connects directly to LifeLine hardware nodes via Bluetooth Low Energy (BLE). Responders can type situation reports (SITREPs), view real-time radar telemetry, and configure network channels directly from Chrome, Safari, or Bluefy without downloading an app from the Play Store or App Store.
+          </p>
 
-              <div class="step-entry">
-                <div class="step-number">C</div>
-                <div class="step-content">
-                  <h4>Operations Command Portal</h4>
-                  <p>Provides emergency coordinators with live incident maps, responder dispatch matrices, fleet device status, and exportable logs.</p>
-                </div>
-              </div>
-            </div>
+          <div class="code-block">
+<span class="comment">// Web Bluetooth Nordic UART Service Configuration</span>
+<span class="keyword">const</span> BLE_SERVICE_UUID = <span class="num">"6e400001-b5a3-f393-e0a9-e50e24dcca9e"</span>;
+<span class="keyword">const</span> BLE_RX_CHAR_UUID = <span class="num">"6e400002-b5a3-f393-e0a9-e50e24dcca9e"</span>; <span class="comment">// Write</span>
+<span class="keyword">const</span> BLE_TX_CHAR_UUID = <span class="num">"6e400003-b5a3-f393-e0a9-e50e24dcca9e"</span>; <span class="comment">// Notify</span>
           </div>
+
+          <h4>B. Central Operations Command Portal (`/portal/`)</h4>
+          <p>
+            When an RX base station connects to a local cellular hotspot or satellite link, it flushes buffered emergency telemetry over HTTPS REST APIs to the centralized <strong>Operations Command Portal</strong>. The portal features:
+          </p>
+          <ul style="margin-left: 20px; margin-bottom: 20px;">
+            <li><strong>Interactive Google Maps GIS:</strong> Real-time plotting of emergency beacons, sender GPS coordinates, and historical path trails.</li>
+            <li><strong>Multi-Channel Push Engine:</strong> Automated instantaneous SMS, PHPMailer SMTP email alerts, and Firebase Cloud Messaging (FCM v1) push notifications to regional district hospitals.</li>
+            <li><strong>Fleet Device Management:</strong> Live battery tracking, RF packet loss statistics, and remote firmware health monitoring.</li>
+          </ul>
         </div>
       </div>
     </div>
 
     <!-- ======================================================================
-         TAB 6: HYBRID TRI-BEARER ROADMAP (RF + GSM + SATELLITE)
+         TAB 8: HYBRID TRI-BEARER EXPANSION ROADMAP
          ====================================================================== -->
     <div id="tab-roadmap" class="tab-panel">
-      <div class="feature-card">
-        <div class="feature-left">
-          <h3>The Hybrid Tri-Bearer Network</h3>
-          <p class="feature-lead">
-            LifeLine is architected to evolve beyond single-point radio links into an unbreakable, tiered telecommunication grid ensuring zero blind zones across Nepal.
-          </p>
-
-          <div class="checklist-grid">
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Tier 1: Sub-GHz LoRa Mesh</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Tier 2: GSM / 4G Cellular Relays</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Tier 3: Direct-to-Satellite Uplink</span>
-            </div>
-            <div class="checklist-item">
-              <div class="check-icon">✓</div>
-              <span>Dynamic Routing &amp; Failover</span>
-            </div>
-          </div>
-
-          <button class="btn-pill-action" onclick="switchTab('awards')">
-            VIEW AWARDS &amp; TRACTION →
-          </button>
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>7. Hybrid Tri-Bearer Network Roadmap (RF + GSM + Satellite)</h2>
+          <span class="section-num-tag">SECTION 07</span>
         </div>
 
-        <div class="feature-right">
-          <div class="stepper-box">
-            <div class="stepper-header">
-              MULTI-TIER SCALABILITY TIMELINE
-            </div>
-            
-            <div class="stepper-list">
-              <div class="step-entry">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                  <h4>Phase 1: Local RF Community Mesh (Current)</h4>
-                  <p>Deploying LoRa 433 MHz networks connecting isolated mountain wards and rural health posts in Karnali/Jumla with zero telecom dependency.</p>
-                </div>
-              </div>
+        <div class="prose">
+          <p>
+            LifeLine is architected to scale from isolated village radio links into a comprehensive, nationwide emergency telecommunication backbone through a tiered tri-bearer redundancy model:
+          </p>
 
-              <div class="step-entry">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                  <h4>Phase 2: Hybrid GSM Auto-Failover</h4>
-                  <p>Integrating cellular SIM modules into RX base stations to automatically route telemetry to national headquarters whenever a mobile tower is within range.</p>
-                </div>
-              </div>
-
-              <div class="step-entry">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                  <h4>Phase 3: Direct Satellite Fallback</h4>
-                  <p>Equipping regional base stations with low-power direct satellite uplinks (Iridium / Swarm / NTN) for 100% fail-safe coverage in extreme glacial zones.</p>
-                </div>
-              </div>
-            </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tier Layer</th>
+                  <th>Bearer Medium</th>
+                  <th>Operating Spectrum</th>
+                  <th>Role in Emergency Architecture</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Tier 1: Local Edge Mesh</strong></td>
+                  <td>LoRa RF Mesh</td>
+                  <td>433 MHz Sub-GHz</td>
+                  <td>Zero-cost inter-village communication linking remote households, ward health posts, and local emergency shelters without commercial telecom infrastructure.</td>
+                </tr>
+                <tr>
+                  <td><strong>Tier 2: Regional Cellular Relays</strong></td>
+                  <td>GSM / 4G LTE Relays</td>
+                  <td>850 / 900 / 1800 MHz</td>
+                  <td>Integrated SIM failover modules in RX Base Stations automatically bridge packets to municipal headquarters whenever a commercial mobile tower is within range.</td>
+                </tr>
+                <tr>
+                  <td><strong>Tier 3: Direct-to-Satellite Uplinks</strong></td>
+                  <td>Satellite NTN / LEO</td>
+                  <td>L-Band / Ku-Band (Swarm/Iridium)</td>
+                  <td>Ultimate fail-safe redundancy for high-altitude glacial hazard zones (GLOF) and completely cut-off mountain valleys where no terrestrial towers can survive.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ======================================================================
-         TAB 7: AWARDS, RECOGNITIONS & TRACK RECORD
+         TAB 9: AWARDS & TRACK RECORD
          ====================================================================== -->
     <div id="tab-awards" class="tab-panel">
-      <div class="section-header">
-        <div class="section-header-text">
-          <h3>Proven Track Record &amp; Competition Accolades</h3>
-          <p>Consistently evaluated and awarded 1st place across premier engineering and innovation showcases in Nepal.</p>
+      <div class="research-section">
+        <div class="section-title-wrap">
+          <h2>8. Proven Track Record, Awards &amp; Academic Honors</h2>
+          <span class="section-num-tag">SECTION 08</span>
         </div>
-        <span class="category-badge">4 PRESTIGIOUS HONORS</span>
-      </div>
 
-      <div class="awards-container">
-        <!-- Award 1: GSS Hackathon -->
-        <div class="award-box">
-          <div class="award-rank-pill">★ WINNER (1ST PLACE)</div>
-          <h4>Global School of Science (GSS) Hackathon 2025</h4>
-          <p>Recognized as the top innovation for emergency communication and IoT hardware architecture in disaster risk management.</p>
-          <div class="award-venue">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-            Global School of Science, Kathmandu
+        <p class="prose">
+          The engineering rigor and social impact of LifeLine have been validated through 1st place victories across major science, engineering, and robotics competitions in Nepal:
+        </p>
+
+        <div class="awards-grid">
+          <div class="award-card">
+            <div>
+              <div class="award-rank">★ WINNER (1ST PLACE)</div>
+              <h4>Global School of Science (GSS) Hackathon 2025</h4>
+              <p>Awarded 1st place for top IoT and embedded hardware innovation addressing off-grid disaster communications.</p>
+            </div>
+            <div class="award-foot">Global School of Science, Kathmandu</div>
           </div>
-        </div>
 
-        <!-- Award 2: KEC LITE -->
-        <div class="award-box">
-          <div class="award-rank-pill">★ WINNER (1ST PLACE)</div>
-          <h4>KEC LITE Project Demonstration</h4>
-          <p>Secured first prize in the national engineering project demonstration for live hardware performance and long-range telemetry.</p>
-          <div class="award-venue">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-            Kantipur Engineering College (KEC), Dhapakhel
+          <div class="award-card">
+            <div>
+              <div class="award-rank">★ WINNER (1ST PLACE)</div>
+              <h4>KEC LITE Project Demonstration</h4>
+              <p>Secured 1st place in the flagship engineering project exhibition for live hardware performance and long-range telemetry.</p>
+            </div>
+            <div class="award-foot">Kantipur Engineering College (KEC), Dhapakhel</div>
           </div>
-        </div>
 
-        <!-- Award 3: NCE Yatra -->
-        <div class="award-box">
-          <div class="award-rank-pill">★ WINNER (1ST PLACE)</div>
-          <h4>NCE Yatra 5.0 Poster Presentation</h4>
-          <p>Awarded first place for system architecture, research depth, and engineering documentation in humanitarian technology.</p>
-          <div class="award-venue">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-            National College of Engineering (NCE), Talchhikhel
+          <div class="award-card">
+            <div>
+              <div class="award-rank">★ WINNER (1ST PLACE)</div>
+              <h4>NCE Yatra 5.0 Poster Presentation</h4>
+              <p>Awarded 1st place for technical research rigor, circuit schematic design, and humanitarian engineering presentation.</p>
+            </div>
+            <div class="award-foot">National College of Engineering (NCE), Talchhikhel</div>
           </div>
-        </div>
 
-        <!-- Award 4: IEEE Award -->
-        <div class="award-box">
-          <div class="award-rank-pill" style="background:#E0E7FF; color:#3730A3;">★ SPECIAL RECOGNITION</div>
-          <h4>IEEE Award 2026</h4>
-          <p>Awarded consolation prize / special technical recognition by the IEEE community for indigenous hardware design and social impact.</p>
-          <div class="award-venue">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-            IEEE Nepal Subsection
+          <div class="award-card">
+            <div>
+              <div class="award-rank" style="background:#E0E7FF; color:#3730A3;">★ SPECIAL TECHNICAL RECOGNITION</div>
+              <h4>IEEE Award 2026</h4>
+              <p>Recognized by the IEEE community with a consolation prize / special honor for indigenous hardware engineering and social impact.</p>
+            </div>
+            <div class="award-foot">IEEE Nepal Subsection</div>
           </div>
         </div>
       </div>
@@ -1921,26 +2128,24 @@
   <!-- SITE FOOTER -->
   <footer class="site-footer">
     <div class="container footer-inner">
-      <div class="footer-credits">
-        <strong>LifeLine</strong> — An Indigenous Emergency Communication Ecosystem for Remote Nepal.<br />
-        Candidate for the <strong>Rising Star Innovation ICT Award 2026</strong>.
+      <div>
+        <strong>LifeLine Technical Monograph</strong> — ICT Award 2026 Official Nomination Dossier.<br />
+        Engineered for off-grid disaster resilience in Karnali, Jumla, and the remote Himalayas.
       </div>
       <div>
         <button class="btn-pdf-export" onclick="window.print()" style="font-size: 12px; padding: 6px 14px;">
-          Print / Export PDF Dossier
+          Print / Export PDF
         </button>
       </div>
     </div>
   </footer>
 
-  <!-- INTERACTIVE LOGIC -->
+  <!-- SCRIPT LOGIC -->
   <script>
     function switchTab(tabId) {
-      // Remove active from all tabs
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
 
-      // Find button matching tabId
       const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => 
         b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabId)
       );
@@ -1949,7 +2154,6 @@
       const targetPanel = document.getElementById('tab-' + tabId);
       if (targetPanel) targetPanel.classList.add('active');
 
-      // Update header nav active state
       document.querySelectorAll('nav.header-nav a').forEach(a => a.classList.remove('active'));
       const activeNav = document.querySelector(`nav.header-nav a[href="#${tabId}"]`);
       if (activeNav) activeNav.classList.add('active');
@@ -1965,9 +2169,7 @@
     }
 
     function closeModal(e) {
-      if (e.target.id === 'imageModal') {
-        closeModalDirect();
-      }
+      if (e.target.id === 'imageModal') closeModalDirect();
     }
 
     function closeModalDirect() {
@@ -1975,22 +2177,17 @@
       document.body.style.overflow = 'auto';
     }
 
-    // Keyboard navigation (Escape to close modal, Ctrl+P to print)
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeModalDirect();
     });
 
-    // Content search filtering
     function filterContent(query) {
       const q = query.toLowerCase().trim();
       if (!q) {
-        document.querySelectorAll('.gallery-card, .spec-card, .award-box').forEach(el => el.style.display = '');
+        document.querySelectorAll('.gallery-card, .data-table tr').forEach(el => el.style.display = '');
         return;
       }
-
-      // Switch to gallery tab if searching
       switchTab('gallery');
-
       document.querySelectorAll('.gallery-card').forEach(card => {
         const text = card.textContent.toLowerCase();
         card.style.display = text.includes(q) ? '' : 'none';
