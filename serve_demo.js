@@ -23,7 +23,10 @@ const MIME_TYPES = {
 };
 
 function resolveFilePath(urlPath) {
-  const cleanPath = urlPath.split('?')[0].split('#')[0];
+  let cleanPath = urlPath.split('?')[0].split('#')[0];
+  try {
+    cleanPath = decodeURIComponent(cleanPath);
+  } catch (e) {}
 
   // Specific convenience routes
   if (cleanPath === '/' || cleanPath === '/demo' || cleanPath === '/companion') {
@@ -40,6 +43,9 @@ function resolveFilePath(urlPath) {
   }
   if (cleanPath === '/scan') {
     return path.join(ROOT_DIR, 'lifeline_companion', 'scan_qr.html');
+  }
+  if (cleanPath === '/presentation' || cleanPath === '/pdf' || cleanPath === '/dossier') {
+    return path.join(ROOT_DIR, 'presentation.html');
   }
   if (cleanPath === '/expo' || cleanPath === '/expo/') {
     return path.join(ROOT_DIR, 'lifeline_companion', 'dist', 'index.html');
@@ -118,6 +124,7 @@ server.listen(port, '0.0.0.0', () => {
   console.log(`  📡 TX Tactical Unit:      ${url}/tx`);
   console.log(`  📡 RX Base Station:       ${url}/rx`);
   console.log(`  📷 QR Scanner Page:       ${url}/scan`);
+  console.log(`  📄 ICT Award Presentation: ${url}/presentation`);
   console.log('====================================================');
 
   if (isCheckOnly) {
