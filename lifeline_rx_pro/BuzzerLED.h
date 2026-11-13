@@ -21,4 +21,16 @@ void playRxBeep();
 void triggerRxBlink();
 void updateLEDs();
 
+// Advanced Web-Controllable Buzzer Functions
+void setBuzzerState(bool active, uint16_t freq = 2000);
+void triggerBuzzer(uint16_t freq, uint32_t durationMs);
+void stopBuzzer();
+bool isBuzzerActive();
+uint16_t getCurrentBuzzerFreq();
+void updateBuzzer();
+void playSirenTone();
+void playSosTone();
+void playSuccessTone();
+void playErrorTone();
+
 #endif // BUZZER_LED_H

@@ -81,6 +81,32 @@ function resolveFilePath(urlPath) {
 }
 
 const server = http.createServer((req, res) => {
+  const cleanUrl = req.url.split('?')[0];
+  if (cleanUrl === '/buzzer') {
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    });
+    if (req.method === 'OPTIONS') {
+      res.end();
+      return;
+    }
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        console.log(`[SIMULATED BUZZER] Received command: ${body}`);
+        res.end(JSON.stringify({ status: 'ok', simulated: true, command: body }));
+      });
+      return;
+    } else {
+      res.end(JSON.stringify({ status: 'ok', buzzerActive: false, currentFreq: 2000 }));
+      return;
+    }
+  }
+
   const filePath = resolveFilePath(req.url);
 
   if (!filePath || !fs.existsSync(filePath)) {

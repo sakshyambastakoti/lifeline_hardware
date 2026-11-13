@@ -6,6 +6,7 @@
 #include <Preferences.h>
 #include "Config.h"
 #include "DisplayUI.h"
+#include "BuzzerLED.h"
 
 static WebServer server(80);
 static Preferences prefs;
@@ -105,6 +106,29 @@ static String getPortalHTML() {
         ".prog-fill{height:100%;width:0%;background:var(--progress-fill);transition:width 0.1s;}"
         ".msg{margin-top:8px;padding:6px 10px;font-family:monospace;font-size:11px;display:none;background:var(--card-inner);border:1px solid var(--card-inner-border);}"
         ".bot-bar{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-family:monospace;font-size:10px;color:var(--text-muted);}"
+        ".buzzer-power-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}"
+        ".btn-power-on{padding:7px 10px;border:1px solid var(--card-border);background:#10b981;color:#ffffff;font-family:monospace;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;}"
+        ".btn-power-off{padding:7px 10px;border:1px solid var(--card-border);background:#ef4444;color:#ffffff;font-family:monospace;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;}"
+        ".slider-container{margin-bottom:6px;background:var(--card-inner);border:1px solid var(--card-inner-border);padding:5px 8px;}"
+        ".slider-header{display:flex;justify-content:space-between;align-items:center;font-family:monospace;font-size:9.5px;margin-bottom:3px;}"
+        ".slider-header span{font-weight:700;color:var(--text-muted);text-transform:uppercase;}"
+        ".slider-header b{color:var(--text-main);font-size:10.5px;}"
+        ".range-slider{width:100%;height:5px;background:var(--progress-bg);outline:none;-webkit-appearance:none;cursor:pointer;margin-bottom:4px;}"
+        ".range-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--text-main);cursor:pointer;}"
+        ".chip-row{display:flex;flex-wrap:wrap;gap:4px;}"
+        ".chip-btn{padding:2px 6px;border:1px solid var(--tab-border);background:var(--tab-bg);color:var(--tab-text);font-family:monospace;font-size:9px;font-weight:600;cursor:pointer;border-radius:9999px;}"
+        ".chip-btn.active{background:var(--tab-active-bg);color:var(--tab-active-text);border-color:var(--tab-active-border);}"
+        ".melodies-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;}"
+        ".btn-melody{padding:4px 2px;border:1px solid var(--tab-border);background:var(--tab-bg);color:var(--tab-text);font-family:monospace;font-size:8.5px;font-weight:700;text-align:center;cursor:pointer;text-transform:uppercase;}"
+        ".btn-melody:hover{background:var(--tab-active-bg);color:var(--tab-active-text);}"
+        ".acoustic-state-bar{display:flex;justify-content:space-between;align-items:center;background:var(--card-inner);border:1px solid var(--card-inner-border);padding:4px 6px;margin-bottom:6px;font-family:monospace;font-size:9.5px;}"
+        ".wave-anim{display:inline-flex;align-items:center;gap:2px;height:10px;}"
+        ".wave-bar{width:2px;height:3px;background:var(--text-muted);}"
+        ".wave-anim.active .wave-bar{background:#10b981;animation:wavePulse 0.4s infinite alternate ease-in-out;}"
+        ".wave-anim.active .wave-bar:nth-child(2){animation-delay:0.1s;}"
+        ".wave-anim.active .wave-bar:nth-child(3){animation-delay:0.2s;}"
+        ".wave-anim.active .wave-bar:nth-child(4){animation-delay:0.3s;}"
+        "@keyframes wavePulse{0%{height:3px;}100%{height:10px;}}"
         "@media(max-width:768px){body{padding:10px 12px;}.card{grid-template-columns:1fr;padding:14px;gap:12px;}h1{font-size:22px;}.check-grid{display:none;}.step:nth-child(n+4){display:none;}.btn-action{width:100%;justify-content:center;}}"
         "</style></head><body><div class='frame'>"
 
@@ -113,11 +137,12 @@ static String getPortalHTML() {
         "<button class='theme-btn' id='t_btn'><span id='t_icon'><svg class='theme-icon-svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='5'></circle><line x1='12' y1='1' x2='12' y2='3'></line><line x1='12' y1='21' x2='12' y2='23'></line><line x1='4.22' y1='4.22' x2='5.64' y2='5.64'></line><line x1='18.36' y1='18.36' x2='19.78' y2='19.78'></line><line x1='1' y1='12' x2='3' y2='12'></line><line x1='21' y1='12' x2='23' y2='12'></line><line x1='4.22' y1='19.78' x2='5.64' y2='18.36'></line><line x1='18.36' y1='5.64' x2='19.78' y2='4.22'></line></svg></span><span id='t_txt'>LIGHT</span></button>"
         "</div>"
 
-        "<div><h1 id='h_title'>Two services. One transmitter.</h1><p class='sub'>Select a service below to configure Wi-Fi credentials or flash wireless firmware.</p></div>"
+        "<div><h1 id='h_title'>Three services. One transmitter.</h1><p class='sub'>Select a service below to configure Wi-Fi credentials, flash wireless firmware, or control the buzzer sounder.</p></div>"
 
         "<div class='tabs'>"
         "<button class='tab active' id='t_ota' onclick='swTab(\"ota\")'>FIRMWARE OTA</button>"
         "<button class='tab' id='t_wifi' onclick='swTab(\"wifi\")'>WI-FI UPLINK</button>"
+        "<button class='tab' id='t_buzz' onclick='swTab(\"buzz\")'>BUZZER CONTROL</button>"
         "</div>"
 
         "<div class='card'>"
@@ -164,6 +189,49 @@ static String getPortalHTML() {
         "</form>"
         "<div class='msg' id='wifi_msg'></div>"
         "</div>"
+
+        "<div id='box_buzz' style='display:none;'>"
+        "<div class='buzzer-power-row'>"
+        "<button type='button' class='btn-power-on' onclick='sendBuzzer(\"on\")'>TURN ON (CONT)</button>"
+        "<button type='button' class='btn-power-off' onclick='sendBuzzer(\"off\")'>TURN OFF / MUTE</button>"
+        "</div>"
+        "<div class='acoustic-state-bar'>"
+        "<span>STATUS: <b id='b_stat_txt'>SILENT</b></span>"
+        "<div class='wave-anim' id='b_wave'><div class='wave-bar'></div><div class='wave-bar'></div><div class='wave-bar'></div><div class='wave-bar'></div></div>"
+        "</div>"
+        "<div class='slider-container'>"
+        "<div class='slider-header'><span>Frequency (Tone Pitch)</span><b id='f_disp'>2000 Hz</b></div>"
+        "<input type='range' class='range-slider' id='b_freq' min='200' max='5000' step='50' value='2000' oninput='upFreq(this.value)'>"
+        "<div class='chip-row' id='f_chips'>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(800)'>800Hz</button>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(1500)'>1500Hz</button>"
+        "<button type='button' class='chip-btn active' onclick='sqFreq(2000)'>2000Hz</button>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(2500)'>2500Hz</button>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(3200)'>3200Hz</button>"
+        "</div>"
+        "</div>"
+        "<div class='slider-container'>"
+        "<div class='slider-header'><span>Duration</span><b id='d_disp'>500 ms</b></div>"
+        "<input type='range' class='range-slider' id='b_dur' min='20' max='5000' step='20' value='500' oninput='upDur(this.value)'>"
+        "<div class='chip-row' id='d_chips'>"
+        "<button type='button' class='chip-btn' onclick='sqDur(50)'>50ms</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(100)'>100ms</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(250)'>250ms</button>"
+        "<button type='button' class='chip-btn active' onclick='sqDur(500)'>500ms</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(1000)'>1.0s</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(2500)'>2.5s</button>"
+        "</div>"
+        "</div>"
+        "<label>Tactical Melodies</label>"
+        "<div class='melodies-row'>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"success\")'>Success</button>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"error\")'>Warning</button>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"siren\")'>Siren</button>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"sos\")'>SOS Alarm</button>"
+        "</div>"
+        "<button type='button' class='btn-action' onclick='sendBuzzer(\"beep\")'>TEST BEEP (PULSE) &rarr;</button>"
+        "<div class='msg' id='buzz_msg'></div>"
+        "</div>"
         "</div>"
 
         "<div class='guide'>"
@@ -204,22 +272,31 @@ static String getPortalHTML() {
         "  document.getElementById('t_txt').innerText=(curTheme==='light'?'LIGHT':'DARK');"
         "};"
         "function swTab(t){"
-        "  var tOta=document.getElementById('t_ota'),tWifi=document.getElementById('t_wifi');"
-        "  var bOta=document.getElementById('box_ota'),bWifi=document.getElementById('box_wifi');"
+        "  var tOta=document.getElementById('t_ota'),tWifi=document.getElementById('t_wifi'),tBuzz=document.getElementById('t_buzz');"
+        "  var bOta=document.getElementById('box_ota'),bWifi=document.getElementById('box_wifi'),bBuzz=document.getElementById('box_buzz');"
         "  var pT=document.getElementById('p_title'),pD=document.getElementById('p_desc');"
-        "  var sB=document.getElementById('s_box'),hT=document.getElementById('h_title');"
+        "  var sB=document.getElementById('s_box'),hT=document.getElementById('h_title'),cG=document.getElementById('c_grid');"
         "  if(t==='ota'){"
-        "    tOta.className='tab active';tWifi.className='tab';"
-        "    bOta.style.display='block';bWifi.style.display='none';"
+        "    tOta.className='tab active';tWifi.className='tab';tBuzz.className='tab';"
+        "    bOta.style.display='block';bWifi.style.display='none';bBuzz.style.display='none';"
         "    pT.innerText='Firmware Flash (OTA)';pD.innerText='Wireless firmware flashing over softAP. Zero cable connection required.';"
-        "    hT.innerText='Two services. One transmitter.';"
+        "    hT.innerText='Three services. One transmitter.';"
+        "    cG.innerHTML='<div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Dual Partition Safe</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> 433MHz LoRa Active</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Checksum Verified</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Auto Flash Reboot</div>';"
         "    sB.innerHTML='<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-body\"><strong>1. Select Binary</strong><p>Pick compiled firmware.bin from your build folder.</p></div></div><div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-body\"><strong>2. Stream Over SoftAP</strong><p>Streams in 4KB chunks directly into ESP32 OTA flash.</p></div></div><div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-body\"><strong>3. Checksum Validation</strong><p>MD5 hash is checked against total written payload.</p></div></div><div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-body\"><strong>4. Automated Reboot</strong><p>TX board commits boot partition and restarts cleanly.</p></div></div>';"
-        "  }else{"
-        "    tWifi.className='tab active';tOta.className='tab';"
-        "    bWifi.style.display='block';bOta.style.display='none';"
+        "  }else if(t==='wifi'){"
+        "    tWifi.className='tab active';tOta.className='tab';tBuzz.className='tab';"
+        "    bWifi.style.display='block';bOta.style.display='none';bBuzz.style.display='none';"
         "    pT.innerText='Wi-Fi Field Uplink';pD.innerText='Configure field Wi-Fi network credentials for Network OTA & diagnostics.';"
         "    hT.innerText='Wireless Uplink. Instant Pairing.';"
+        "    cG.innerHTML='<div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> WPA2-PSK Support</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> NVS Non-Volatile</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Auto Network Join</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Sub-GHz Socket Sync</div>';"
         "    sB.innerHTML='<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-body\"><strong>1. Enter SSID</strong><p>Provide network SSID for local field access point.</p></div></div><div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-body\"><strong>2. Set WPA2 Passkey</strong><p>Stored safely in ESP32 non-volatile NVS flash.</p></div></div><div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-body\"><strong>3. Network Join</strong><p>Unit auto-connects upon switching to NET mode.</p></div></div><div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-body\"><strong>4. Field Telemetry</strong><p>LoRa emergency packets route across Wi-Fi gateway.</p></div></div>';"
+        "  }else{"
+        "    tBuzz.className='tab active';tOta.className='tab';tWifi.className='tab';"
+        "    bBuzz.style.display='block';bOta.style.display='none';bWifi.style.display='none';"
+        "    pT.innerText='Tactical Buzzer Sounder';pD.innerText='Test acoustic audio driver, modulate tone frequencies, and set pulse duration.';"
+        "    hT.innerText='Tactical Sounder. Acoustic Telemetry.';"
+        "    cG.innerHTML='<div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> GPIO 22 Piezo Driver</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> 200Hz - 5000Hz PWM</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Timed Pulse Duration</div><div class=\"check-item\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg> Web Audio Live Sync</div>';"
+        "    sB.innerHTML='<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-body\"><strong>1. Choose Tone Frequency</strong><p>Tune frequency slider (200Hz-5000Hz) or pick presets like 800Hz Warn or 3200Hz Siren.</p></div></div><div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-body\"><strong>2. Set Pulse Duration</strong><p>Adjust pulse duration from 50ms up to 5000ms for single acoustic alerts.</p></div></div><div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-body\"><strong>3. Test Emission &amp; Melodies</strong><p>Click TEST BEEP or select tactical melodies like SOS Morse Code &amp; Siren Warble.</p></div></div><div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-body\"><strong>4. Sustained Search Beacon</strong><p>Engage TURN ON (CONT) for rescue teams to track the TX unit sound in smoke/darkness.</p></div></div>';"
         "  }"
         "}"
         "var fi=document.getElementById('fw_file');"
@@ -291,6 +368,54 @@ static String getPortalHTML() {
         "  };"
         "  xhr.send('ssid='+encodeURIComponent(ssid)+'&pass='+encodeURIComponent(pass));"
         "};"
+        "var aCtx=null,aOsc=null,aGain=null,aPlay=false,aTimer=null;"
+        "function getACtx(){if(!aCtx){var AC=window.AudioContext||window.webkitAudioContext;if(AC)aCtx=new AC();}if(aCtx&&aCtx.state==='suspended')aCtx.resume();return aCtx;}"
+        "function setVisBuzzer(on,f){"
+        "  var txt=document.getElementById('b_stat_txt'),wav=document.getElementById('b_wave');"
+        "  if(on){txt.innerText='ACTIVE ('+f+' Hz)';txt.style.color='#10b981';wav.className='wave-anim active';}"
+        "  else{txt.innerText='SILENT';txt.style.color='var(--text-main)';wav.className='wave-anim';}"
+        "}"
+        "function playToneWeb(f,d){"
+        "  var ctx=getACtx();if(!ctx)return;stopToneWeb();"
+        "  try{"
+        "    var osc=ctx.createOscillator(),gain=ctx.createGain();"
+        "    osc.type='square';osc.frequency.setValueAtTime(f,ctx.currentTime);"
+        "    gain.gain.setValueAtTime(0.001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.18,ctx.currentTime+0.01);"
+        "    osc.connect(gain);gain.connect(ctx.destination);osc.start();"
+        "    aOsc=osc;aGain=gain;aPlay=true;setVisBuzzer(true,f);"
+        "    if(d&&d>0){"
+        "      gain.gain.setValueAtTime(0.18,ctx.currentTime+(d/1000)-0.01);"
+        "      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+(d/1000));"
+        "      aTimer=setTimeout(stopToneWeb,d);"
+        "    }"
+        "  }catch(e){}"
+        "}"
+        "function stopToneWeb(){"
+        "  if(aTimer){clearTimeout(aTimer);aTimer=null;}"
+        "  if(aGain&&aCtx){try{aGain.gain.setValueAtTime(0.001,aCtx.currentTime);aGain.disconnect();}catch(e){}aGain=null;}"
+        "  if(aOsc){try{aOsc.stop();aOsc.disconnect();}catch(e){}aOsc=null;}"
+        "  aPlay=false;setVisBuzzer(false);"
+        "}"
+        "function upFreq(v){document.getElementById('f_disp').innerText=v+' Hz';var c=document.querySelectorAll('#f_chips .chip-btn');c.forEach(function(el){el.className=(el.innerText.indexOf(v+'Hz')===0?'chip-btn active':'chip-btn');});if(aPlay&&aOsc)aOsc.frequency.setValueAtTime(v,aCtx.currentTime);}"
+        "function sqFreq(v){document.getElementById('b_freq').value=v;upFreq(v);}"
+        "function upDur(v){document.getElementById('d_disp').innerText=v+' ms';var c=document.querySelectorAll('#d_chips .chip-btn');c.forEach(function(el){var l=(v>=1000?(v/1000).toFixed(1)+'s':v+'ms');el.className=(el.innerText===l||el.innerText===v+'ms'?'chip-btn active':'chip-btn');});}"
+        "function sqDur(v){document.getElementById('b_dur').value=v;upDur(v);}"
+        "function sendBuzzer(action){"
+        "  var f=parseInt(document.getElementById('b_freq').value,10)||2000;"
+        "  var d=parseInt(document.getElementById('b_dur').value,10)||500;"
+        "  if(action==='on')playToneWeb(f,0);"
+        "  else if(action==='off')stopToneWeb();"
+        "  else if(action==='beep')playToneWeb(f,d);"
+        "  else if(action==='success'){playToneWeb(2200,80);setTimeout(function(){playToneWeb(2700,100);},110);}"
+        "  else if(action==='error'){playToneWeb(1200,100);setTimeout(function(){playToneWeb(800,150);},130);}"
+        "  else if(action==='siren'){var sf=1600,st=200,sc=0;playToneWeb(sf,40);var stm=setInterval(function(){sf+=st;if(sf>=3200)st=-200;if(sf<=1600)st=200;playToneWeb(sf,35);sc++;if(sc>20){clearInterval(stm);setTimeout(stopToneWeb,100);}},40);}"
+        "  else if(action==='sos'){var seq=[{f:2400,d:90,p:60},{f:2400,d:90,p:60},{f:2400,d:90,p:140},{f:2400,d:250,p:60},{f:2400,d:250,p:60},{f:2400,d:250,p:140},{f:2400,d:90,p:60},{f:2400,d:90,p:60},{f:2400,d:90,p:60}];var off=0;seq.forEach(function(it){setTimeout(function(){playToneWeb(it.f,it.d);},off);off+=it.d+it.p;});}"
+        "  var msg=document.getElementById('buzz_msg');msg.style.display='block';msg.style.color='#10b981';msg.innerHTML='<strong>TRANSMITTING:</strong> ['+action.toUpperCase()+']...';"
+        "  var xhr=new XMLHttpRequest();xhr.open('POST','/buzzer');xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');"
+        "  xhr.onload=function(){if(xhr.status==200){msg.innerHTML='<strong>OK:</strong> Buzzer command executed.';}else{msg.innerHTML='<strong>LOCAL AUDIO:</strong> Synthesized ('+xhr.status+').';}};"
+        "  xhr.onerror=function(){msg.innerHTML='<strong>LOCAL AUDIO:</strong> Synthesized.';};"
+        "  xhr.send('action='+encodeURIComponent(action)+'&freq='+encodeURIComponent(f)+'&duration='+encodeURIComponent(d));"
+        "}"
         "</script></body></html>"
     );
 
@@ -366,6 +491,49 @@ void startOTAMode(OTAMode mode) {
         } else {
             server.send(400, "text/plain", "Missing SSID");
         }
+    });
+
+    server.on("/buzzer", HTTP_POST, []() {
+        String action = server.hasArg("action") ? server.arg("action") : "beep";
+        uint16_t freq = server.hasArg("freq") ? server.arg("freq").toInt() : 2000;
+        uint32_t duration = server.hasArg("duration") ? server.arg("duration").toInt() : 500;
+
+        if (freq < 100) freq = 2000;
+        if (freq > 5000) freq = 5000;
+
+        if (action.equalsIgnoreCase("on")) {
+            setBuzzerState(true, freq);
+        } else if (action.equalsIgnoreCase("off")) {
+            stopBuzzer();
+        } else if (action.equalsIgnoreCase("beep")) {
+            triggerBuzzer(freq, duration);
+        } else if (action.equalsIgnoreCase("siren")) {
+            playSirenTone();
+        } else if (action.equalsIgnoreCase("sos")) {
+            playSosTone();
+        } else if (action.equalsIgnoreCase("success")) {
+            playSuccessTone();
+        } else if (action.equalsIgnoreCase("error")) {
+            playErrorTone();
+        } else if (action.equalsIgnoreCase("confirm")) {
+            playConfirmTone();
+        } else {
+            triggerBuzzer(freq, duration);
+        }
+
+        String json = "{\"status\":\"ok\",\"action\":\"" + action + "\",\"buzzerActive\":" + 
+                      String(isBuzzerActive() ? "true" : "false") + 
+                      ",\"freq\":" + String(getCurrentBuzzerFreq()) + 
+                      ",\"duration\":" + String(duration) + "}";
+        server.sendHeader("Access-Control-Allow-Origin", "*");
+        server.send(200, "application/json", json);
+    });
+
+    server.on("/buzzer", HTTP_GET, []() {
+        String json = "{\"status\":\"ok\",\"buzzerActive\":" + String(isBuzzerActive() ? "true" : "false") + 
+                      ",\"freq\":" + String(getCurrentBuzzerFreq()) + "}";
+        server.sendHeader("Access-Control-Allow-Origin", "*");
+        server.send(200, "application/json", json);
     });
 
     static size_t txOtaExpected = 0;
@@ -491,6 +659,7 @@ void handleOTA() {
     if (!otaActive) return;
     server.handleClient();
     ArduinoOTA.handle();
+    updateBuzzer();
 }
 
 bool isOTAModeActive() {

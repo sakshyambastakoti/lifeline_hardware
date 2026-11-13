@@ -130,6 +130,7 @@ void setup() {
 
 void loop() {
     updateLEDs();
+    updateBuzzer();
     updateBLE();
     handleLocalOTA();
     handleWiFiServer();

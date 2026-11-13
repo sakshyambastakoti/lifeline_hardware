@@ -347,6 +347,7 @@ void handleWiFiPortal() {
     
     dnsServer.processNextRequest();
     wifiServer.handleClient();
+    updateBuzzer();
     
     if (millis() - portalStartTime >= WIFI_PORTAL_TIMEOUT) {
         Serial.println(F("[WIFI] Portal timeout, closing..."));
@@ -426,7 +427,29 @@ static String getPortalHTML() {
         ".prog-fill{height:100%;width:0%;background:var(--progress-fill);transition:width 0.1s;}"
         ".msg{margin-top:6px;padding:6px 10px;font-family:monospace;font-size:10.5px;display:none;background:var(--card-inner);border:1px solid var(--card-inner-border);}"
         ".bot-bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-family:monospace;font-size:10px;color:var(--text-muted);}"
-        "@media(max-width:768px){body{padding:8px 10px;}.card{grid-template-columns:1fr;padding:12px;gap:8px;}h1{font-size:20px;}.check-grid{display:none;}.step:nth-child(n+4){display:none;}.btn-action{width:100%;justify-content:center;}}"
+        ".buzzer-power-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}"
+        ".btn-power-on{padding:6px 10px;border:1px solid var(--card-border);background:#10b981;color:#ffffff;font-family:monospace;font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;}"
+        ".btn-power-off{padding:6px 10px;border:1px solid var(--card-border);background:#ef4444;color:#ffffff;font-family:monospace;font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;}"
+        ".slider-container{margin-bottom:6px;background:var(--card-inner);border:1px solid var(--card-inner-border);padding:5px 8px;}"
+        ".slider-header{display:flex;justify-content:space-between;align-items:center;font-family:monospace;font-size:9px;margin-bottom:3px;}"
+        ".slider-header span{font-weight:700;color:var(--text-muted);text-transform:uppercase;}"
+        ".slider-header b{color:var(--text-main);font-size:10px;}"
+        ".range-slider{width:100%;height:5px;background:var(--progress-bg);outline:none;-webkit-appearance:none;cursor:pointer;margin-bottom:4px;}"
+        ".range-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--text-main);cursor:pointer;}"
+        ".chip-row{display:flex;flex-wrap:wrap;gap:4px;}"
+        ".chip-btn{padding:2px 6px;border:1px solid var(--tab-border);background:var(--tab-bg);color:var(--tab-text);font-family:monospace;font-size:8.5px;font-weight:600;cursor:pointer;border-radius:9999px;}"
+        ".chip-btn.active{background:var(--tab-active-bg);color:var(--tab-active-text);border-color:var(--tab-active-border);}"
+        ".melodies-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;}"
+        ".btn-melody{padding:4px 2px;border:1px solid var(--tab-border);background:var(--tab-bg);color:var(--tab-text);font-family:monospace;font-size:8px;font-weight:700;text-align:center;cursor:pointer;text-transform:uppercase;}"
+        ".btn-melody:hover{background:var(--tab-active-bg);color:var(--tab-active-text);}"
+        ".acoustic-state-bar{display:flex;justify-content:space-between;align-items:center;background:var(--card-inner);border:1px solid var(--card-inner-border);padding:4px 6px;margin-bottom:6px;font-family:monospace;font-size:9.5px;}"
+        ".wave-anim{display:inline-flex;align-items:center;gap:2px;height:10px;}"
+        ".wave-bar{width:2px;height:3px;background:var(--text-muted);}"
+        ".wave-anim.active .wave-bar{background:#10b981;animation:wavePulse 0.4s infinite alternate ease-in-out;}"
+        ".wave-anim.active .wave-bar:nth-child(2){animation-delay:0.1s;}"
+        ".wave-anim.active .wave-bar:nth-child(3){animation-delay:0.2s;}"
+        ".wave-anim.active .wave-bar:nth-child(4){animation-delay:0.3s;}"
+        "@keyframes wavePulse{0%{height:3px;}100%{height:10px;}}@media(max-width:768px){body{padding:8px 10px;}.card{grid-template-columns:1fr;padding:12px;gap:8px;}h1{font-size:20px;}.check-grid{display:none;}.step:nth-child(n+4){display:none;}.btn-action{width:100%;justify-content:center;}}"
         "</style></head><body><div class='frame'>"
 
         "<div class='top-row'>"
@@ -434,12 +457,13 @@ static String getPortalHTML() {
         "<button class='theme-btn' id='t_btn'><span id='t_icon'><svg class='theme-icon-svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='5'></circle><line x1='12' y1='1' x2='12' y2='3'></line><line x1='12' y1='21' x2='12' y2='23'></line><line x1='4.22' y1='4.22' x2='5.64' y2='5.64'></line><line x1='18.36' y1='18.36' x2='19.78' y2='19.78'></line><line x1='1' y1='12' x2='3' y2='12'></line><line x1='21' y1='12' x2='23' y2='12'></line><line x1='4.22' y1='19.78' x2='5.64' y2='18.36'></line><line x1='18.36' y1='5.64' x2='19.78' y2='4.22'></line></svg></span><span id='t_txt'>LIGHT</span></button>"
         "</div>"
 
-        "<div><h1 id='h_title'>Three services. One base station.</h1><p class='sub'>Select a service below to configure Wi-Fi failover, flash wireless firmware, or set cloud telemetry.</p></div>"
+        "<div><h1 id='h_title'>Four services. One base station.</h1><p class='sub'>Select a service below to configure Wi-Fi failover, flash wireless firmware, set cloud telemetry, or control base buzzer.</p></div>"
 
         "<div class='tabs'>"
         "<button class='tab active' id='t_ota' onclick='swTab(\"ota\")'>FIRMWARE OTA</button>"
         "<button class='tab' id='t_wifi' onclick='swTab(\"wifi\")'>TRI-WIFI FAILOVER</button>"
         "<button class='tab' id='t_api' onclick='swTab(\"api\")'>CLOUD REST API</button>"
+        "<button class='tab' id='t_buzz' onclick='swTab(\"buzz\")'>BUZZER CONTROL</button>"
         "</div>"
 
         "<div class='card'>"
@@ -506,6 +530,49 @@ static String getPortalHTML() {
         "<button type='submit' class='btn-action'>SAVE API CONFIG &rarr;</button>"
         "</form>"
         "</div>"
+
+        "<div id='box_buzz' style='display:none;'>"
+        "<div class='buzzer-power-row'>"
+        "<button type='button' class='btn-power-on' onclick='sendBuzzer(\"on\")'>TURN ON (CONT)</button>"
+        "<button type='button' class='btn-power-off' onclick='sendBuzzer(\"off\")'>TURN OFF / MUTE</button>"
+        "</div>"
+        "<div class='acoustic-state-bar'>"
+        "<span>BASE BUZZER: <b id='b_stat_txt'>SILENT</b></span>"
+        "<div class='wave-anim' id='b_wave'><div class='wave-bar'></div><div class='wave-bar'></div><div class='wave-bar'></div><div class='wave-bar'></div></div>"
+        "</div>"
+        "<div class='slider-container'>"
+        "<div class='slider-header'><span>Frequency (Tone Pitch)</span><b id='f_disp'>2000 Hz</b></div>"
+        "<input type='range' class='range-slider' id='b_freq' min='200' max='5000' step='50' value='2000' oninput='upFreq(this.value)'>"
+        "<div class='chip-row' id='f_chips'>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(800)'>800Hz</button>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(1500)'>1500Hz</button>"
+        "<button type='button' class='chip-btn active' onclick='sqFreq(2000)'>2000Hz</button>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(2500)'>2500Hz</button>"
+        "<button type='button' class='chip-btn' onclick='sqFreq(3200)'>3200Hz</button>"
+        "</div>"
+        "</div>"
+        "<div class='slider-container'>"
+        "<div class='slider-header'><span>Duration</span><b id='d_disp'>500 ms</b></div>"
+        "<input type='range' class='range-slider' id='b_dur' min='20' max='5000' step='20' value='500' oninput='upDur(this.value)'>"
+        "<div class='chip-row' id='d_chips'>"
+        "<button type='button' class='chip-btn' onclick='sqDur(50)'>50ms</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(100)'>100ms</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(250)'>250ms</button>"
+        "<button type='button' class='chip-btn active' onclick='sqDur(500)'>500ms</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(1000)'>1.0s</button>"
+        "<button type='button' class='chip-btn' onclick='sqDur(2500)'>2.5s</button>"
+        "</div>"
+        "</div>"
+        "<label>Tactical Melodies</label>"
+        "<div class='melodies-row'>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"success\")'>Success</button>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"error\")'>Warning</button>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"siren\")'>Siren</button>"
+        "<button type='button' class='btn-melody' onclick='sendBuzzer(\"sos\")'>SOS Alarm</button>"
+        "</div>"
+        "<button type='button' class='btn-action' onclick='sendBuzzer(\"beep\")'>TEST BEEP (PULSE) &rarr;</button>"
+        "<div class='msg' id='buzz_msg'></div>"
+        "</div>"
         "</div>"
 
         "<div class='guide'>"
@@ -546,12 +613,12 @@ static String getPortalHTML() {
         "  document.getElementById('t_txt').innerText=(curTheme==='light'?'LIGHT':'DARK');"
         "};"
         "function swTab(t){"
-        "  var tOta=document.getElementById('t_ota'),tWifi=document.getElementById('t_wifi'),tApi=document.getElementById('t_api');"
-        "  var bOta=document.getElementById('box_ota'),bWifi=document.getElementById('box_wifi'),bApi=document.getElementById('box_api');"
+        "  var tOta=document.getElementById('t_ota'),tWifi=document.getElementById('t_wifi'),tApi=document.getElementById('t_api'),tBuzz=document.getElementById('t_buzz');"
+        "  var bOta=document.getElementById('box_ota'),bWifi=document.getElementById('box_wifi'),bApi=document.getElementById('box_api'),bBuzz=document.getElementById('box_buzz');"
         "  var pT=document.getElementById('p_title'),pD=document.getElementById('p_desc'),sB=document.getElementById('s_box');"
         "  var cG=document.getElementById('c_grid');"
-        "  [tOta,tWifi,tApi].forEach(function(x){x.className='tab';});"
-        "  [bOta,bWifi,bApi].forEach(function(x){x.style.display='none';});"
+        "  [tOta,tWifi,tApi,tBuzz].forEach(function(x){if(x)x.className='tab';});"
+        "  [bOta,bWifi,bApi,bBuzz].forEach(function(x){if(x)x.style.display='none';});"
         "  if(cG) cG.style.display=(t==='ota'?'grid':'none');"
         "  if(t==='ota'){"
         "    tOta.className='tab active';bOta.style.display='block';"
@@ -561,12 +628,29 @@ static String getPortalHTML() {
         "    tWifi.className='tab active';bWifi.style.display='block';"
         "    pT.innerText='Tri-Network Wi-Fi Failover';pD.innerText='Store up to 3 Wi-Fi network credentials for zero-downtime internet telemetry.';"
         "    sB.innerHTML='<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-body\"><strong>1. Primary Setup</strong><p>Primary router connection for cloud uplink.</p></div></div><div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-body\"><strong>2. Backup 1 Hotspot</strong><p>Secondary network for field fallback.</p></div></div><div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-body\"><strong>3. Backup 2 Cellular</strong><p>Disaster satellite or cellular modem fallback.</p></div></div><div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-body\"><strong>4. Save to Flash</strong><p>Stored into ESP32 NVS non-volatile flash.</p></div></div>';"
-        "  }else{"
+        "  }else if(t==='api'){"
         "    tApi.className='tab active';bApi.style.display='block';"
         "    pT.innerText='Cloud REST API Webhook';pD.innerText='Configure centralized server endpoint where incoming LoRa packets are forwarded.';"
         "    sB.innerHTML='<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-body\"><strong>1. Ingestion Endpoint</strong><p>Specify REST URL for HTTP POST telemetry payloads.</p></div></div><div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-body\"><strong>2. Auth Secret</strong><p>Bearer secret or token for gateway verification.</p></div></div><div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-body\"><strong>3. Dispatch Relay</strong><p>Emergency beacon GPS fixes push to dispatch map.</p></div></div><div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-body\"><strong>4. Save Settings</strong><p>Reboots network service with new endpoint.</p></div></div>';"
+        "  }else{"
+        "    tBuzz.className='tab active';bBuzz.style.display='block';"
+        "    pT.innerText='Base Sounder Acoustics';pD.innerText='Test base station piezo buzzer, calibrate audible alerts & trigger siren.';"
+        "    sB.innerHTML='<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-body\"><strong>1. Pitch Calibration</strong><p>Dial tone frequency from 200Hz to 5000Hz.</p></div></div><div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-body\"><strong>2. Pulse Duration</strong><p>Adjust beep length from 20ms to 5.0 seconds.</p></div></div><div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-body\"><strong>3. Tactical Patterns</strong><p>Play emergency alarm, siren or SOS chimes.</p></div></div><div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-body\"><strong>4. Real-time Sound</strong><p>Audible both locally on base and in browser.</p></div></div>';"
         "  }"
         "}"
+        "function upFreq(v){document.getElementById('f_disp').innerText=v+' Hz';document.querySelectorAll('#f_chips .chip-btn').forEach(function(b){b.classList.toggle('active',b.innerText===v+'Hz');});}"
+        "function sqFreq(v){document.getElementById('b_freq').value=v;upFreq(v);}"
+        "function upDur(v){document.getElementById('d_disp').innerText=v<1000?v+' ms':(v/1000).toFixed(1)+' s';document.querySelectorAll('#d_chips .chip-btn').forEach(function(b){b.classList.toggle('active',b.innerText===(v<1000?v+'ms':(v/1000).toFixed(1)+'s'));});}"
+        "function sqDur(v){document.getElementById('b_dur').value=v;upDur(v);}"
+        "var aCtx=null,actOsc=null,actGain=null;"
+        "function getAudioCtx(){if(!aCtx){try{window.AudioContext=window.AudioContext||window.webkitAudioContext;aCtx=new AudioContext();}catch(e){}}if(aCtx&&aCtx.state==='suspended'){aCtx.resume();}return aCtx;}"
+        "function setAcousticState(on,freq){var st=document.getElementById('b_stat_txt'),wv=document.getElementById('b_wave');if(on){if(st)st.innerText='ACTIVE ('+freq+' Hz)';if(wv)wv.classList.add('active');}else{if(st)st.innerText='SILENT';if(wv)wv.classList.remove('active');}}"
+        "function playToneSynth(freq,dur){var ctx=getAudioCtx();if(!ctx)return;try{stopToneSynth();var osc=ctx.createOscillator();var gn=ctx.createGain();osc.type='square';osc.frequency.setValueAtTime(freq,ctx.currentTime);gn.gain.setValueAtTime(0.12,ctx.currentTime);osc.connect(gn);gn.connect(ctx.destination);osc.start();setAcousticState(true,freq);if(dur>0){gn.gain.setValueAtTime(0.12,ctx.currentTime+(dur/1000)-0.01);gn.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+(dur/1000));osc.stop(ctx.currentTime+(dur/1000));setTimeout(function(){setAcousticState(false);},dur);}else{actOsc=osc;actGain=gn;}}catch(e){}}"
+        "function stopToneSynth(){if(actGain&&aCtx){try{actGain.gain.setValueAtTime(0.0001,aCtx.currentTime+0.01);actOsc.stop(aCtx.currentTime+0.02);}catch(e){}actOsc=null;actGain=null;}setAcousticState(false);}"
+        "function sendBuzzer(act){var f=document.getElementById('b_freq').value;var d=document.getElementById('b_dur').value;var msg=document.getElementById('buzz_msg');if(act==='on'){playToneSynth(f,0);}else if(act==='off'){stopToneSynth();}else if(act==='beep'){playToneSynth(f,parseInt(d));}else if(act==='success'){playToneSynth(1760,100);setTimeout(function(){playToneSynth(2637,180);},120);}else if(act==='error'){playToneSynth(440,150);setTimeout(function(){playToneSynth(330,220);},180);}else if(act==='siren'){var ct=getAudioCtx();if(ct){var osc=ct.createOscillator();var gn=ct.createGain();osc.type='square';gn.gain.setValueAtTime(0.12,ct.currentTime);osc.frequency.setValueAtTime(600,ct.currentTime);osc.frequency.linearRampToValueAtTime(1600,ct.currentTime+0.25);osc.frequency.linearRampToValueAtTime(600,ct.currentTime+0.5);osc.connect(gn);gn.connect(ct.destination);osc.start();osc.stop(ct.currentTime+0.5);setAcousticState(true,1000);setTimeout(function(){setAcousticState(false);},500);}}else if(act==='sos'){playToneSynth(2000,80);setTimeout(function(){playToneSynth(2000,80);},140);setTimeout(function(){playToneSynth(2000,80);},280);setTimeout(function(){playToneSynth(2000,240);},440);setTimeout(function(){playToneSynth(2000,240);},740);setTimeout(function(){playToneSynth(2000,240);},1040);setTimeout(function(){playToneSynth(2000,80);},1340);setTimeout(function(){playToneSynth(2000,80);},1480);setTimeout(function(){playToneSynth(2000,80);},1620);}"
+        "var x=new XMLHttpRequest();x.open('POST','/buzzer');x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.onload=function(){if(msg){msg.style.display='block';msg.style.color='#10b981';msg.innerText='COMMAND SENT: '+act.toUpperCase();}};"
+        "x.onerror=function(){if(msg){msg.style.display='block';msg.style.color='#10b981';msg.innerText='AUDIO SYNTHESIZED: '+act.toUpperCase();}};"
+        "x.send('action='+encodeURIComponent(act)+'&freq='+encodeURIComponent(f)+'&dur='+encodeURIComponent(d));}"
         "var fi=document.getElementById('fwFile');"
         "fi.onchange=function(){"
         "  if(this.files&&this.files[0]){"
@@ -703,6 +787,40 @@ static void setupServerRoutes() {
     wifiServer.on("/save", HTTP_POST, handlePortalSave);
     wifiServer.on("/api-save", HTTP_POST, handleAPISave);
     
+    wifiServer.on("/buzzer", HTTP_POST, []() {
+        String action = wifiServer.hasArg("action") ? wifiServer.arg("action") : "beep";
+        uint16_t freq = wifiServer.hasArg("freq") ? (uint16_t)wifiServer.arg("freq").toInt() : 2000;
+        uint32_t dur = wifiServer.hasArg("dur") ? (uint32_t)wifiServer.arg("dur").toInt() : 500;
+        if (freq < 100 || freq > 8000) freq = 2000;
+        if (dur < 10) dur = 10;
+        if (dur > 30000) dur = 30000;
+
+        action.toLowerCase();
+        if (action == "on") {
+            setBuzzerState(true, freq);
+        } else if (action == "off") {
+            setBuzzerState(false);
+        } else if (action == "beep") {
+            triggerBuzzer(freq, dur);
+        } else if (action == "siren") {
+            playSirenTone();
+        } else if (action == "sos") {
+            playSosTone();
+        } else if (action == "success") {
+            playSuccessTone();
+        } else if (action == "error") {
+            playErrorTone();
+        }
+
+        String json = "{\"status\":\"ok\",\"action\":\"" + action + "\",\"freq\":" + String(freq) + ",\"dur\":" + String(dur) + "}";
+        wifiServer.send(200, "application/json", json);
+    });
+
+    wifiServer.on("/buzzer", HTTP_GET, []() {
+        String json = "{\"status\":\"ok\",\"active\":" + String(isBuzzerActive() ? "true" : "false") + ",\"freq\":" + String(getCurrentBuzzerFreq()) + "}";
+        wifiServer.send(200, "application/json", json);
+    });
+    
     wifiServer.on("/send-downlink", HTTP_POST, []() {
         int devId = wifiServer.hasArg("did") ? wifiServer.arg("did").toInt() : 0;
         String action = wifiServer.hasArg("action") ? wifiServer.arg("action") : "MSG";
@@ -819,6 +937,7 @@ void startStationWebServer() {
 }
 
 void handleWiFiServer() {
+    updateBuzzer();
     if (wifiConnected && !portalActive) {
         wifiServer.handleClient();
         ArduinoOTA.handle();

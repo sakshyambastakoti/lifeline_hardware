@@ -64,6 +64,7 @@ void setup() {
 
 void loop() {
     updateLEDs();
+    updateBuzzer();
     handleOTA();
     updateBLE();
     

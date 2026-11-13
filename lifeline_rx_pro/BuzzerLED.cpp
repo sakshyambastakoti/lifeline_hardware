@@ -198,3 +198,100 @@ void updateLEDs() {
         digitalWrite(LED_DATA, dataOffState);
     }
 }
+
+// Advanced Web-Controllable Buzzer Functions
+static bool buzzerActive = false;
+static bool buzzerTimed = false;
+static unsigned long buzzerOffTime = 0;
+static uint16_t currentBuzzerFreq = 2000;
+
+void setBuzzerState(bool active, uint16_t freq) {
+    if (active) {
+        if (freq < 100) freq = 2000;
+        buzzerActive = true;
+        buzzerTimed = false;
+        currentBuzzerFreq = freq;
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+        digitalWrite(BUZZER_PIN, HIGH);
+#else
+        tone(BUZZER_PIN, freq);
+#endif
+        Serial.printf("[RX BUZZER] State -> ON (Freq: %d Hz)\n", freq);
+    } else {
+        buzzerActive = false;
+        buzzerTimed = false;
+#if defined(BUZZER_IS_PASSIVE) && !BUZZER_IS_PASSIVE
+        digitalWrite(BUZZER_PIN, LOW);
+#else
+        noTone(BUZZER_PIN);
+        digitalWrite(BUZZER_PIN, LOW);
+#endif
+        Serial.println(F("[RX BUZZER] State -> OFF"));
+    }
+}
+
+void triggerBuzzer(uint16_t freq, uint32_t durationMs) {
+    if (durationMs == 0) {
+        stopBuzzer();
+        return;
+    }
+    setBuzzerState(true, freq);
+    buzzerTimed = true;
+    buzzerOffTime = millis() + durationMs;
+    Serial.printf("[RX BUZZER] Triggered -> %d Hz for %u ms\n", freq, (unsigned int)durationMs);
+}
+
+void stopBuzzer() {
+    setBuzzerState(false, currentBuzzerFreq);
+}
+
+bool isBuzzerActive() {
+    return buzzerActive;
+}
+
+uint16_t getCurrentBuzzerFreq() {
+    return currentBuzzerFreq;
+}
+
+void updateBuzzer() {
+    if (buzzerActive && buzzerTimed) {
+        if (millis() >= buzzerOffTime) {
+            stopBuzzer();
+        }
+    }
+}
+
+void playSirenTone() {
+    for (int cycle = 0; cycle < 3; cycle++) {
+        for (int f = 1600; f <= 3200; f += 200) {
+            executeBeep(f, 25);
+        }
+        for (int f = 3200; f >= 1600; f -= 200) {
+            executeBeep(f, 25);
+        }
+    }
+    stopBuzzer();
+}
+
+void playSosTone() {
+    const uint16_t freq = 2400;
+    for (int i = 0; i < 3; i++) { executeBeep(freq, 100); delay(80); }
+    delay(150);
+    for (int i = 0; i < 3; i++) { executeBeep(freq, 280); delay(80); }
+    delay(150);
+    for (int i = 0; i < 3; i++) { executeBeep(freq, 100); delay(80); }
+    stopBuzzer();
+}
+
+void playSuccessTone() {
+    executeBeep(2200, 80);
+    delay(40);
+    executeBeep(2700, 100);
+}
+
+void playErrorTone() {
+    executeBeep(1200, 100);
+    delay(40);
+    executeBeep(800, 150);
+}
+

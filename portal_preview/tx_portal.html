@@ -447,6 +447,174 @@
       border: 1px solid var(--card-inner-border);
     }
 
+    /* Buzzer Controls */
+    .buzzer-power-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .btn-power-on {
+      padding: 8px 12px;
+      border: 1px solid var(--card-border);
+      background: #10b981;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-power-on:hover {
+      background: #059669;
+    }
+    .btn-power-off {
+      padding: 8px 12px;
+      border: 1px solid var(--card-border);
+      background: #ef4444;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-power-off:hover {
+      background: #dc2626;
+    }
+    .slider-container {
+      margin-bottom: 8px;
+      background: var(--card-inner);
+      border: 1px solid var(--card-inner-border);
+      padding: 7px 10px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+    .slider-header span {
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .slider-header b {
+      color: var(--text-main);
+      font-size: 11px;
+    }
+    .range-slider {
+      width: 100%;
+      height: 5px;
+      background: var(--progress-bg);
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--text-main);
+      cursor: pointer;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .chip-btn {
+      padding: 2px 7px;
+      border: 1px solid var(--tab-border);
+      background: var(--tab-bg);
+      color: var(--tab-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 9999px;
+      transition: all 0.15s;
+    }
+    .chip-btn:hover, .chip-btn.active {
+      background: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      border-color: var(--tab-active-border);
+    }
+    .melodies-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+    .btn-melody {
+      padding: 5px 3px;
+      border: 1px solid var(--tab-border);
+      background: var(--tab-bg);
+      color: var(--tab-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .btn-melody:hover {
+      background: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      border-color: var(--tab-active-border);
+    }
+    .acoustic-state-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-inner);
+      border: 1px solid var(--card-inner-border);
+      padding: 5px 8px;
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+    .wave-anim {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      height: 10px;
+    }
+    .wave-bar {
+      width: 2px;
+      height: 3px;
+      background: var(--text-muted);
+      transition: height 0.1s;
+    }
+    .wave-anim.active .wave-bar {
+      background: #10b981;
+      animation: wavePulse 0.4s infinite alternate ease-in-out;
+    }
+    .wave-anim.active .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-anim.active .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-anim.active .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    @keyframes wavePulse {
+      0% { height: 3px; }
+      100% { height: 11px; }
+    }
+
     /* Right Side: Step-by-Step Guidance Box (Reference Image Exact Match) */
     .guide-box {
       background: var(--card-inner);
@@ -658,6 +826,10 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
         WI-FI UPLINK
       </button>
+      <button class="seg-tab" id="tab_btn_buzzer" onclick="switchService('buzzer')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        BUZZER ACOUSTICS
+      </button>
     </div>
 
     <!-- Main Container Card (Dual Column Grid Fitted in One Screen) -->
@@ -741,6 +913,80 @@
           </form>
 
           <div class="status-toast" id="wifi_toast"></div>
+        </div>
+
+        <!-- FORM: Buzzer Control Module (Hidden by default) -->
+        <div id="form_buzzer_container" style="display: none;">
+          <!-- Power Control & Acoustic State -->
+          <div class="buzzer-power-row">
+            <button type="button" class="btn-power-on" id="btn_buzz_on" onclick="sendBuzzerCommand('on')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              <span>TURN ON (CONT)</span>
+            </button>
+            <button type="button" class="btn-power-off" id="btn_buzz_off" onclick="sendBuzzerCommand('off')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="1" y1="1" x2="23" y2="23"></line><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+              <span>TURN OFF / MUTE</span>
+            </button>
+          </div>
+
+          <div class="acoustic-state-bar">
+            <span>SOUNDER STATUS: <b id="buzz_state_text">SILENT</b></span>
+            <div class="wave-anim" id="wave_indicator">
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+            </div>
+          </div>
+
+          <!-- Frequency / Tone Control -->
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>Acoustic Frequency (Tone Pitch)</span>
+              <b id="freq_val_disp">2000 Hz</b>
+            </div>
+            <input type="range" class="range-slider" id="buzz_freq_slider" min="200" max="5000" step="50" value="2000" oninput="updateFreqDisplay(this.value)">
+            <div class="chip-row" id="freq_chips">
+              <button type="button" class="chip-btn" onclick="setFreqQuick(800)">800Hz Warn</button>
+              <button type="button" class="chip-btn" onclick="setFreqQuick(1500)">1500Hz Alert</button>
+              <button type="button" class="chip-btn active" onclick="setFreqQuick(2000)">2000Hz Std</button>
+              <button type="button" class="chip-btn" onclick="setFreqQuick(2500)">2500Hz Ack</button>
+              <button type="button" class="chip-btn" onclick="setFreqQuick(3200)">3200Hz Siren</button>
+            </div>
+          </div>
+
+          <!-- Duration Control -->
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>Buzzer Duration</span>
+              <b id="dur_val_disp">500 ms</b>
+            </div>
+            <input type="range" class="range-slider" id="buzz_dur_slider" min="20" max="5000" step="20" value="500" oninput="updateDurDisplay(this.value)">
+            <div class="chip-row" id="dur_chips">
+              <button type="button" class="chip-btn" onclick="setDurQuick(50)">50ms</button>
+              <button type="button" class="chip-btn" onclick="setDurQuick(100)">100ms</button>
+              <button type="button" class="chip-btn" onclick="setDurQuick(250)">250ms</button>
+              <button type="button" class="chip-btn active" onclick="setDurQuick(500)">500ms</button>
+              <button type="button" class="chip-btn" onclick="setDurQuick(1000)">1.0s</button>
+              <button type="button" class="chip-btn" onclick="setDurQuick(2500)">2.5s</button>
+            </div>
+          </div>
+
+          <!-- Tactical Audio Melodies -->
+          <label class="form-label">Tactical Acoustic Profiles</label>
+          <div class="melodies-row">
+            <button type="button" class="btn-melody" onclick="sendBuzzerCommand('success')">Success</button>
+            <button type="button" class="btn-melody" onclick="sendBuzzerCommand('error')">Warning</button>
+            <button type="button" class="btn-melody" onclick="sendBuzzerCommand('siren')">Siren</button>
+            <button type="button" class="btn-melody" onclick="sendBuzzerCommand('sos')">SOS Alarm</button>
+          </div>
+
+          <button type="button" class="btn-pill-action" id="btn_action_beep" onclick="sendBuzzerCommand('beep')">
+            <span>TEST BEEP (PULSE)</span>
+            <span>&rarr;</span>
+          </button>
+
+          <div class="status-toast" id="buzzer_toast"></div>
         </div>
 
       </div>
@@ -842,25 +1088,36 @@
       applyTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    // Service Tab Switching (OTA vs Wi-Fi)
+    // Service Tab Switching (OTA vs Wi-Fi vs Buzzer)
     function switchService(service) {
       const tabOta = document.getElementById('tab_btn_ota');
       const tabWifi = document.getElementById('tab_btn_wifi');
+      const tabBuzz = document.getElementById('tab_btn_buzzer');
       const formOta = document.getElementById('form_ota_container');
       const formWifi = document.getElementById('form_wifi_container');
+      const formBuzz = document.getElementById('form_buzzer_container');
       const title = document.getElementById('service_title');
       const desc = document.getElementById('service_desc');
       const steps = document.getElementById('steps_container');
       const hero = document.getElementById('page_hero_title');
+      const checkGrid = document.getElementById('service_checklist');
 
       if (service === 'ota') {
         tabOta.classList.add('active');
         tabWifi.classList.remove('active');
+        tabBuzz.classList.remove('active');
         formOta.style.display = 'block';
         formWifi.style.display = 'none';
+        formBuzz.style.display = 'none';
         title.textContent = 'Firmware Flash (OTA)';
         desc.textContent = 'Wireless firmware flashing over softAP. Zero cable connection required.';
-        hero.textContent = 'Two services. One transmitter.';
+        hero.textContent = 'Three services. One transmitter.';
+        checkGrid.innerHTML = `
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="16" x2="12" y2="8"></line></svg><span>Dual Partition Safe</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>433MHz LoRa Active</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Checksum Verified</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Auto Flash Reboot</span></div>
+        `;
         steps.innerHTML = `
           <div class="step-row">
             <div class="step-num">1</div>
@@ -891,14 +1148,22 @@
             </div>
           </div>
         `;
-      } else {
+      } else if (service === 'wifi') {
         tabWifi.classList.add('active');
         tabOta.classList.remove('active');
+        tabBuzz.classList.remove('active');
         formOta.style.display = 'none';
         formWifi.style.display = 'block';
+        formBuzz.style.display = 'none';
         title.textContent = 'Wi-Fi Field Uplink';
         desc.textContent = 'Configure field Wi-Fi client network credentials for Network OTA & telemetry.';
         hero.textContent = 'Wireless Uplink. Instant Pairing.';
+        checkGrid.innerHTML = `
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>WPA2-PSK Support</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>NVS Non-Volatile</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Auto Network Join</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Sub-GHz Socket Sync</span></div>
+        `;
         steps.innerHTML = `
           <div class="step-row">
             <div class="step-num">1</div>
@@ -926,6 +1191,52 @@
             <div class="step-content">
               <strong>4. Ready for Field Telemetry</strong>
               <p>SX1278 LoRa distress beacon and GPS packets stream over socket.</p>
+            </div>
+          </div>
+        `;
+      } else if (service === 'buzzer') {
+        tabBuzz.classList.add('active');
+        tabOta.classList.remove('active');
+        tabWifi.classList.remove('active');
+        formOta.style.display = 'none';
+        formWifi.style.display = 'none';
+        formBuzz.style.display = 'block';
+        title.textContent = 'Tactical Buzzer Sounder';
+        desc.textContent = 'Acoustic audio driver test, tone frequency modulation & pulse duration control.';
+        hero.textContent = 'Tactical Sounder. Acoustic Telemetry.';
+        checkGrid.innerHTML = `
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>GPIO 22 Piezo Driver</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>200Hz - 5000Hz PWM</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Timed Pulse Duration</span></div>
+          <div class="check-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Web Audio Live Sync</span></div>
+        `;
+        steps.innerHTML = `
+          <div class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <strong>1. Choose Tone Frequency</strong>
+              <p>Tune frequency slider (200Hz-5000Hz) or pick presets like 800Hz Warn or 3200Hz Siren.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <strong>2. Set Pulse Duration</strong>
+              <p>Adjust pulse duration from 50ms up to 5000ms for single acoustic alerts.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <strong>3. Test Emission &amp; Melodies</strong>
+              <p>Click 'TEST BEEP' or select tactical melodies like SOS Morse Code &amp; Siren Warble.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <strong>4. Sustained Search Beacon</strong>
+              <p>Engage 'TURN ON (CONT)' for rescue teams to track the TX unit sound in smoke/darkness.</p>
             </div>
           </div>
         `;
@@ -1068,6 +1379,247 @@
         }, 500);
       }
     };
+
+    // ══════════════════════════════════════════════════════════
+    // BUZZER ACOUSTIC CONTROLS & WEB AUDIO SYNTHESIZER
+    // ══════════════════════════════════════════════════════════
+    const freqSlider = document.getElementById('buzz_freq_slider');
+    const freqDisp = document.getElementById('freq_val_disp');
+    const durSlider = document.getElementById('buzz_dur_slider');
+    const durDisp = document.getElementById('dur_val_disp');
+    const buzzStateText = document.getElementById('buzz_state_text');
+    const waveIndicator = document.getElementById('wave_indicator');
+    const buzzerToast = document.getElementById('buzzer_toast');
+
+    function updateFreqDisplay(val) {
+      freqDisp.textContent = val + ' Hz';
+      const chips = document.querySelectorAll('#freq_chips .chip-btn');
+      chips.forEach(c => {
+        if (c.textContent.startsWith(val + 'Hz')) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+      if (isAudioPlaying) {
+        setWebToneFreq(val);
+      }
+    }
+
+    function setFreqQuick(val) {
+      freqSlider.value = val;
+      updateFreqDisplay(val);
+    }
+
+    function updateDurDisplay(val) {
+      durDisp.textContent = val + ' ms';
+      const chips = document.querySelectorAll('#dur_chips .chip-btn');
+      chips.forEach(c => {
+        let label = val >= 1000 ? (val / 1000).toFixed(1) + 's' : val + 'ms';
+        if (c.textContent === label || c.textContent === val + 'ms') {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+    }
+
+    function setDurQuick(val) {
+      durSlider.value = val;
+      updateDurDisplay(val);
+    }
+
+    function setVisualBuzzerState(active, freq) {
+      if (active) {
+        buzzStateText.textContent = 'ACTIVE (' + (freq || freqSlider.value) + ' Hz)';
+        buzzStateText.style.color = '#10b981';
+        waveIndicator.classList.add('active');
+      } else {
+        buzzStateText.textContent = 'SILENT';
+        buzzStateText.style.color = 'var(--text-main)';
+        waveIndicator.classList.remove('active');
+      }
+    }
+
+    // Web Audio API Emulation
+    let audioCtx = null;
+    let activeOsc = null;
+    let activeGain = null;
+    let isAudioPlaying = false;
+    let autoStopTimer = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playWebTone(freq, durationMs) {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      stopWebTone();
+
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'square'; // Piezo buzzer characteristic square wave
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.01);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        activeOsc = osc;
+        activeGain = gain;
+        isAudioPlaying = true;
+        setVisualBuzzerState(true, freq);
+
+        if (durationMs && durationMs > 0) {
+          const stopSec = durationMs / 1000;
+          gain.gain.setValueAtTime(0.18, ctx.currentTime + Math.max(0.01, stopSec - 0.02));
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + stopSec);
+          autoStopTimer = setTimeout(() => {
+            stopWebTone();
+          }, durationMs);
+        }
+      } catch (err) {
+        console.warn('Audio synthesis error:', err);
+      }
+    }
+
+    function setWebToneFreq(freq) {
+      const ctx = getAudioContext();
+      if (ctx && activeOsc) {
+        try {
+          activeOsc.frequency.setValueAtTime(freq, ctx.currentTime);
+        } catch (e) {}
+      }
+    }
+
+    function stopWebTone() {
+      if (autoStopTimer) {
+        clearTimeout(autoStopTimer);
+        autoStopTimer = null;
+      }
+      if (activeGain && audioCtx) {
+        try {
+          activeGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+          activeGain.disconnect();
+        } catch (e) {}
+        activeGain = null;
+      }
+      if (activeOsc) {
+        try {
+          activeOsc.stop();
+          activeOsc.disconnect();
+        } catch (e) {}
+        activeOsc = null;
+      }
+      isAudioPlaying = false;
+      setVisualBuzzerState(false);
+    }
+
+    function playWebMelody(type) {
+      stopWebTone();
+      if (type === 'success') {
+        playWebTone(2200, 80);
+        setTimeout(() => playWebTone(2700, 100), 110);
+      } else if (type === 'error') {
+        playWebTone(1200, 100);
+        setTimeout(() => playWebTone(800, 150), 130);
+      } else if (type === 'siren') {
+        let f = 1600;
+        let step = 200;
+        let count = 0;
+        playWebTone(f, 40);
+        const sirenTimer = setInterval(() => {
+          f += step;
+          if (f >= 3200) step = -200;
+          if (f <= 1600) step = 200;
+          playWebTone(f, 35);
+          count++;
+          if (count > 20) {
+            clearInterval(sirenTimer);
+            setTimeout(stopWebTone, 100);
+          }
+        }, 40);
+      } else if (type === 'sos') {
+        const sosPattern = [
+          { f: 2400, d: 90, p: 60 },
+          { f: 2400, d: 90, p: 60 },
+          { f: 2400, d: 90, p: 140 },
+          { f: 2400, d: 250, p: 60 },
+          { f: 2400, d: 250, p: 60 },
+          { f: 2400, d: 250, p: 140 },
+          { f: 2400, d: 90, p: 60 },
+          { f: 2400, d: 90, p: 60 },
+          { f: 2400, d: 90, p: 60 }
+        ];
+        let offset = 0;
+        sosPattern.forEach((item) => {
+          setTimeout(() => playWebTone(item.f, item.d), offset);
+          offset += item.d + item.p;
+        });
+      }
+    }
+
+    function sendBuzzerCommand(action) {
+      const freq = parseInt(freqSlider.value, 10) || 2000;
+      const duration = parseInt(durSlider.value, 10) || 500;
+
+      // 1. Synthesize audio in browser
+      if (action === 'on') {
+        playWebTone(freq, 0); // continuous
+      } else if (action === 'off') {
+        stopWebTone();
+      } else if (action === 'beep') {
+        playWebTone(freq, duration);
+      } else {
+        playWebMelody(action);
+      }
+
+      // 2. Display Toast
+      buzzerToast.style.display = 'block';
+      buzzerToast.style.color = 'var(--text-main)';
+
+      let labelText = action.toUpperCase();
+      if (action === 'on') labelText = 'CONTINUOUS ON (' + freq + ' Hz)';
+      else if (action === 'off') labelText = 'STOPPED / MUTED';
+      else if (action === 'beep') labelText = 'PULSE ' + freq + ' Hz for ' + duration + ' ms';
+      else labelText = 'MELODY: ' + action.toUpperCase();
+
+      buzzerToast.innerHTML = '<strong>TRANSMITTING:</strong> ' + labelText + '...';
+
+      // 3. Send HTTP request to backend/ESP32
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/buzzer');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          buzzerToast.style.color = '#10b981';
+          buzzerToast.innerHTML = '<strong>SUCCESS:</strong> Command accepted &rarr; <code>' + labelText + '</code>';
+        } else {
+          buzzerToast.style.color = '#10b981';
+          buzzerToast.innerHTML = '<strong>BROWSER AUDIO:</strong> Synthesized locally (HTTP ' + xhr.status + ')';
+        }
+      };
+      xhr.onerror = function() {
+        buzzerToast.style.color = '#10b981';
+        buzzerToast.innerHTML = '<strong>BROWSER AUDIO:</strong> Synthesized locally &rarr; <code>' + labelText + '</code>';
+      };
+      xhr.send('action=' + encodeURIComponent(action) + '&freq=' + encodeURIComponent(freq) + '&duration=' + encodeURIComponent(duration));
+    }
   </script>
 </body>
 </html>
