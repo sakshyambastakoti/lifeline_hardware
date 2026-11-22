@@ -1,358 +1,494 @@
-# 🚨 LifeLine — Off-Grid Disaster Monitoring & Emergency Response System
+# LifeLine — Off-Grid Emergency Communication System
 
-> **A ruggedized, autonomous emergency hardware and IoT ecosystem designed for remote mountain villages, trekking routes, disaster hazard zones, and off-grid environments where cellular and internet connectivity are unavailable.**
-
----
-
-## 📌 Table of Contents
-- [1. System Overview & Architecture](#1-system-overview--architecture)
-- [2. Repository Structure](#2-repository-structure)
-- [3. Firmware Subprojects & Companion Applications](#3-firmware-subprojects--companion-applications)
-  - [LifeLine RX Pro (Base Station Receiver)](#-lifeline-rx-pro-base-station-receiver)
-  - [LifeLine TX Pro (Field Transmitter)](#-lifeline-tx-pro-field-transmitter)
-  - [LifeLine Companion Ecosystem (Mobile & Web)](#-lifeline-companion-ecosystem-mobile--web)
-  - [LifeLine SPU (Sensor Processing Unit)](#-lifeline-spu-sensor-processing-unit)
-  - [LifeLine CCU (Communication Controller Unit)](#-lifeline-ccu-communication-controller-unit)
-- [4. Hardware Pinouts Quick Reference](#4-hardware-pinouts-quick-reference)
-- [5. Build & Deployment Instructions](#5-build--deployment-instructions)
-- [6. Documentation Index](#6-documentation-index)
+> A ruggedized, autonomous emergency communication ecosystem built for remote mountain villages, trekking routes, and disaster-affected areas where cellular and internet connectivity are unavailable or destroyed.
 
 ---
 
-## 1. System Overview & Architecture
+## Table of Contents
 
-LifeLine bridges the critical communication gap during natural disasters (earthquakes, landslides, flash floods, forest fires) by combining long-range **LoRa (SX1278 433 MHz)** radio links, multi-sensor IoT edge computing on **ESP32**, local acoustic and visual alerting, and cloud integration.
+- [System Overview](#system-overview)
+- [Architecture](#architecture)
+- [Repository Structure](#repository-structure)
+- [Hardware Units](#hardware-units)
+  - [RX Pro — Base Station Receiver](#rx-pro--base-station-receiver)
+  - [TX Pro — Field Handheld Transmitter](#tx-pro--field-handheld-transmitter)
+- [Software & Web](#software--web)
+  - [LifeLine Companion — React Native Mobile App](#lifeline-companion--react-native-mobile-app)
+  - [Bluefy Companion — Web Bluetooth PWA](#bluefy-companion--web-bluetooth-pwa)
+  - [Portal Preview — Hardware Web Interfaces](#portal-preview--hardware-web-interfaces)
+  - [Cloud API & Live Website](#cloud-api--live-website)
+- [Alert Codes](#alert-codes)
+- [Communication Protocols](#communication-protocols)
+- [OTA Firmware Updates](#ota-firmware-updates)
+- [Build & Flash Instructions](#build--flash-instructions)
+- [Running the Companion Apps](#running-the-companion-apps)
+- [Documentation Index](#documentation-index)
+
+---
+
+## System Overview
+
+LifeLine bridges the critical communication gap during natural disasters (earthquakes, landslides, flash floods) by combining:
+
+- **Long-range LoRa radio** (SX1278 433 MHz) for multi-kilometre off-grid transmission between field units and a base station
+- **ESP32 microcontrollers** running modular firmware with real-time display, BLE, Wi-Fi, and cloud integration
+- **Two-way packet protocol** with downlink ACK confirmation from the base station back to the field transmitter
+- **Cloud web API** at `zenithkandel.com.np/lifeline` for live alert logging, map display, and remote command dispatch
+- **React Native mobile app** (LifeLine Companion) for BLE-tethered smartphone command and control
+- **Web Bluetooth PWA** (Bluefy Companion) for iOS/browser BLE access without a native app
+- **Over-the-air firmware updates** via local SoftAP and remote HTTPS VPS
+
+---
+
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    FIELD SENSING LAYER                      │
-│                                                             │
-│   ┌────────────────────────┐      ┌──────────────────────┐  │
-│   │   LifeLine TX Pro      │      │     LifeLine SPU     │  │
-│   │  (Field Handheld Unit) │      │  (Autonomous Node)   │  │
-│   │   [Keypad + ST7789]    │      │ [GPS+IMU+Temp+Gas]   │  │
-│   └───────────┬────────────┘      └──────────┬───────────┘  │
-└───────────────┼──────────────────────────────┼──────────────┘
-                │                              │ Direct Wi-Fi
-                │ LoRa 433 MHz RF              │ or CCU LoRa
-                ▼                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  COMMAND & BASE STATION                     │
-│                                                             │
-│   ┌──────────────────────────────────────────────────────┐  │
-│   │                 LifeLine RX Pro                      │  │
-│   │            (Emergency Base Station)                  │  │
-│   │          [SX1278 + 16x2 LCD + Loud Siren]            │  │
-│   └──────────────────────────┬───────────────────────────┘  │
-└──────────────────────────────┼──────────────────────────────┘
-                               │
-                               │ HTTPS REST API Gateway
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    CENTRAL CLOUD PLATFORM                   │
-│                                                             │
-│   ┌──────────────────────────────────────────────────────┐  │
-│   │                 Web Server & DB                      │  │
-│   │    [Live Map, Real-Time SMS, Email & Push Alert]     │  │
-│   └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      FIELD LAYER                                │
+│                                                                 │
+│   LifeLine TX Pro (Field Handheld)                              │
+│   ESP32 · SX1278 LoRa · ST7789 TFT · 4×4 Keypad               │
+│   Green + Red LED · Passive Buzzer · BLE Nordic UART           │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │  LoRa 433 MHz (SF12, BW 125 kHz, CR 4/8)
+                      │  Up to ~5 km line-of-sight
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   BASE STATION LAYER                            │
+│                                                                 │
+│   LifeLine RX Pro (Base Station)                                │
+│   ESP32 · SX1278 LoRa · 16×2 LCD (I2C) · Passive Buzzer       │
+│   Green + Red LED · BLE Nordic UART · Wi-Fi (Multi-Network)    │
+└──────────────┬──────────────────────┬───────────────────────────┘
+               │                      │
+               │ BLE Nordic UART      │ HTTPS REST API
+               ▼                      ▼
+   ┌──────────────────┐    ┌────────────────────────────────────┐
+   │  Smartphone      │    │  Cloud Web Server                  │
+   │  LifeLine        │    │  zenithkandel.com.np/lifeline      │
+   │  Companion App   │    │                                    │
+   │  (React Native)  │    │  · Alert log & live map            │
+   │                  │    │  · Downlink command dispatch       │
+   │  or              │    │  · OTA firmware manifest           │
+   │  Bluefy PWA      │    │  · Custom message relay (SITREP)   │
+   └──────────────────┘    └────────────────────────────────────┘
 ```
+
+**Data flow for an emergency alert:**
+
+1. Field operator selects alert on TX Pro keypad → TX transmits LoRa packet
+2. RX Pro receives packet → immediately triggers LCD alert screen + buzzer/LED
+3. RX sends downlink ACK back over LoRa to TX → TX confirms delivery on screen
+4. RX pushes full telemetry to cloud API over HTTPS
+5. Cloud website updates live alert log, map, and notifies operators
+6. Website operator can dispatch a downlink command → RX polls API → relays over LoRa to TX
 
 ---
 
-## 2. Repository Structure
+## Repository Structure
 
-```text
+```
 lifeline_hardware/
-├── README.md                               <-- Master system documentation
-├── build.ps1                               <-- Unified PowerShell build & flash tool
-├── lifeline.code-workspace                 <-- Multi-project VS Code workspace file
-├── .gitignore                              <-- Production gitignore (blocks .pio, binaries)
+├── lifeline_rx_pro/          # Base Station receiver firmware (ESP32 + PlatformIO)
+│   ├── lifeline_rx_pro.ino   # Main application entry point
+│   ├── Config.h              # Pin definitions, LoRa settings, alert table, timing
+│   ├── LoRaComm.cpp/h        # LoRa packet parsing, downlink ACK & command TX
+│   ├── BLEManager.cpp/h      # Nordic UART BLE GATT server (notify + command receive)
+│   ├── WiFiPortal.cpp/h      # Captive portal, multi-network credential store, web server
+│   ├── APIClient.cpp/h       # HTTPS cloud push (alerts, telemetry, chat) & downlink poll
+│   ├── OTAManager.cpp/h      # Remote VPS OTA + local SoftAP OTA
+│   ├── DisplayUI.cpp/h       # 16×2 LCD screen state machine & custom CGRAM glyphs
+│   └── BuzzerLED.cpp/h       # Passive buzzer tone sequences & LED blink patterns
 │
-├── docs/                                   <-- Domain-organized technical documentation
-│   ├── architecture/
-│   │   ├── system_architecture.md          <-- Full end-to-end system architecture
-│   │   ├── sensornode_dual_esp32.md        <-- Dual-ESP32 (SPU+CCU) working principle & DSP
-│   │   ├── sensornode_specification.md     <-- Original hardware specification & design goals
-│   │   └── rx_pro_ui_flow.md               <-- Base station LCD UI state machine & screens
-│   ├── hardware/
-│   │   ├── wiring_and_pinouts.md           <-- Master hardware pinout & connection tables
-│   │   └── schematics/                     <-- Cleanly named circuit diagrams & breadboards
-│   │       ├── receiver_breadboard.png
-│   │       ├── transmitter_breadboard.png
-│   │       ├── lifeline_circuit_schematic.pdf
-│   │       ├── lifeline_components_list.pdf
-│   │       ├── lifeline_intro_presentation.pdf
-│   │       └── lifeline_system_manual.pdf
-│   ├── api/
-│   │   └── spu_telemetry_api.md            <-- Direct Cloud REST API specifications
-│   ├── guides/
-│   │   ├── local_ota_guide.md              <-- Local SoftAP & IDE wireless flashing guide
-│   │   └── vps_ota_guide.md                <-- VPS Cloud remote HTTPS OTA firmware guide
-│   └── roadmap/
-│       ├── features_matrix.md              <-- Master feature matrix across all 4 units
-│       └── upgrade_roadmap.md              <-- Dual-mode transmission & cloud upgrade plan
+├── lifeline_tx_pro/          # Field transmitter firmware (ESP32 + PlatformIO)
+│   ├── lifeline_tx_pro.ino   # Main application entry point
+│   ├── Config.h              # Pin definitions, LoRa settings, ST7789 display config
+│   ├── LoRaComm.cpp/h        # LoRa alert transmission, ACK wait, retry logic
+│   ├── BLEManager.cpp/h      # Nordic UART BLE GATT server for mobile companion
+│   ├── KeypadInput.cpp/h     # 4×4 matrix keypad scanning with debounce & repeat
+│   ├── OTAManager.cpp/h      # Local SoftAP OTA portal
+│   ├── DisplayUI.cpp/h       # ST7789 TFT UI: menu, confirm, sending, result screens
+│   ├── BuzzerLED.cpp/h       # Buzzer feedback and LED status
+│   ├── SharedProtocol.h      # Shared packet format constants (TX ↔ RX)
+│   └── Config.cpp            # Alert name/priority tables, alert code mapping
 │
-├── lifeline_rx_pro/                        <-- Base Station Receiver Firmware
-│   ├── platformio.ini                      <-- PlatformIO configuration (USB & OTA envs)
-│   ├── lifeline_rx_pro.ino                 <-- Main Arduino sketch entrypoint
-│   ├── APIClient.cpp / .h                  <-- HTTPS Cloud REST API forwarder
-│   ├── BLEManager.cpp / .h                 <-- Bluetooth Low Energy Nordic UART Hub & commander dispatch
-│   ├── BuzzerLED.cpp / .h                  <-- Multi-tone siren & status LED driver
-│   ├── Config.h                            <-- Pinouts, timings, and network defaults
-│   ├── DisplayUI.cpp / .h                  <-- Full 16x2 LCD custom message formatter & custom glyphs
-│   ├── LoRaComm.cpp / .h                   <-- SX1278 RF receiver, CHAT parser & 2-way ACK
-│   ├── OTAManager.cpp / .h                 <-- Remote HTTPS OTA client
-│   └── WiFiPortal.cpp / .h                 <-- Captive web portal & Multi-Wi-Fi manager
-│
-├── lifeline_tx_pro/                        <-- Field Handheld Transmitter Firmware
-│   ├── platformio.ini                      <-- PlatformIO configuration (USB & OTA envs)
-│   ├── lifeline_tx_pro.ino                 <-- Main Arduino sketch entrypoint
-│   ├── BLEManager.cpp / .h                 <-- Bluetooth Low Energy Nordic UART companion interface
-│   ├── BuzzerLED.cpp / .h                  <-- Keypad acoustic feedback & LED driver
-│   ├── Config.cpp / .h                     <-- Alert dictionary, RF frequencies, pinouts & popup states
-│   ├── DisplayUI.cpp / .h                  <-- 2.8" SPI TFT (ST7789) dark theme & "MESSAGE SENDING" pop screen
-│   ├── KeypadInput.cpp / .h                <-- 4x4 matrix keypad scanner & debouncer
-│   ├── LoRaComm.cpp / .h                   <-- SX1278 RF transmitter & 5,000ms ACK listen window
-│   ├── OTAManager.cpp / .h                 <-- Local SoftAP wireless firmware update
-│   ├── SharedProtocol.h                    <-- Common binary packet structures & CRC16
-│   └── SPUReceiver.h                       <-- Telemetry interface for SPU display
-│
-├── lifeline_companion/                     <-- Tactical Mobile Companion App (React Native / Expo)
+├── lifeline_companion/       # React Native mobile companion app (Expo)
+│   ├── App.tsx               # Root component and navigation
 │   ├── src/
-│   │   ├── components/                     <-- TacticalHeader, StatusBadge, LinkQualityIndicator
-│   │   ├── context/                        <-- LifeLineContext provider & BLE state engine
-│   │   ├── screens/                        <-- RadarScreen, SitrepScreen, SettingsScreen, AlertModal
-│   │   ├── services/                       <-- BleService, MockBleService, NotificationService
-│   │   └── theme/                          <-- Military-grade cybernetic dark design tokens
-│   └── App.tsx                             <-- Main navigation & application entrypoint
+│   │   ├── screens/          # DashboardScreen, SosScreen, ChatScreen, RadarScreen, SettingsScreen
+│   │   ├── services/         # BleService.ts (react-native-ble-plx), MockBleService.ts
+│   │   ├── components/       # TacticalHeader.tsx and shared UI components
+│   │   ├── context/          # LifeLineContext.tsx — global BLE state provider
+│   │   ├── constants/        # ble.ts (Nordic UART UUIDs), theme.ts
+│   │   └── utils/            # base64.ts (BLE payload encode/decode)
+│   └── scan_qr.html          # QR code pairing page for local dev BLE testing
 │
-├── bluefy_companion/                       <-- Zero-Install Web Bluetooth PWA (iOS Bluefy & Android Chrome)
-│   └── index.html                          <-- Standalone offline Web Bluetooth situational terminal
+├── bluefy_companion/         # Standalone Web Bluetooth PWA (iOS Bluefy / Chrome)
+│   ├── index.html            # Single-file BLE companion (no install required)
+│   └── server.js             # Local Node.js dev server for testing
 │
-├── portal_preview/                         <-- Interactive Web Companion & QR Scanner Demo
-│   ├── companion_app.html                  <-- Standalone Web Bluetooth companion simulator
-│   └── scan_qr.html                        <-- Fast QR-based hardware pairing scanner
+├── portal_preview/           # Static HTML previews of hardware web portals
+│   ├── index.html            # Design showroom — tabbed preview of all portals
+│   ├── rx_portal.html        # RX Base Station web interface (served from ESP32)
+│   ├── tx_portal.html        # TX Field Unit web interface
+│   └── companion_app.html    # Companion app portal preview
 │
-├── lifeline_tx_spu/                        <-- Autonomous Sensor Processing Unit Firmware
-│   ├── platformio.ini                      <-- PlatformIO configuration
-│   ├── include/
-│   │   ├── ConfigSPU.h                     <-- Sensor pins, sampling rates & thresholds
-│   │   └── SharedProtocol.h                <-- Common binary packet structures & CRC16
-│   └── src/
-│       ├── main.cpp                        <-- SPU task loop entrypoint
-│       ├── api_client_spu.cpp / .h         <-- Direct HTTP POST cloud telemetry client
-│       ├── emergency_detector.cpp / .h     <-- Sensor fusion & emergency rule engine
-│       ├── environment_manager.cpp / .h    <-- DHT11/22/BME280 temperature & humidity
-│       ├── gas_manager.cpp / .h            <-- MQ135 air quality & smoke detection
-│       ├── gps_manager.cpp / .h            <-- NEO-6M GPS NMEA sentence parser
-│       ├── health_calculator.cpp / .h      <-- Quantitative Node Health & Risk scoring
-│       ├── mpu_manager.cpp / .h            <-- 6-DOF IMU accelerometer & seismic filter
-│       ├── sensor_manager.cpp / .h         <-- Master FreeRTOS non-blocking scheduler
-│       ├── web_server_manager.cpp / .h     <-- Local web server & diagnostics portal
-│       └── wifi_portal_spu.cpp / .h        <-- SPU Wi-Fi captive setup portal
-│
-└── lifeline_tx_ccu/                        <-- Communication Controller Unit Firmware
-    ├── platformio.ini                      <-- PlatformIO configuration
-    ├── include/
-    │   ├── ConfigCCU.h                     <-- CCU pinout, LoRa settings & retries
-    │   └── SharedProtocol.h                <-- Common binary packet structures & CRC16
-    └── src/
-        ├── main.cpp                        <-- CCU forwarding loop
-        ├── diagnostics.cpp / .h            <-- Packet counters & RF health telemetry
-        ├── lora_manager.cpp / .h           <-- LoRa SX1278 transmitter & queue engine
-        ├── power_manager.cpp / .h          <-- Low power & light sleep manager
-        └── uart_receiver.cpp / .h          <-- High-speed UART ring buffer parser
+├── docs/                     # Architecture, hardware, API, and guide documentation
+├── assests/                  # Project photos and showcase images
+├── build.ps1                 # Unified PowerShell build & flash script
+├── serve_demo.js             # Node.js server to preview portal_preview locally
+├── presentation.html         # Project presentation slides
+└── lifeline.code-workspace   # VS Code multi-root workspace
 ```
 
 ---
 
-## 3. Firmware Subprojects & Companion Applications
+## Hardware Units
 
-### 📡 LifeLine RX Pro (Base Station Receiver)
-* **Target Board**: ESP32 DevKit V1
-* **Display**: 16×2 Character I2C LCD (PCF8574 @ `0x27`)
-* **RF Transceiver**: SX1278 LoRa @ 433 MHz (SF12, BW 125 kHz, CR 4/8, Sync Word `0x12`)
-* **Bluetooth**: BLE 4.2/5.0 Nordic UART Service (NUS) Advertising (`LifeLine-RX-Base`)
-* **Key Features**:
-  - Continuous low-power RF reception with live RSSI and SNR telemetry.
-  - **Full 16×2 LCD Custom Message Display**: Uses both Row 0 and Row 1 (all 32 characters) for freeform chat/SITREP text with smart word-wrapping, auto-scroll paging, and manual button advance.
-  - **Bluetooth Commander Hub**: Ingests direct mobile commands (`MSG:`, `REPLY:`, `EVAC:`) and broadcasts push notifications (`CHAT:`, `ALERT:`, `TELEMETRY:`) to paired smartphones.
-  - Multi-Wi-Fi memory (stores up to 3 network credentials with auto-fallback).
-  - Captive Web Setup Portal (`192.168.4.1`) launched via dedicated hardware push-button, with local `/send-downlink` dispatch endpoint.
-  - **Two-Way Web-to-LoRa Dispatch Engine**: Automated 3.5s background polling engine pulling pending commands & custom SITREPs from the central cloud website (`API/Read/pending_commands.php`), rendering them on the 16×2 LCD, and immediately transmitting them via 433 MHz LoRa (`CMD<did>,<action>,<msg>`) to off-grid field units with real-time status reporting (`API/Update/command_status.php`).
-  - HTTPS Cloud REST API gateway automatically posting emergency alerts and custom chats to central dashboard.
-  - Remote VPS Over-The-Air (OTA) firmware upgrade checking on boot with dual-partition safety.
+### RX Pro — Base Station Receiver
 
-### 📟 LifeLine TX Pro (Field Transmitter)
-* **Target Board**: ESP32 DevKit V1
-* **Display**: 2.8" SPI Color TFT (ST7789, 240×320 / 320×240 landscape)
-* **Input**: 4×4 Tactile Matrix Keypad
-* **RF Transceiver**: SX1278 LoRa @ 433 MHz (+18 dBm boosted output)
-* **Bluetooth**: BLE 4.2/5.0 Nordic UART Service (NUS) Advertising (`LifeLine-TX-XXX`)
-* **Key Features**:
-  - High-contrast graphical cybernetic dark theme designed for sunlight anti-glare readability.
-  - **Tactical "MESSAGE SENDING" Pop Screen**: When a custom BLE message is sent from the companion phone (`MSG:<text>`), an interactive pop screen appears displaying:
-    - Glowing header transmission beacon and `[BLE -> LoRa]` mode badge.
-    - Word-wrapped SITREP payload card showing the complete custom message.
-    - Live ~20 FPS sweeping segmented progress bar active during airtime and 5,000ms ACK listen window.
-    - Closed-loop Gateway ACK confirmation badge (`[ACK CONFIRMED!]` / `[SENT (NO ACK)]`) with Gateway ID, RSSI, and note.
-    - Auto-dismiss (4s) or manual keypress dismissal, smoothly restoring the previous screen (`SCREEN_BLE_PORTAL`, `SCREEN_MENU`, `SCREEN_SYSTEM_INFO`, etc.).
-  - 15 pre-configured emergency categories tailored for Himalayan health, maternal delivery, and relief supplies.
-  - Hotkey mapping on 4x4 keypad (Keys 1–9 and 0 for top 10 time-critical alerts) with double confirmation screen.
-  - Wireless SoftAP OTA update mode triggered by holding Key `0` for 3 seconds.
+The base station is deployed at a command post, rescue coordination centre, or village health post. It runs continuously on mains or battery power and acts as the bridge between the off-grid LoRa radio network and the internet.
 
-### 📱 LifeLine Companion Ecosystem (Mobile & Web)
-* **LifeLine Companion Mobile App (`lifeline_companion/`)**:
-  - Built with React Native & Expo for iOS and Android.
-  - Tactical military-grade dark theme with real-time BLE connection management.
-  - Radar Screen with dynamic signal sweeps, distance estimation, and RSSI tracking.
-  - Freeform SITREP composer with one-touch emergency macros.
-  - Acoustic and haptic feedback on incoming distress alerts and ACK receipts.
-* **Zero-Install Web Bluetooth Companion (`bluefy_companion/` & `portal_preview/`)**:
-  - Offline Progressive Web Application (PWA) compatible with iOS (Bluefy Browser) and Android (Google Chrome).
-  - Instant pairing via QR Code camera scanning.
-  - Full packet stream terminal and hardware status monitoring.
+**Microcontroller:** ESP32 (Espressif ESP32-WROOM-32)
 
-### 🔬 LifeLine SPU (Sensor Processing Unit)
-* **Target Board**: ESP32 DevKit V1
-* **Sensors**: NEO-6M GPS, DHT11/22, MPU6050 (6-DOF IMU), MQ135 (Air Quality/Gas)
-* **Key Features**:
-  - Real-time DSP filtering (10-sample circular moving average, tilt angle calculation).
-  - Multi-sensor fusion engine: classifies Forest Fire, Earthquake, Landslide, Toxic Gas, and Extreme Weather.
-  - Computes dynamic **Node Health Score (0-100%)** and **Environmental Risk Score (0-100%)**.
-  - Built-in Wi-Fi Captive Portal and direct HTTP REST client uploading telemetry logs to Cloud API.
+**Pin Configuration:**
 
-### 🛰️ LifeLine CCU (Communication Controller Unit)
-* **Target Board**: ESP32 DevKit V1
-* **RF Transceiver**: SX1278 LoRa @ 433 MHz
-* **Key Features**:
-  - Isolated microcontroller dedicated strictly to RF packet dispatching.
-  - Parses binary telemetry packets over high-speed UART from SPU with CRC-16 integrity verification.
-  - Formats data into Base Station compatible payloads (`TX[ID],[ALERT_CODE]`) with exponential backoff retries.
+| Component | GPIO | Interface |
+| :--- | :---: | :--- |
+| SX1278 LoRa CS | 18 | SPI Chip Select |
+| SX1278 LoRa RST | 23 | Digital Output |
+| SX1278 LoRa DIO0 | 19 | Interrupt Input |
+| SPI SCK | 5 | SPI Clock |
+| SPI MISO | 17 | SPI Data In |
+| SPI MOSI | 27 | SPI Data Out |
+| 16×2 LCD SDA | 4 | I2C Data |
+| 16×2 LCD SCL | 16 | I2C Clock |
+| LCD I2C Address | 0x27 | PCF8574 backpack |
+| Wi-Fi Portal Button | 14 | Active LOW (INPUT_PULLUP) |
+| Wi-Fi / Green LED | 21 | Digital Output (Active HIGH) |
+| Data / Red LED | 13 | Digital Output (Active HIGH) |
+| Passive Buzzer | 12 | PWM Tone Output |
+
+**LoRa RF Configuration:**
+
+| Parameter | Value |
+| :--- | :--- |
+| Frequency | 433 MHz |
+| Spreading Factor | SF12 (maximum range) |
+| Bandwidth | 125 kHz |
+| Coding Rate | 4/8 (maximum error correction) |
+| Preamble | 16 symbols |
+| TX Power | 18 dBm |
+| Sync Word | 0x12 |
+
+**Key firmware features:**
+
+- Receives full telemetry packets from TX Pro: alert code, device ID, temperature, humidity, gas PPM, GPS coordinates, altitude, health/risk scores, RSSI, and SNR
+- Two-way LoRa: sends downlink ACK back to TX immediately after receiving each packet
+- 16×2 LCD state machine: Boot → Idle → Alert → Custom Message → No-Wi-Fi, with custom CGRAM glyphs (radar, bell, check, signal, Wi-Fi icons)
+- 15-second alert timeout with auto-return to idle; 60-second No-Wi-Fi screen timeout
+- Multi-network Wi-Fi credential store (up to 3 networks) in NVMe; captive portal for setup (press and hold GPIO 14 for 3 seconds)
+- HTTPS push to cloud API (`zenithkandel.com.np/lifeline/API/Create/message.php`) on every packet received
+- Cloud downlink polling every 3.5 seconds — relays web operator commands over LoRa to field units
+- BLE Nordic UART GATT server: notifies paired smartphone on every alert, chat, and telemetry packet; accepts commander downlink commands and evacuation broadcasts from phone
+- Remote VPS OTA: checks `version.json` manifest on boot, streams `.bin` over HTTPS if newer firmware available
+- Local SoftAP OTA: activated by triple-press of Wi-Fi button, serves firmware upload page at `LifeLine-RX-Setup` AP
+- NTP time sync (Nepal Standard Time, GMT+5:45)
 
 ---
 
-## 4. Hardware Pinouts Quick Reference
+### TX Pro — Field Handheld Transmitter
 
-### LifeLine RX Pro Pinout
-| Function | ESP32 Pin | Connected Component |
-| :--- | :--- | :--- |
-| **LoRa SCK** | GPIO 18 | SX1278 SCK |
-| **LoRa MISO** | GPIO 19 | SX1278 MISO |
-| **LoRa MOSI** | GPIO 23 | SX1278 MOSI |
-| **LoRa NSS / CS** | GPIO 5 | SX1278 NSS |
-| **LoRa RESET** | GPIO 15 | SX1278 RESET |
-| **LoRa DIO0** | GPIO 2 | SX1278 DIO0 |
-| **I2C SDA** | GPIO 21 | 16×2 LCD SDA |
-| **I2C SCL** | GPIO 22 | 16×2 LCD SCL |
-| **Wi-Fi Setup Button** | GPIO 14 | Push Button (Active LOW) |
-| **Emergency Siren** | GPIO 25 | Active Buzzer / Transistor Driver |
-| **Status LEDs** | GPIO 26 (Red Data), GPIO 27 (Green Wi-Fi) | 330Ω Current Limiting Resistors |
+The field unit is carried by community health workers, trekking guides, village volunteers, or disaster response teams. It operates fully offline and transmits emergency alerts over LoRa to the base station.
 
-### LifeLine TX Pro Pinout
-| Function | ESP32 Pin | Connected Component |
-| :--- | :--- | :--- |
-| **TFT MOSI / SDA** | GPIO 23 | ST7789 MOSI |
-| **TFT SCLK / SCL** | GPIO 18 | ST7789 SCLK |
-| **TFT CS** | GPIO 15 | ST7789 CS |
-| **TFT DC** | GPIO 4 | ST7789 DC |
-| **TFT RESET** | GPIO 2 | ST7789 RES |
-| **Keypad Rows (R1-R4)** | GPIO 13, 12, 14, 27 | 4×4 Matrix Keypad Rows |
-| **Keypad Cols (C1-C4)** | GPIO 26, 25, 33, 32 | 4×4 Matrix Keypad Columns |
-| **LoRa NSS / CS** | GPIO 5 | SX1278 NSS |
-| **LoRa RESET** | GPIO 0 | SX1278 RESET |
-| **LoRa DIO0** | GPIO 34 | SX1278 DIO0 (Input only) |
+**Microcontroller:** ESP32 (Espressif ESP32-WROOM-32)
 
-### LifeLine SPU Pinout
-| Sensor / Peripheral | ESP32 Pin | Protocol / Mode |
-| :--- | :--- | :--- |
-| **DHT11 / DHT22 Data** | GPIO 23 | 1-Wire Digital (10kΩ Pull-up) |
-| **MQ135 Gas Analog** | GPIO 34 | ADC1 Channel (Analog IN) |
-| **MPU6050 SDA** | GPIO 21 | I2C Data |
-| **MPU6050 SCL** | GPIO 22 | I2C Clock |
-| **NEO-6M GPS TX / RX** | GPIO 16 (RX2), GPIO 17 (TX2) | UART2 (9600 Baud) |
-| **Manual SOS Push Button** | GPIO 26 | Hardware Interrupt (Active LOW) |
-| **Status / Wi-Fi LED** | GPIO 2 | Digital Output |
+**Pin Configuration:**
+
+| Component | GPIO | Interface |
+| :--- | :---: | :--- |
+| SX1278 LoRa CS | 18 | SPI Chip Select |
+| SX1278 LoRa RST | 23 | Digital Output |
+| SX1278 LoRa DIO0 | 19 | Interrupt Input |
+| SPI SCK | 5 | SPI Clock |
+| SPI MISO | 17 | SPI Data In |
+| SPI MOSI | 27 | SPI Data Out |
+| ST7789 TFT CS | 16 | SPI Chip Select |
+| ST7789 TFT DC | 4 | Data/Command |
+| ST7789 TFT RST | 2 | Reset |
+| Green LED | 21 | Digital Output (Active HIGH) |
+| Red LED | 13 | Digital Output (Active HIGH) |
+| Passive Buzzer | 22 | PWM Tone Output |
+| SPU UART RX | 34 | Hardware Serial2 RX |
+
+**LoRa RF Configuration:** Identical to RX Pro — same frequency, SF, BW, CR, and sync word (required for interoperability).
+
+**Display:** ST7789 TFT (240×320 or 320×480, auto-adaptive layout), landscape orientation. Dark-themed tactical UI with RGB565 color palette — critical alerts in red, success in green, information in cyan/amber.
+
+**UI Screen States:**
+
+| Screen | Description |
+| :--- | :--- |
+| `SCREEN_BOOT` | Splash logo (~1.8 s) |
+| `SCREEN_MENU` | Scrollable alert selection list (5 visible items) |
+| `SCREEN_CONFIRM` | Alert confirmation dialog before transmit |
+| `SCREEN_SENDING` | Live transmission animation with retry counter |
+| `SCREEN_RESULT` | Success (green, auto-returns in 1.8 s) or Failure (red, awaits key) |
+| `SCREEN_SYSTEM_INFO` | Firmware version, device ID, LoRa stats |
+| `SCREEN_USER_MANUAL` | 4-page scrollable on-device user manual |
+| `SCREEN_SENSOR_LOG` | Live SPU sensor data dashboard (refreshes every 1 s) |
+| `SCREEN_OTA_SELECT` | Interactive menu: Local AP OTA or Network OTA |
+| `SCREEN_BLE_PORTAL` | BLE pairing status and incoming message history |
+| `SCREEN_MESSAGE_POPUP` | Auto-dismissing modal for downlink messages from base |
+
+**Key firmware features:**
+
+- 4×4 matrix keypad with debounce (30 ms) and auto-repeat (80 ms) for fast navigation
+- Up to 3 transmission retry attempts with ACK wait window (5 000 ms, accommodating SF12 ~2 s airtime)
+- Continuous background LoRa listener (between transmissions) for downlink commands and evacuation broadcasts from base
+- BLE Nordic UART: accepts alert triggers and custom chat messages from LifeLine Companion app; displays received base messages in BLE portal screen
+- SPU telemetry input on UART2 (GPIO 34) — displays live sensor readings when sensor node is wired
+- Local SoftAP OTA portal
 
 ---
 
-## 5. Build & Deployment Instructions
+## Software & Web
+
+### LifeLine Companion — React Native Mobile App
+
+A cross-platform mobile application (iOS and Android) built with **Expo** and **React Native**, connecting to either the RX Base Station or TX Field Unit over BLE.
+
+**Tech stack:** React Native · TypeScript · Expo · `react-native-ble-plx` · `expo-linear-gradient`
+
+**Screens:**
+
+| Screen | Function |
+| :--- | :--- |
+| Dashboard | Real-time incoming alert feed from paired device; device status bar |
+| SOS | One-tap BLE alert trigger — sends selected alert code to TX over BLE |
+| Chat | Free-text message input; message history with RSSI and sender info |
+| Radar | Visual representation of active devices and signal health |
+| Settings | BLE device scan, connect/disconnect, mock mode toggle |
+
+**BLE protocol:** Nordic UART Service (NUS)
+- Service UUID: `6E400001-B5A3-F393-E0A9-E50E24DCCA9E`
+- Write characteristic (mobile → device): `6E400002-...`
+- Notify characteristic (device → mobile): `6E400003-...`
+
+**Run:**
+```powershell
+cd lifeline_companion
+npm install
+npx expo start
+```
+
+---
+
+### Bluefy Companion — Web Bluetooth PWA
+
+A single-file Web Bluetooth application (`bluefy_companion/index.html`) that connects directly to the RX or TX ESP32 over BLE without requiring any app installation. Compatible with:
+
+- **iOS:** [Bluefy Browser](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (supports Web Bluetooth API)
+- **Android / Desktop Chrome:** Native Web Bluetooth API
+
+Provides QR code pairing, BLE connect/disconnect, and a command interface for base station control.
+
+**Run locally:**
+```powershell
+cd bluefy_companion
+node server.js
+# Open http://localhost:3000 in Bluefy or Chrome
+```
+
+---
+
+### Portal Preview — Hardware Web Interfaces
+
+The ESP32 RX Pro serves a local web interface when connected to Wi-Fi (accessible at the device's IP address). The `portal_preview/` directory contains static HTML previews of these pages for design review and development.
+
+**Pages:**
+
+| File | Description |
+| :--- | :--- |
+| `index.html` | Tabbed design showroom — previews all hardware portals in one page (light/dark theme toggle) |
+| `rx_portal.html` | RX Base Station web UI (alert history, device status, downlink commands) |
+| `tx_portal.html` | TX Field Unit web UI (alert log, transmission stats, sensor readings) |
+| `companion_app.html` | Companion app portal preview |
+
+**Preview locally:**
+```powershell
+node serve_demo.js
+# Open: http://localhost:8080/portal_preview/index.html
+```
+
+---
+
+### Cloud API & Live Website
+
+The RX Base Station pushes data to a live cloud backend at **`zenithkandel.com.np/lifeline`**.
+
+**API Endpoints (used by RX firmware):**
+
+| Method | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `POST` | `/API/Create/message.php` | Push emergency alert or telemetry packet |
+| `GET` | `/API/Read/pending_commands.php` | Poll for pending downlink commands from web operators |
+| `POST` | `/API/Update/command_status.php` | Acknowledge execution of a downlink command |
+| `GET` | `/ota/version.json` | OTA firmware version manifest |
+
+**Payload fields sent per packet:** `device_id`, `alert_code`, `alert_name`, `priority`, `temperature`, `humidity`, `gas_ppm`, `latitude`, `longitude`, `altitude`, `rssi`, `snr`, `distance_km`, `source` (`LORA` / `BLE`), `custom_message`, timestamp
+
+**Downlink flow (Website → Field):**
+1. Web operator dispatches a command on the website (message, evacuation broadcast, or custom SITREP)
+2. RX polls API every 3.5 seconds and retrieves the pending command
+3. RX displays it on the LCD, sounds an alert tone, and relays it over LoRa to the target TX unit
+4. RX acknowledges execution status back to the API (`DISPATCHED_LORA` or `TX_FAILED`)
+5. If a BLE commander phone is paired, the confirmation string is also forwarded over BLE
+
+---
+
+## Alert Codes
+
+15 emergency categories are supported, selectable from the TX keypad or triggered remotely via BLE or cloud downlink.
+
+| Code | Index | Alert Name | Priority |
+| :---: | :---: | :--- | :---: |
+| A | 0 | CRITICAL SOS | 🔴 CRITICAL |
+| B | 1 | DELIVERY / LABOR | 🔴 CRITICAL |
+| C | 2 | HELI RESCUE NEEDED | 🔴 CRITICAL |
+| D | 3 | MEDICINE SHORTAGE | 🟡 MEDIUM |
+| E | 4 | OXYGEN SHORTAGE | 🔴 CRITICAL |
+| F | 5 | SEVERE INJURY | 🟠 HIGH |
+| G | 6 | BLOOD NEEDED | 🔴 CRITICAL |
+| H | 7 | ALTITUDE SICKNESS | 🟠 HIGH |
+| I | 8 | FOOD SHORTAGE | 🟡 MEDIUM |
+| J | 9 | WATER SHORTAGE | 🟡 MEDIUM |
+| K | 10 | DISEASE OUTBREAK | 🟠 HIGH |
+| L | 11 | FREEZING / SHELTER | 🟡 MEDIUM |
+| M | 12 | LANDSLIDE / HAZARD | 🟠 HIGH |
+| N | 13 | DOCTOR / NURSE NEEDED | 🟡 MEDIUM |
+| O | 14 | STATUS OK / ALL SAFE | ✅ OK |
+
+---
+
+## Communication Protocols
+
+### LoRa Packet Format (TX → RX)
+
+Packets carry a compact payload including: device ID, emergency code, full telemetry (temperature, humidity, gas PPM, GPS lat/lon, altitude, health score, risk score), and an optional free-text chat message field. RSSI and SNR are measured at the receiver.
+
+### LoRa Downlink Format (RX → TX)
+
+The base station sends downlink packets back to field units with:
+- **ACK:** Confirms receipt of a specific alert (`DEVICE_ID, CODE, STATUS, MESSAGE`)
+- **Command:** Targeted action for a specific TX device (e.g., `EVACUATE`, custom SITREP text)
+- **Broadcast Evacuation:** Sent to all devices simultaneously
+
+**ACK wait window:** 5 000 ms (required to accommodate SF12 ≈ 2 s airtime). Up to 3 retries on the TX side.
+
+### BLE (Nordic UART Service)
+
+Both RX and TX expose a Nordic UART Service GATT server. The smartphone companion app (or Bluefy PWA) connects and:
+- **Receives** structured JSON-like strings for alerts, telemetry, chat messages, and status updates
+- **Sends** alert trigger codes (`SOS:A`), chat messages (`MSG:text`), commander replies (`REPLY:DEV,ACTION,MSG`), and evacuation broadcasts (`EVAC:message`)
+
+---
+
+## OTA Firmware Updates
+
+### Remote VPS OTA (RX Pro only)
+
+On every boot, the RX firmware fetches `https://zenithkandel.com.np/lifeline/ota/version.json`. If the manifest reports a newer version than the running firmware, it streams the `.bin` file over HTTPS directly to the ESP32 OTA partition, shows real-time progress on the 16×2 LCD, and reboots automatically.
+
+### Local SoftAP OTA (RX Pro and TX Pro)
+
+Triggered by holding the Wi-Fi Portal button (GPIO 14) for 3 seconds on RX, or via the OTA menu on TX. The ESP32 starts a SoftAP (`LifeLine-RX-Setup` / `LifeLine-TX-Setup`) and serves a firmware upload page. Connect to the AP and browse to the device IP to upload a new `.bin`.
+
+---
+
+## Build & Flash Instructions
 
 ### Prerequisites
-- Install [PlatformIO Core (CLI)](https://platformio.org/install/cli) or the [PlatformIO IDE extension](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide) in VS Code.
-- Ensure the Espressif 32 platform package is installed.
 
-### Option A: Using the Unified PowerShell Tool (`build.ps1`)
-From the repository root, run:
+- [PlatformIO Core (CLI)](https://platformio.org/install/cli) or the [PlatformIO IDE extension](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide) for VS Code
+- Espressif 32 platform package (installed automatically by PlatformIO on first build)
+
+### Option A — Unified PowerShell Script (`build.ps1`)
+
 ```powershell
-# Compile all 4 firmware projects in sequence
+# Compile both firmware projects
 .\build.ps1
 
-# Compile specific units
-.\build.ps1 rx       # Base Station Receiver
-.\build.ps1 tx       # Handheld Field Transmitter
-.\build.ps1 spu      # Sensor Node SPU
-.\build.ps1 ccu      # Communication Bridge CCU
+# Compile a specific unit
+.\build.ps1 rx        # RX Base Station
+.\build.ps1 tx        # TX Field Transmitter
 
-# Compile and flash directly to connected hardware over USB
+# Compile and flash over USB
 .\build.ps1 rx -Upload
 .\build.ps1 tx -Upload
 
-# Clean all temporary .pio build caches
+# Clean build caches
 .\build.ps1 clean
 ```
 
-### Option B: Using PlatformIO CLI Directly
+### Option B — PlatformIO CLI
+
 ```powershell
 pio run -d lifeline_rx_pro
 pio run -d lifeline_tx_pro
-pio run -d lifeline_tx_spu
-pio run -d lifeline_tx_ccu
+
+# Flash directly
+pio run -d lifeline_rx_pro --target upload
+pio run -d lifeline_tx_pro --target upload
 ```
 
-### Option C: In Visual Studio Code
-1. Open the multi-project workspace by clicking on [lifeline.code-workspace](file:///d:/lifeline_hardware/lifeline.code-workspace).
-2. Press `Ctrl+Shift+B` to launch the build task menu and choose your target.
+### Option C — Visual Studio Code
 
-### Option D: Running the Mobile & Web Companion Applications
+1. Open [`lifeline.code-workspace`](file:///d:/lifeline_hardware/lifeline.code-workspace) in VS Code.
+2. Press `Ctrl+Shift+B` → select your build target from the task menu.
+
+---
+
+## Running the Companion Apps
+
 ```powershell
-# 1. Launch the React Native Expo Mobile App
+# React Native mobile app (iOS & Android via Expo Go)
 cd lifeline_companion
 npm install
 npx expo start
 
-# 2. Launch the Web Companion & Offline QR Pairing Demo Server
-cd ..
+# Web preview of hardware portals (portal_preview/)
 node serve_demo.js
-# Access: http://localhost:8080/portal_preview/companion_app.html
-# Or open bluefy_companion/index.html on iOS (Bluefy) or Android (Chrome)
+# Access: http://localhost:8080/portal_preview/index.html
+
+# Bluefy Web BLE companion
+cd bluefy_companion
+node server.js
+# Access: http://localhost:3000  (open in Bluefy on iOS or Chrome on Android)
 ```
 
 ---
 
-## 6. Documentation Index
+## Documentation Index
 
-All in-depth documentation is organized inside the [`docs/`](file:///d:/lifeline_hardware/docs) directory:
+All in-depth documentation is in the [`docs/`](file:///d:/lifeline_hardware/docs) directory.
 
 | Domain | Document | Description |
 | :--- | :--- | :--- |
-| **Architecture** | [System Architecture](file:///d:/lifeline_hardware/docs/architecture/system_architecture.md) | High-level system design and end-to-end data flow |
-| **Architecture** | [Dual-ESP32 Sensor Node](file:///d:/lifeline_hardware/docs/architecture/sensornode_dual_esp32.md) | Detailed DSP filtering equations, fusion logic & theory |
-| **Architecture** | [Sensor Node Specification](file:///d:/lifeline_hardware/docs/architecture/sensornode_specification.md) | Original architectural requirements and design baseline |
-| **Architecture** | [Base Station UI Flow](file:///d:/lifeline_hardware/docs/architecture/rx_pro_ui_flow.md) | 16×2 LCD screen states, buttons & alert popups |
-| **Architecture** | [Two-Way LoRa & BLE Architecture](file:///d:/lifeline_hardware/docs/architecture/two_way_ble_nepal_terrain_upgrade.md) | v4.0 Two-Way LoRa ACK, BLE smartphone integration & Nepal mountain resilience |
+| **Architecture** | [System Architecture](file:///d:/lifeline_hardware/docs/architecture/system_architecture.md) | End-to-end data flow and system design |
+| **Architecture** | [Base Station UI Flow](file:///d:/lifeline_hardware/docs/architecture/rx_pro_ui_flow.md) | 16×2 LCD screen states, buttons, and alert popups |
+| **Architecture** | [Two-Way LoRa & BLE Architecture](file:///d:/lifeline_hardware/docs/architecture/two_way_ble_nepal_terrain_upgrade.md) | v4.0 two-way LoRa ACK, BLE smartphone integration, Nepal mountain resilience design |
 | **Hardware** | [Wiring & Pinouts Master](file:///d:/lifeline_hardware/docs/hardware/wiring_and_pinouts.md) | Complete pin connection tables for all boards |
-| **Hardware** | [Schematics & Assets](file:///d:/lifeline_hardware/docs/hardware/schematics/) | Circuit schematics, breadboard diagrams, and PDFs |
-| **API** | [SPU Telemetry REST API](file:///d:/lifeline_hardware/docs/api/spu_telemetry_api.md) | Direct Cloud upload JSON schemas and HTTP endpoints |
-| **API** | [Cloud API Setup & Web Integration](file:///d:/lifeline_hardware/docs/api/cloud_api_setup_guide.md) | Ingestion guide for distance, custom SITREPs, SNR, and database migrations |
-| **Guides** | [Local Wireless OTA Flashing](file:///d:/lifeline_hardware/docs/guides/local_ota_guide.md) | How to flash TX and RX wirelessly over SoftAP |
-| **Guides** | [VPS Remote HTTPS OTA](file:///d:/lifeline_hardware/docs/guides/vps_ota_guide.md) | How to configure VPS cloud auto-updates for Base Stations |
-| **Guides** | [Bluetooth BLE & Mobile Companion](file:///d:/lifeline_hardware/docs/guides/bluetooth_ble_integration_guide.md) | Dual-unit BLE GATT Nordic UART, mobile chat & offline Web Bluetooth PWA guide |
-| **Roadmap** | [Master Feature Matrix](file:///d:/lifeline_hardware/docs/roadmap/features_matrix.md) | Comprehensive feature comparison across all units |
-| **Roadmap** | [Upgrade Roadmap](file:///d:/lifeline_hardware/docs/roadmap/upgrade_roadmap.md) | Roadmap for 1-hour sensor logging & dual-mode transmission |
+| **Hardware** | [Schematics & Assets](file:///d:/lifeline_hardware/docs/hardware/schematics/) | Circuit schematics and breadboard diagrams |
+| **API** | [Cloud API Setup & Web Integration](file:///d:/lifeline_hardware/docs/api/cloud_api_setup_guide.md) | Ingestion guide, JSON schemas, and database setup |
+| **Guides** | [Local Wireless OTA Flashing](file:///d:/lifeline_hardware/docs/guides/local_ota_guide.md) | Flash TX and RX wirelessly over SoftAP |
+| **Guides** | [VPS Remote HTTPS OTA](file:///d:/lifeline_hardware/docs/guides/vps_ota_guide.md) | Configure VPS cloud auto-updates for the base station |
+| **Guides** | [Bluetooth BLE & Mobile Companion](file:///d:/lifeline_hardware/docs/guides/bluetooth_ble_integration_guide.md) | BLE GATT Nordic UART, mobile companion, and Web Bluetooth PWA guide |
+| **Roadmap** | [Master Feature Matrix](file:///d:/lifeline_hardware/docs/roadmap/features_matrix.md) | Feature comparison across all units and versions |
+| **Roadmap** | [Upgrade Roadmap](file:///d:/lifeline_hardware/docs/roadmap/upgrade_roadmap.md) | Planned features and version roadmap |
 
 ---
 
-## 📄 License
-This project is open-source hardware & firmware developed for humanitarian disaster relief and community safety.
+## License
+
+Open-source hardware and firmware developed for humanitarian disaster relief and community safety in Nepal.
