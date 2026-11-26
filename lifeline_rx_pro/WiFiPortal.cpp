@@ -14,6 +14,8 @@ Preferences preferences;
 
 // Define variables
 bool wifiConnected = false;
+volatile bool wifiDisconnectedEvent = false;
+volatile bool wifiConnectedEvent = false;
 bool portalActive = false;
 unsigned long portalStartTime = 0;
 unsigned long buttonPressStartTime = 0;
@@ -29,6 +31,38 @@ String customApiEndpoint = API_ENDPOINT;
 
 static bool routesConfigured = false;
 static bool stationServerStarted = false;
+static bool wifiEventsInitialized = false;
+
+static void onWiFiEvent(WiFiEvent_t event) {
+    switch (event) {
+        case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+        case ARDUINO_EVENT_WIFI_STA_LOST_IP:
+            if (!portalActive && !isLocalOTAModeActive()) {
+                wifiConnected = false;
+                wifiDisconnectedEvent = true;
+                wifiConnectedEvent = false;
+            }
+            break;
+
+        case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+            if (!portalActive && !isLocalOTAModeActive()) {
+                wifiConnected = true;
+                wifiConnectedEvent = true;
+                wifiDisconnectedEvent = false;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+void initWiFiEvents() {
+    if (wifiEventsInitialized) return;
+    WiFi.onEvent(onWiFiEvent);
+    wifiEventsInitialized = true;
+    Serial.println(F("[WIFI] Event listener registered for instant offline failover"));
+}
 
 // Forward declarations of server handlers
 static void handlePortalRoot();
@@ -107,7 +141,10 @@ bool connectToWiFiSilent() {
         return false;
     }
     
+    initWiFiEvents();
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
+    WiFi.setSleep(false);
     
     for (int i = 0; i < networkCount; i++) {
         Serial.printf("[WIFI] Silent connect attempt %d/%d to %s...\n", 
@@ -144,7 +181,10 @@ bool connectToWiFi() {
         return false;
     }
     
+    initWiFiEvents();
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
+    WiFi.setSleep(false);
     
     for (int i = 0; i < networkCount; i++) {
         Serial.printf("[WIFI] Connecting to network %d/%d: %s...\n", 
@@ -185,6 +225,11 @@ bool connectToWiFi() {
 void startWiFiPortal() {
     Serial.println(F("[WIFI] Starting Captive WiFi configuration portal..."));
     
+    portalActive = true;
+    wifiConnected = false;
+    wifiDisconnectedEvent = false;
+    wifiConnectedEvent = false;
+    WiFi.setAutoReconnect(false);
     WiFi.disconnect(true);
     delay(100);
     
@@ -204,7 +249,6 @@ void startWiFiPortal() {
         stationServerStarted = true;
     }
     
-    portalActive = true;
     portalStartTime = millis();
     currentScreen = SCREEN_PORTAL;
     
@@ -931,6 +975,7 @@ void startStationWebServer() {
         wifiServer.begin();
         stationServerStarted = true;
     }
+    ArduinoOTA.end();
     ArduinoOTA.setHostname("lifeline-rx-base");
     ArduinoOTA.begin();
     Serial.printf("[WEB] Station Web Dashboard active on http://%s\n", WiFi.localIP().toString().c_str());
@@ -938,7 +983,7 @@ void startStationWebServer() {
 
 void handleWiFiServer() {
     updateBuzzer();
-    if (wifiConnected && !portalActive) {
+    if (wifiConnected && WiFi.status() == WL_CONNECTED && !portalActive && !isLocalOTAModeActive()) {
         wifiServer.handleClient();
         ArduinoOTA.handle();
     }

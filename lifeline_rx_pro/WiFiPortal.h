@@ -9,6 +9,8 @@ extern WebServer wifiServer;
 extern DNSServer dnsServer;
 
 extern bool wifiConnected;
+extern volatile bool wifiDisconnectedEvent;
+extern volatile bool wifiConnectedEvent;
 extern bool portalActive;
 extern unsigned long portalStartTime;
 extern unsigned long buttonPressStartTime;
@@ -27,6 +29,7 @@ void saveWiFiCredentialsList(const WiFiNetwork nets[], int count);
 void loadAPICredentials();
 void saveAPICredentials(const String& key, const String& endpoint);
 
+void initWiFiEvents();
 bool connectToWiFi();
 bool connectToWiFiSilent();
 void startWiFiPortal();

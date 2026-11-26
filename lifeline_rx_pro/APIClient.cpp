@@ -1,168 +1,112 @@
 #include "APIClient.h"
+#include "OTAManager.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
 
 extern bool wifiConnected;
+extern bool portalActive;
 extern String customApiKey;
 extern String customApiEndpoint;
 
-bool pushAlertToAPI(int deviceId, int alertIndex, int rssi, float distanceKm, float snr, const String& customMsg, const String& source) {
-    if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
-        Serial.println(F("[API] WiFi not connected, skipping API push"));
-        return false;
-    }
-    
-    String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
-    HTTPClient http;
-    http.setTimeout(2500); // 2.5 second network timeout
-    http.begin(endpoint);
-    http.addHeader("Content-Type", "application/json");
-    if (customApiKey.length() > 0) {
-        http.addHeader("X-API-Key", customApiKey);
-        http.addHeader("Authorization", "Bearer " + customApiKey);
-    }
-    
-    String safeMsg = customMsg;
-    safeMsg.replace("\"", "\\\"");
-    safeMsg.replace("\n", " ");
-    safeMsg.replace("\r", "");
+// ═══════════════════════════════════════════════════════════════════════════════════
+//               NON-BLOCKING BACKGROUND API QUEUE & WORKER TASK
+// ═══════════════════════════════════════════════════════════════════════════════════
+enum ApiJobType {
+    JOB_ALERT = 0,
+    JOB_FULL_TELEMETRY,
+    JOB_CHAT,
+    JOB_DOWNLINK_ACK
+};
 
-    String jsonPayload = "{";
-    if (customApiKey.length() > 0) {
-        jsonPayload += "\"api_key\":\"" + customApiKey + "\",";
-    }
-    jsonPayload += "\"DID\":" + String(deviceId) + ",";
-    jsonPayload += "\"message_code\":" + String(alertIndex) + ",";
-    jsonPayload += "\"RSSI\":" + String(rssi) + ",";
-    jsonPayload += "\"snr\":" + String(snr, 1) + ",";
-    jsonPayload += "\"distance_km\":" + String(distanceKm, 2) + ",";
-    jsonPayload += "\"is_chat\":" + String(customMsg.length() > 0 ? "true" : "false") + ",";
-    jsonPayload += "\"custom_msg\":\"" + safeMsg + "\",";
-    jsonPayload += "\"source\":\"" + source + "\"";
-    jsonPayload += "}";
-    
-    Serial.printf("[API] Sending to %s: %s\n", endpoint.c_str(), jsonPayload.c_str());
-    
-    int httpResponseCode = http.POST(jsonPayload);
-    bool success = (httpResponseCode >= 200 && httpResponseCode < 300);
-    
-    if (httpResponseCode > 0) {
-        String response = http.getString();
-        Serial.printf("[API] Response (%d): %s\n", httpResponseCode, response.c_str());
-    } else {
-        Serial.printf("[API] Error: %s\n", http.errorToString(httpResponseCode).c_str());
-    }
-    
-    http.end();
-    return success;
+struct ApiJob {
+    ApiJobType type;
+    int deviceId;
+    int alertIndex;
+    char emergencyCode;
+    float temperature;
+    float humidity;
+    int gasPpm;
+    double latitude;
+    double longitude;
+    int altitude;
+    int healthScore;
+    int riskScore;
+    int rssi;
+    float snr;
+    float distanceKm;
+    bool isFullTelemetry;
+    bool isChatMessage;
+    bool loraOk;
+    bool notifyAlertIcon;
+    int commandId;
+    char message[160];
+    char source[16];
+    char status[32];
+};
+
+struct DownlinkCommandPOD {
+    int commandId;
+    int targetDeviceId;
+    char action[24];
+    char message[160];
+};
+
+static QueueHandle_t apiTxQueue = nullptr;
+static QueueHandle_t downlinkRxQueue = nullptr;
+static TaskHandle_t apiWorkerHandle = nullptr;
+
+static volatile bool apiUploadResultReady = false;
+static volatile bool apiUploadResultSuccess = false;
+
+static bool isNetworkReadyForCloud() {
+    return (wifiConnected && WiFi.status() == WL_CONNECTED && !portalActive && !isLocalOTAModeActive());
 }
 
-bool pushFullTelemetryToAPI(const FullTelemetryData& data) {
-    if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
-        Serial.println(F("[API] WiFi not connected, skipping full telemetry push"));
-        return false;
-    }
-
-    String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
-    HTTPClient http;
-    http.setTimeout(3000); // 3 second network timeout
-    http.begin(endpoint);
-    http.addHeader("Content-Type", "application/json");
-    if (customApiKey.length() > 0) {
-        http.addHeader("X-API-Key", customApiKey);
-        http.addHeader("Authorization", "Bearer " + customApiKey);
-    }
-
-    String safeMsg = data.chatMessage;
-    safeMsg.replace("\"", "\\\"");
-    safeMsg.replace("\n", " ");
-    safeMsg.replace("\r", "");
-
-    String jsonPayload = "{";
-    if (customApiKey.length() > 0) {
-        jsonPayload += "\"api_key\":\"" + customApiKey + "\",";
-    }
-    jsonPayload += "\"DID\":" + String(data.deviceId) + ",";
-    jsonPayload += "\"message_code\":" + String(data.alertIndex) + ",";
-    jsonPayload += "\"code\":\"" + String(data.emergencyCode) + "\",";
-    jsonPayload += "\"temp\":" + String(data.temperature, 1) + ",";
-    jsonPayload += "\"humidity\":" + String(data.humidity, 1) + ",";
-    jsonPayload += "\"gas_ppm\":" + String(data.gasPpm) + ",";
-    jsonPayload += "\"lat\":" + String(data.latitude, 6) + ",";
-    jsonPayload += "\"lon\":" + String(data.longitude, 6) + ",";
-    jsonPayload += "\"alt\":" + String(data.altitude) + ",";
-    jsonPayload += "\"health\":" + String(data.healthScore) + ",";
-    jsonPayload += "\"risk\":" + String(data.riskScore) + ",";
-    jsonPayload += "\"RSSI\":" + String(data.rssi) + ",";
-    jsonPayload += "\"snr\":" + String(data.snr, 1) + ",";
-    jsonPayload += "\"distance_km\":" + String(data.distanceKm, 2) + ",";
-    jsonPayload += "\"is_chat\":" + String(data.isChatMessage ? "true" : "false") + ",";
-    jsonPayload += "\"custom_msg\":\"" + safeMsg + "\",";
-    jsonPayload += "\"source\":\"LORA\"";
-    jsonPayload += "}";
-
-    Serial.printf("[API EX] Sending rich telemetry JSON: %s\n", jsonPayload.c_str());
-
-    int httpResponseCode = http.POST(jsonPayload);
-    bool success = (httpResponseCode >= 200 && httpResponseCode < 300);
-
-    if (httpResponseCode > 0) {
-        String response = http.getString();
-        Serial.printf("[API EX] Response (%d): %s\n", httpResponseCode, response.c_str());
-    } else {
-        Serial.printf("[API EX] Error: %s\n", http.errorToString(httpResponseCode).c_str());
-    }
-
-    http.end();
-    return success;
+static String escapeJsonStr(const char* input) {
+    String s = (input != nullptr) ? String(input) : String("");
+    s.replace("\\", "\\\\");
+    s.replace("\"", "\\\"");
+    s.replace("\n", " ");
+    s.replace("\r", "");
+    return s;
 }
 
-bool pushCustomChatMessageToAPI(int deviceId, const String& message, int rssi, float snr, float distanceKm, const String& source) {
-    if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
-        Serial.println(F("[API] WiFi not connected, skipping custom chat push"));
-        return false;
-    }
-
-    String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
-    HTTPClient http;
-    http.setTimeout(3000);
-    http.begin(endpoint);
-    http.addHeader("Content-Type", "application/json");
+static void addAuthHeaders(HTTPClient& http) {
     if (customApiKey.length() > 0) {
         http.addHeader("X-API-Key", customApiKey);
         http.addHeader("Authorization", "Bearer " + customApiKey);
     }
+}
 
-    String safeMsg = message;
-    safeMsg.replace("\"", "\\\"");
-    safeMsg.replace("\n", " ");
-    safeMsg.replace("\r", "");
-
-    String jsonPayload = "{";
-    if (customApiKey.length() > 0) {
-        jsonPayload += "\"api_key\":\"" + customApiKey + "\",";
+static bool executeHttpPost(const String& endpoint, const String& jsonPayload, const char* tag, int timeoutMs) {
+    if (!isNetworkReadyForCloud()) {
+        return false;
     }
-    jsonPayload += "\"DID\":" + String(deviceId) + ",";
-    jsonPayload += "\"message_code\":0,";
-    jsonPayload += "\"code\":\"M\",";
-    jsonPayload += "\"RSSI\":" + String(rssi) + ",";
-    jsonPayload += "\"snr\":" + String(snr, 1) + ",";
-    jsonPayload += "\"distance_km\":" + String(distanceKm, 2) + ",";
-    jsonPayload += "\"is_chat\":true,";
-    jsonPayload += "\"custom_msg\":\"" + safeMsg + "\",";
-    jsonPayload += "\"source\":\"" + source + "\"";
-    jsonPayload += "}";
 
-    Serial.printf("[API CHAT] Sending custom message JSON to %s: %s\n", endpoint.c_str(), jsonPayload.c_str());
+    HTTPClient http;
+    http.setConnectTimeout(2000); // Fast 2s connect timeout so dead links fail quickly
+    http.setTimeout(timeoutMs);
+    if (!http.begin(endpoint)) {
+        Serial.printf("[%s] Failed to init HTTP client\n", tag);
+        return false;
+    }
+
+    http.addHeader("Content-Type", "application/json");
+    addAuthHeaders(http);
+
+    Serial.printf("[%s] Sending to %s: %s\n", tag, endpoint.c_str(), jsonPayload.c_str());
 
     int httpResponseCode = http.POST(jsonPayload);
     bool success = (httpResponseCode >= 200 && httpResponseCode < 300);
 
     if (httpResponseCode > 0) {
         String response = http.getString();
-        Serial.printf("[API CHAT] Response (%d): %s\n", httpResponseCode, response.c_str());
+        Serial.printf("[%s] Response (%d): %s\n", tag, httpResponseCode, response.c_str());
     } else {
-        Serial.printf("[API CHAT] Error: %s\n", http.errorToString(httpResponseCode).c_str());
+        Serial.printf("[%s] Error: %s\n", tag, http.errorToString(httpResponseCode).c_str());
     }
 
     http.end();
@@ -232,11 +176,9 @@ static bool extractJsonBoolVal(const String& json, const String& key, bool defau
     return false;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════════
-//                 TWO-WAY CLOUD DOWNLINK INGESTION & ACKNOWLEDGEMENT
-// ═══════════════════════════════════════════════════════════════════════════════════
-bool pollPendingDownlinkFromAPI(DownlinkCommand& cmd) {
-    if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
+static bool executeDownlinkPoll(DownlinkCommandPOD& outCmd, bool& networkError) {
+    networkError = false;
+    if (!isNetworkReadyForCloud()) {
         return false;
     }
 
@@ -247,19 +189,16 @@ bool pollPendingDownlinkFromAPI(DownlinkCommand& cmd) {
         pollUrl = base;
     }
 
-    if (pollUrl.indexOf("?") < 0) {
-        pollUrl += "?rx_id=" + String(DEVICE_ID);
-    } else {
-        pollUrl += "&rx_id=" + String(DEVICE_ID);
-    }
+    pollUrl += (pollUrl.indexOf("?") < 0 ? "?rx_id=" : "&rx_id=") + String(DEVICE_ID);
 
     HTTPClient http;
-    http.setTimeout(2500);
-    http.begin(pollUrl);
-    if (customApiKey.length() > 0) {
-        http.addHeader("X-API-Key", customApiKey);
-        http.addHeader("Authorization", "Bearer " + customApiKey);
+    http.setConnectTimeout(2000);
+    http.setTimeout(2000);
+    if (!http.begin(pollUrl)) {
+        networkError = true;
+        return false;
     }
+    addAuthHeaders(http);
 
     int httpCode = http.GET();
     if (httpCode == 200) {
@@ -270,65 +209,291 @@ bool pollPendingDownlinkFromAPI(DownlinkCommand& cmd) {
         if (!hasCommand) {
             int cId = extractJsonIntVal(payload, "command_id", 0);
             if (cId <= 0) return false;
-            hasCommand = true;
         }
 
-        cmd.commandId = extractJsonIntVal(payload, "command_id", 0);
-        cmd.targetDeviceId = extractJsonIntVal(payload, "target_did", 0);
-        cmd.action = extractJsonStringVal(payload, "action");
-        if (cmd.action.length() == 0) cmd.action = "MSG";
-        cmd.message = extractJsonStringVal(payload, "message");
+        int cmdId = extractJsonIntVal(payload, "command_id", 0);
+        int targetDid = extractJsonIntVal(payload, "target_did", 0);
+        String action = extractJsonStringVal(payload, "action");
+        if (action.length() == 0) action = "MSG";
+        String message = extractJsonStringVal(payload, "message");
 
-        if (cmd.commandId > 0 && cmd.message.length() > 0) {
+        if (cmdId > 0 && message.length() > 0) {
+            outCmd.commandId = cmdId;
+            outCmd.targetDeviceId = targetDid;
+            strlcpy(outCmd.action, action.c_str(), sizeof(outCmd.action));
+            strlcpy(outCmd.message, message.c_str(), sizeof(outCmd.message));
             Serial.printf("[API DOWNLINK] Polled pending cmd #%d for DEV %d: %s\n",
-                          cmd.commandId, cmd.targetDeviceId, cmd.message.c_str());
+                          outCmd.commandId, outCmd.targetDeviceId, outCmd.message);
             return true;
         }
     } else {
+        if (httpCode < 0) {
+            networkError = true;
+        }
         http.end();
     }
     return false;
 }
 
-bool acknowledgeDownlinkToAPI(int commandId, const String& status, bool loraOk) {
-    if (!wifiConnected || WiFi.status() != WL_CONNECTED) {
+static bool processApiJob(const ApiJob& job) {
+    String endpoint = (customApiEndpoint.length() > 0) ? customApiEndpoint : API_ENDPOINT;
+
+    if (job.type == JOB_ALERT) {
+        String safeMsg = escapeJsonStr(job.message);
+        String json = "{";
+        if (customApiKey.length() > 0) json += "\"api_key\":\"" + customApiKey + "\",";
+        json += "\"DID\":" + String(job.deviceId) + ",";
+        json += "\"message_code\":" + String(job.alertIndex) + ",";
+        json += "\"RSSI\":" + String(job.rssi) + ",";
+        json += "\"snr\":" + String(job.snr, 1) + ",";
+        json += "\"distance_km\":" + String(job.distanceKm, 2) + ",";
+        json += "\"is_chat\":" + String(safeMsg.length() > 0 ? "true" : "false") + ",";
+        json += "\"custom_msg\":\"" + safeMsg + "\",";
+        json += "\"source\":\"" + String(job.source) + "\"";
+        json += "}";
+        return executeHttpPost(endpoint, json, "API", 2500);
+    }
+
+    if (job.type == JOB_FULL_TELEMETRY) {
+        String safeMsg = escapeJsonStr(job.message);
+        String json = "{";
+        if (customApiKey.length() > 0) json += "\"api_key\":\"" + customApiKey + "\",";
+        json += "\"DID\":" + String(job.deviceId) + ",";
+        json += "\"message_code\":" + String(job.alertIndex) + ",";
+        json += "\"code\":\"" + String(job.emergencyCode) + "\",";
+        json += "\"temp\":" + String(job.temperature, 1) + ",";
+        json += "\"humidity\":" + String(job.humidity, 1) + ",";
+        json += "\"gas_ppm\":" + String(job.gasPpm) + ",";
+        json += "\"lat\":" + String(job.latitude, 6) + ",";
+        json += "\"lon\":" + String(job.longitude, 6) + ",";
+        json += "\"alt\":" + String(job.altitude) + ",";
+        json += "\"health\":" + String(job.healthScore) + ",";
+        json += "\"risk\":" + String(job.riskScore) + ",";
+        json += "\"RSSI\":" + String(job.rssi) + ",";
+        json += "\"snr\":" + String(job.snr, 1) + ",";
+        json += "\"distance_km\":" + String(job.distanceKm, 2) + ",";
+        json += "\"is_chat\":" + String(job.isChatMessage ? "true" : "false") + ",";
+        json += "\"custom_msg\":\"" + safeMsg + "\",";
+        json += "\"source\":\"LORA\"";
+        json += "}";
+        return executeHttpPost(endpoint, json, "API EX", 2500);
+    }
+
+    if (job.type == JOB_CHAT) {
+        String safeMsg = escapeJsonStr(job.message);
+        String json = "{";
+        if (customApiKey.length() > 0) json += "\"api_key\":\"" + customApiKey + "\",";
+        json += "\"DID\":" + String(job.deviceId) + ",";
+        json += "\"message_code\":0,";
+        json += "\"code\":\"M\",";
+        json += "\"RSSI\":" + String(job.rssi) + ",";
+        json += "\"snr\":" + String(job.snr, 1) + ",";
+        json += "\"distance_km\":" + String(job.distanceKm, 2) + ",";
+        json += "\"is_chat\":true,";
+        json += "\"custom_msg\":\"" + safeMsg + "\",";
+        json += "\"source\":\"" + String(job.source) + "\"";
+        json += "}";
+        return executeHttpPost(endpoint, json, "API CHAT", 2500);
+    }
+
+    if (job.type == JOB_DOWNLINK_ACK) {
+        String ackUrl = API_DOWNLINK_ACK_ENDPOINT;
+        if (customApiEndpoint.indexOf("/API/Create/message.php") >= 0) {
+            String base = customApiEndpoint;
+            base.replace("/API/Create/message.php", "/API/Update/command_status.php");
+            ackUrl = base;
+        }
+        String json = "{";
+        if (customApiKey.length() > 0) json += "\"api_key\":\"" + customApiKey + "\",";
+        json += "\"command_id\":" + String(job.commandId) + ",";
+        json += "\"rx_id\":" + String(DEVICE_ID) + ",";
+        json += "\"status\":\"" + String(job.status) + "\",";
+        json += "\"lora_tx_ok\":" + String(job.loraOk ? "true" : "false");
+        json += "}";
+        return executeHttpPost(ackUrl, json, "API DOWNLINK ACK", 2500);
+    }
+
+    return false;
+}
+
+static void apiWorkerTask(void* pvParameters) {
+    (void)pvParameters;
+    unsigned long lastPollMs = 0;
+    unsigned long pollIntervalMs = DOWNLINK_POLL_INTERVAL_MS;
+
+    for (;;) {
+        ApiJob job;
+        if (xQueueReceive(apiTxQueue, &job, pdMS_TO_TICKS(50)) == pdTRUE) {
+            bool ok = false;
+            if (isNetworkReadyForCloud()) {
+                ok = processApiJob(job);
+            } else {
+                Serial.println(F("[API] WiFi offline, skipping queued cloud push"));
+            }
+
+            if (job.notifyAlertIcon) {
+                apiUploadResultSuccess = ok;
+                apiUploadResultReady = true;
+            }
+            continue;
+        }
+
+        if (isNetworkReadyForCloud()) {
+            unsigned long now = millis();
+            if (lastPollMs == 0 || (now - lastPollMs >= pollIntervalMs)) {
+                lastPollMs = now;
+                DownlinkCommandPOD podCmd;
+                bool netErr = false;
+                if (executeDownlinkPoll(podCmd, netErr)) {
+                    xQueueSend(downlinkRxQueue, &podCmd, 0);
+                }
+                if (netErr) {
+                    pollIntervalMs = min((unsigned long)10000, pollIntervalMs + 2000);
+                } else {
+                    pollIntervalMs = DOWNLINK_POLL_INTERVAL_MS;
+                }
+            }
+        } else {
+            lastPollMs = 0;
+            pollIntervalMs = DOWNLINK_POLL_INTERVAL_MS;
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+    }
+}
+
+void initAPIClient() {
+    if (apiTxQueue == nullptr) {
+        apiTxQueue = xQueueCreate(8, sizeof(ApiJob));
+    }
+    if (downlinkRxQueue == nullptr) {
+        downlinkRxQueue = xQueueCreate(4, sizeof(DownlinkCommandPOD));
+    }
+    if (apiWorkerHandle == nullptr && apiTxQueue != nullptr && downlinkRxQueue != nullptr) {
+        xTaskCreatePinnedToCore(
+            apiWorkerTask,
+            "api_worker",
+            10240,
+            nullptr,
+            1,
+            &apiWorkerHandle,
+            0 // Run on Core 0 so Core 1 loop() (LoRa + LCD clock) never blocks on HTTP/DNS
+        );
+        Serial.println(F("[API] Non-blocking background cloud worker started"));
+    }
+}
+
+bool consumeApiUploadResult(bool& sentToWeb) {
+    if (!apiUploadResultReady) return false;
+    sentToWeb = apiUploadResultSuccess;
+    apiUploadResultReady = false;
+    return true;
+}
+
+static bool enqueueApiJob(const ApiJob& job) {
+    if (!isNetworkReadyForCloud()) {
+        return false;
+    }
+    if (apiTxQueue == nullptr) {
+        return false;
+    }
+    if (xQueueSend(apiTxQueue, &job, 0) != pdTRUE) {
+        Serial.println(F("[API] Upload queue full, dropping oldest/new job"));
+        return false;
+    }
+    return true;
+}
+
+bool pushAlertToAPI(int deviceId, int alertIndex, int rssi, float distanceKm, float snr, const String& customMsg, const String& source) {
+    if (!isNetworkReadyForCloud()) {
+        Serial.println(F("[API] WiFi not connected, skipping API push"));
         return false;
     }
 
-    String ackUrl = API_DOWNLINK_ACK_ENDPOINT;
-    if (customApiEndpoint.indexOf("/API/Create/message.php") >= 0) {
-        String base = customApiEndpoint;
-        base.replace("/API/Create/message.php", "/API/Update/command_status.php");
-        ackUrl = base;
-    }
-
-    HTTPClient http;
-    http.setTimeout(2500);
-    http.begin(ackUrl);
-    http.addHeader("Content-Type", "application/json");
-    if (customApiKey.length() > 0) {
-        http.addHeader("X-API-Key", customApiKey);
-        http.addHeader("Authorization", "Bearer " + customApiKey);
-    }
-
-    String json = "{";
-    if (customApiKey.length() > 0) {
-        json += "\"api_key\":\"" + customApiKey + "\",";
-    }
-    json += "\"command_id\":" + String(commandId) + ",";
-    json += "\"rx_id\":" + String(DEVICE_ID) + ",";
-    json += "\"status\":\"" + status + "\",";
-    json += "\"lora_tx_ok\":" + String(loraOk ? "true" : "false");
-    json += "}";
-
-    int httpCode = http.POST(json);
-    bool ok = (httpCode >= 200 && httpCode < 300);
-    if (httpCode > 0) {
-        Serial.printf("[API DOWNLINK ACK] Cmd #%d status updated (%d): %s\n", commandId, httpCode, status.c_str());
-    } else {
-        Serial.printf("[API DOWNLINK ACK] Error acknowledging cmd #%d: %s\n", commandId, http.errorToString(httpCode).c_str());
-    }
-    http.end();
-    return ok;
+    ApiJob job = {};
+    job.type = JOB_ALERT;
+    job.deviceId = deviceId;
+    job.alertIndex = alertIndex;
+    job.rssi = rssi;
+    job.distanceKm = distanceKm;
+    job.snr = snr;
+    job.notifyAlertIcon = true;
+    strlcpy(job.message, customMsg.c_str(), sizeof(job.message));
+    strlcpy(job.source, source.c_str(), sizeof(job.source));
+    return enqueueApiJob(job);
 }
 
+bool pushFullTelemetryToAPI(const FullTelemetryData& data) {
+    if (!isNetworkReadyForCloud()) {
+        Serial.println(F("[API] WiFi not connected, skipping full telemetry push"));
+        return false;
+    }
+
+    ApiJob job = {};
+    job.type = JOB_FULL_TELEMETRY;
+    job.deviceId = data.deviceId;
+    job.alertIndex = data.alertIndex;
+    job.emergencyCode = data.emergencyCode;
+    job.temperature = data.temperature;
+    job.humidity = data.humidity;
+    job.gasPpm = data.gasPpm;
+    job.latitude = data.latitude;
+    job.longitude = data.longitude;
+    job.altitude = data.altitude;
+    job.healthScore = data.healthScore;
+    job.riskScore = data.riskScore;
+    job.rssi = data.rssi;
+    job.snr = data.snr;
+    job.distanceKm = data.distanceKm;
+    job.isFullTelemetry = data.isFullTelemetry;
+    job.isChatMessage = data.isChatMessage;
+    job.notifyAlertIcon = (data.emergencyCode != 'N' && !data.isChatMessage);
+    strlcpy(job.message, data.chatMessage.c_str(), sizeof(job.message));
+    strlcpy(job.source, "LORA", sizeof(job.source));
+    return enqueueApiJob(job);
+}
+
+bool pushCustomChatMessageToAPI(int deviceId, const String& message, int rssi, float snr, float distanceKm, const String& source) {
+    if (!isNetworkReadyForCloud()) {
+        Serial.println(F("[API] WiFi not connected, skipping custom chat push"));
+        return false;
+    }
+
+    ApiJob job = {};
+    job.type = JOB_CHAT;
+    job.deviceId = deviceId;
+    job.rssi = rssi;
+    job.snr = snr;
+    job.distanceKm = distanceKm;
+    job.isChatMessage = true;
+    job.notifyAlertIcon = false;
+    strlcpy(job.message, message.c_str(), sizeof(job.message));
+    strlcpy(job.source, source.c_str(), sizeof(job.source));
+    return enqueueApiJob(job);
+}
+
+bool pollPendingDownlinkFromAPI(DownlinkCommand& cmd) {
+    if (downlinkRxQueue == nullptr) return false;
+    DownlinkCommandPOD podCmd;
+    if (xQueueReceive(downlinkRxQueue, &podCmd, 0) == pdTRUE) {
+        cmd.commandId = podCmd.commandId;
+        cmd.targetDeviceId = podCmd.targetDeviceId;
+        cmd.action = String(podCmd.action);
+        cmd.message = String(podCmd.message);
+        return true;
+    }
+    return false;
+}
+
+bool acknowledgeDownlinkToAPI(int commandId, const String& status, bool loraOk) {
+    if (!isNetworkReadyForCloud()) {
+        return false;
+    }
+
+    ApiJob job = {};
+    job.type = JOB_DOWNLINK_ACK;
+    job.commandId = commandId;
+    job.loraOk = loraOk;
+    job.notifyAlertIcon = false;
+    strlcpy(job.status, status.c_str(), sizeof(job.status));
+    return enqueueApiJob(job);
+}

@@ -80,6 +80,7 @@ bool checkAndPerformOTA() {
     client.setInsecure(); // Secure SSL connection without hardcoded CA certificate
 
     HTTPClient http;
+    http.setConnectTimeout(3000);
     http.setTimeout(OTA_CHECK_TIMEOUT_MS);
     
     if (!http.begin(client, OTA_VERSION_URL)) {

@@ -16,6 +16,7 @@
 #include "APIClient.h"
 #include "OTAManager.h"
 #include "BLEManager.h"
+#include <WiFi.h>
 
 // Static serial debugger variables
 static String serialInputBuffer = "";
@@ -75,11 +76,13 @@ bool handleIncomingLoRaTelemetry() {
         // 3. Send LoRa Downlink ACK to TX unit (buzzer and LED already active without delay)
         sendDownlinkACK(telemetry.deviceId, telemetry.emergencyCode, "LOGGED", "Base confirmed");
 
-        // 4. Upload to Cloud Web API
-        bool sentToWeb = pushFullTelemetryToAPI(telemetry);
+        // 4. Queue upload to Cloud Web API (non-blocking)
+        bool queuedForWeb = pushFullTelemetryToAPI(telemetry);
 
-        // 5. Dynamically update Wi-Fi icon on LCD to reflect real cloud push status
-        updateAlertWebStatus(sentToWeb);
+        // 5. Immediately reflect offline status if Wi-Fi is down; otherwise icon updates on upload completion
+        if (!queuedForWeb) {
+            updateAlertWebStatus(false);
+        }
     }
 
     return true;
@@ -120,6 +123,8 @@ void setup() {
     
     initLoRa();
     initBLE();
+    initWiFiEvents();
+    initAPIClient();
     
     Serial.println(F("=== Ready to receive emergency alerts & BLE Commander ===\n"));
     
@@ -130,6 +135,40 @@ void setup() {
 
 void loop() {
     updateLEDs();
+    
+    // Immediate offline/online transition handling so LCD switches to Offline Mode without stalling LoRa RX
+    static bool prevWifiConnected = false;
+    if (wifiDisconnectedEvent || (prevWifiConnected && !wifiConnected)) {
+        wifiDisconnectedEvent = false;
+        prevWifiConnected = false;
+        if (!portalActive && !isLocalOTAModeActive()) {
+            Serial.println(F("[WIFI] WiFi stopped/lost -> Immediately switching to Offline Mode"));
+            if (currentScreen == SCREEN_IDLE) {
+                drawIdleScreen();
+            }
+        }
+    }
+    if (wifiConnectedEvent || (!prevWifiConnected && wifiConnected)) {
+        wifiConnectedEvent = false;
+        if (wifiConnected && WiFi.status() == WL_CONNECTED) {
+            prevWifiConnected = true;
+            if (!portalActive && !isLocalOTAModeActive()) {
+                Serial.println(F("[WIFI] WiFi connected/restored -> Syncing time & web server"));
+                initNTPTime();
+                startStationWebServer();
+                if (currentScreen == SCREEN_IDLE || currentScreen == SCREEN_NO_WIFI) {
+                    currentScreen = SCREEN_IDLE;
+                    drawIdleScreen();
+                }
+            }
+        }
+    }
+
+    bool apiUploadOk = false;
+    if (consumeApiUploadResult(apiUploadOk)) {
+        updateAlertWebStatus(apiUploadOk);
+    }
+
     updateBuzzer();
     updateBLE();
     handleLocalOTA();
@@ -167,8 +206,10 @@ void loop() {
                 drawAlertScreen(simTelem.alertIndex, simTelem.rssi, simTelem.snr, simTelem.distanceKm, false, false);
                 notifyBLEAlert(simTelem.deviceId, simTelem.emergencyCode, alertNames[simTelem.alertIndex], simTelem.rssi);
                 sendDownlinkACK(simTelem.deviceId, simTelem.emergencyCode, "LOGGED", "Base confirmed");
-                bool sentToWeb = pushFullTelemetryToAPI(simTelem);
-                updateAlertWebStatus(sentToWeb);
+                bool queuedForWeb = pushFullTelemetryToAPI(simTelem);
+                if (!queuedForWeb) {
+                    updateAlertWebStatus(false);
+                }
             }
         }
     }
@@ -215,13 +256,10 @@ void loop() {
         pushCustomChatMessageToAPI(0, chat, -50, 10.0f, 0.01f, "BLE");
     }
     
-    // Check for pending Cloud Downlink commands from Website (Website -> RX Gateway -> TX Handheld)
-    static unsigned long lastDownlinkPollTime = 0;
+    // Check for pending Cloud Downlink commands from Website (non-blocking queue read)
     if (wifiConnected && !portalActive && !isLocalOTAModeActive()) {
-        if (millis() - lastDownlinkPollTime >= DOWNLINK_POLL_INTERVAL_MS) {
-            lastDownlinkPollTime = millis();
-            DownlinkCommand cmd;
-            if (pollPendingDownlinkFromAPI(cmd)) {
+        DownlinkCommand cmd;
+        if (pollPendingDownlinkFromAPI(cmd)) {
                 Serial.printf("[CLOUD DOWNLINK] Received Web Command #%d for TX #%03d (%s): '%s'\n",
                               cmd.commandId, cmd.targetDeviceId, cmd.action.c_str(), cmd.message.c_str());
 
@@ -252,7 +290,6 @@ void loop() {
                 snprintf(confirm, sizeof(confirm), "WEB_DOWNLINK:ID=%d,DEV=%03d,OK=%d", cmd.commandId, cmd.targetDeviceId, txOk ? 1 : 0);
                 sendBLEString(String(confirm));
                 Serial.println(confirm);
-            }
         }
     }
     

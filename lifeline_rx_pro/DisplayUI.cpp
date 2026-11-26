@@ -137,7 +137,7 @@ void initNTPTime() {
 
 bool getFormattedTimeStr(char* buffer, size_t maxLen) {
     struct tm timeinfo;
-    if (!getLocalTime(&timeinfo, 10)) {
+    if (!getLocalTime(&timeinfo, 0)) {
         return false;
     }
     snprintf(buffer, maxLen, "%02d:%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
@@ -198,7 +198,7 @@ void formatSNR(float snr, char* buffer, size_t maxLen) {
 }
 
 void drawIdleScreen() {
-    bool wifiOk = (WiFi.status() == WL_CONNECTED || wifiConnected);
+    bool wifiOk = (WiFi.status() == WL_CONNECTED && wifiConnected);
     if (wifiOk) {
         char timeBuf[12];
         if (getFormattedTimeStr(timeBuf, sizeof(timeBuf))) {
@@ -230,7 +230,7 @@ void updateIdleAnimation() {
         lastPulseTime = currentTime;
         pulseState = (pulseState + 1) % 4;
         
-        bool wifiOk = (WiFi.status() == WL_CONNECTED || wifiConnected);
+        bool wifiOk = (WiFi.status() == WL_CONNECTED && wifiConnected);
         if (wifiOk) {
             char timeBuf[12];
             if (getFormattedTimeStr(timeBuf, sizeof(timeBuf))) {
